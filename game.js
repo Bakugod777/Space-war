@@ -310,3 +310,65 @@ const bgMusic = new Audio("assets/background.mp3");
 bgMusic.loop = true;
 bgMusic.play();
 
+// Controles táctiles para dispositivos móviles
+canvas.addEventListener("touchstart", handleTouchStart, false);
+canvas.addEventListener("touchmove", handleTouchMove, false);
+canvas.addEventListener("touchend", handleTouchEnd, false);
+
+let touchX, touchY;
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchX = touch.clientX;
+    touchY = touch.clientY;
+    if (touchY < canvas.height / 2) {
+        player.shooting = true;
+    }
+}
+
+function handleTouchMove(e) {
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchX;
+    const deltaY = touch.clientY - touchY;
+    touchX = touch.clientX;
+    touchY = touch.clientY;
+
+    if (deltaX < 0) player.movingLeft = true;
+    if (deltaX > 0) player.movingRight = true;
+    if (deltaY < 0) player.movingUp = true;
+    if (deltaY > 0) player.movingDown = true;
+}
+
+function handleTouchEnd(e) {
+    player.movingLeft = false;
+    player.movingRight = false;
+    player.movingUp = false;
+    player.movingDown = false;
+    player.shooting = false;
+}
+
+const leftButton = document.getElementById("leftButton");
+const rightButton = document.getElementById("rightButton");
+const upButton = document.getElementById("upButton");
+const downButton = document.getElementById("downButton");
+const shootButton = document.getElementById("shootButton");
+
+leftButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingLeft = true; });
+leftButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingLeft = false; });
+leftButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingLeft = false; });
+
+rightButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingRight = true; });
+rightButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingRight = false; });
+rightButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingRight = false; });
+
+upButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingUp = true; });
+upButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingUp = false; });
+upButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingUp = false; });
+
+downButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingDown = true; });
+downButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingDown = false; });
+downButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingDown = false; });
+
+shootButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.shooting = true; });
+shootButton.addEventListener("touchend", (e) => { e.preventDefault(); player.shooting = false; });
+shootButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.shooting = false; });

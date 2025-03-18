@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background: black;
+    background: linear-gradient(to bottom, #000428, #004e92);
     color: white;
     font-family: 'Arial', sans-serif;
     text-align: center;
@@ -147,6 +147,33 @@ canvas {
     display: none;
     z-index: 1000;
     text-align: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+#highScores {
+    margin-top: 20px;
+}
+
+#highScores h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+#highScores ul {
+    list-style: none;
+    padding: 0;
+    font-size: 1.2em;
+}
+
+#highScores li {
+    margin: 5px 0;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes fadeIn {
@@ -190,4 +217,34 @@ canvas {
         font-size: 16px;
         padding: 8px;
     }
+}
+
+/* Controles táctiles */
+#touchControls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    padding: 0 10px;
+    z-index: 999;
+  }
+.touchButton {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    user-select: none;
+}
+
+.touchButton:active {
+    background: rgba(255, 255, 255, 0.3);
 }
