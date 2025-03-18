@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shoot 'em up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div class="stars"></div>
+        <div id="menu">
+            <h1>Shoot 'em Up</h1>
+            <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+            <button id="startGame">Iniciar Juego</button>
+            <div id="highScores">
+                <h2>Mejores Puntajes</h2>
+                <ul id="scoresList"></ul>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
+    </div>
+    
+    <script src="game.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const scores = JSON.parse(localStorage.getItem("scores")) || [];
+            displayScores(scores);
+        });
+
+        function displayScores(scores) {
+            const scoresList = document.getElementById("scoresList");
+            scoresList.innerHTML = "";
+            scores.forEach(score => {
+                const li = document.createElement("li");
+                li.textContent = `${score.name}: ${score.score}`;
+                scoresList.appendChild(li);
+            });
+        }
+</script>
+</body>
+</html>
