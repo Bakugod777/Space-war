@@ -171,7 +171,7 @@ function updateGame() {
                 
                 if (enemy.health <= 0) {
                     enemies.splice(j, 1);
-                    score += 10;
+                    score += 10; // Aquí es donde se suman los 10 puntos
                     scoreDisplay.textContent = score;
                     
                     const explosionSound = new Audio("assets/explosion.wav");
