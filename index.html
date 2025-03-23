@@ -22,7 +22,7 @@
         <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
         <div id="touchControls">
             <div id="leftControls">
-                <div class="touchButton" id="shootButton">Shoot</div>
+                <div class="touchButton" id="shootButton">shoot</div>
             </div>
             <div id="rightControls">
                 <div class="touchButton" id="upButton">↑</div>
@@ -41,7 +41,7 @@
             const scores = JSON.parse(localStorage.getItem("scores")) || [];
             displayScores(scores);
         });
-//score
+
         function displayScores(scores) {
             const scoresList = document.getElementById("scoresList");
             scoresList.innerHTML = "";
