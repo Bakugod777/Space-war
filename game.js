@@ -207,7 +207,7 @@ function updateGame() {
                 gameRunning = false;
                 gameOver();
             } else {
-                // Efecto de pérdida de vida
+                // Efecto de pérdida de vida en la barra de corazones
                 heartsDisplay.classList.add("pulse");
                 setTimeout(() => {
                     heartsDisplay.classList.remove("pulse");
@@ -221,7 +221,7 @@ function updateGame() {
         ctx.drawImage(kit.image, kit.x, kit.y, kit.width, kit.height);
         if (kit.y > canvas.height) kits.splice(i, 1);
 
-        // Colisión con el jugador
+        // Colisión con el jugador para recoger el kit
         if (kit.x < player.x + player.width &&
             kit.x + kit.width > player.x &&
             kit.y < player.y + player.height &&
@@ -258,7 +258,7 @@ function saveScore() {
     let scores = JSON.parse(localStorage.getItem("scores")) || [];
     scores.push({ name: playerName, score: score });
     scores.sort((a, b) => b.score - a.score);
-    scores = scores.slice(0, 10); // Mantener solo los mejores 10 puntajes
+    scores = scores.slice(0, 10); // Mantener solo los mejores 10 puntajes en la tabla
     localStorage.setItem("scores", JSON.stringify(scores));
     displayScores(scores);
 }
@@ -310,7 +310,7 @@ const bgMusic = new Audio("assets/background.mp3");
 bgMusic.loop = true;
 bgMusic.play();
 
-// Controles táctiles para dispositivos móviles
+// Controles táctiles para dispositivos móviles y botones en pantalla
 canvas.addEventListener("touchstart", handleTouchStart, false);
 canvas.addEventListener("touchmove", handleTouchMove, false);
 canvas.addEventListener("touchend", handleTouchEnd, false);
