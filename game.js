@@ -104,7 +104,7 @@ document.addEventListener("keyup", (e) => {
     if (e.key === " ") player.shooting = false;
 });
 
-const shootSound = new Audio("assets/shoot.wav");
+const shootSound = new Audio("assets/shoot.mp3");
 
 function shoot() {
     if (player.canShoot) {
