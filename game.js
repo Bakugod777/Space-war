@@ -76,6 +76,7 @@ player.image.src = "assets/player.png";
 let bullets = [];
 let enemies = [];
 let kits = [];
+let meteors = []; // Nueva array para meteoritos
 let score = 0;
 let level = 1;
 let gameRunning = false;
@@ -144,6 +145,22 @@ function spawnKit() {
     kits.push(kit);
 }
 
+function spawnMeteor() {
+    const meteor = {
+        x: Math.random() * (canvas.width - 70),
+        y: -70,
+        width: 70,
+        height: 70,
+        speed: 3,
+        image: new Image(),
+        rotation: 0,
+        rotationSpeed: (Math.random() - 0.5) * 0.1,
+        health: 2  // salud del meteorito
+    };
+    meteor.image.src = "assets/meteor.png";
+    meteors.push(meteor);
+}
+
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -188,6 +205,34 @@ function updateGame() {
                 }
             }
         });
+
+        meteors.forEach((meteor, j) => {
+            if (bullet.x < meteor.x + meteor.width &&
+                bullet.x + 5 > meteor.x &&
+                bullet.y < meteor.y + meteor.height &&
+                bullet.y + 10 > meteor.y) {
+                
+                meteor.health--;
+                bullets.splice(i, 1);
+                
+                if (meteor.health <= 0) {
+                    meteors.splice(j, 1);
+                    score += 20; // Más puntos por destruir un meteorito
+                    scoreDisplay.textContent = score;
+                    
+                    const explosionSound = new Audio("assets/explosion.wav");
+                    explosionSound.play();
+                } else {
+                    // Efecto visual de impacto
+                    const impactSound = new Audio("assets/impact.wav");
+                    impactSound.play();
+                }
+            }
+        });
+
+        if (bullet.y < 0) {
+            bullets.splice(i, 1);
+        }
     });
 
     enemies.forEach((enemy, i) => {
@@ -230,6 +275,60 @@ function updateGame() {
             if (player.hearts < 3) {
                 player.hearts++;
                 updateHeartsDisplay();
+            }
+        }
+    });
+
+    meteors.forEach((meteor, i) => {
+        meteor.y += meteor.speed;
+        meteor.rotation += meteor.rotationSpeed;
+        
+        // Guardar el estado actual del contexto
+        ctx.save();
+        
+        // Trasladar al centro del meteorito
+        ctx.translate(meteor.x + meteor.width/2, meteor.y + meteor.height/2);
+        
+        // Rotar
+        ctx.rotate(meteor.rotation);
+        
+        // Dibujar el meteorito
+        ctx.drawImage(
+            meteor.image, 
+            -meteor.width/2, 
+            -meteor.height/2, 
+            meteor.width, 
+            meteor.height
+        );
+        
+        // Restaurar el estado del contexto
+        ctx.restore();
+
+        if (meteor.y > canvas.height) {
+            meteors.splice(i, 1);
+        }
+
+        // Colisión con el jugador
+        if (meteor.x < player.x + player.width &&
+            meteor.x + meteor.width > player.x &&
+            meteor.y < player.y + player.height &&
+            meteor.y + meteor.height > player.y) {
+            meteors.splice(i, 1);
+            player.hearts--;
+            updateHeartsDisplay();
+            
+            // Efecto visual y sonoro
+            const explosionSound = new Audio("assets/explosion.wav");
+            explosionSound.play();
+            
+            if (player.hearts <= 0) {
+                gameRunning = false;
+                gameOver();
+            } else {
+                heartsDisplay.classList.add("pulse");
+                setTimeout(() => {
+                    heartsDisplay.classList.remove("pulse");
+                }, 1000);
             }
         }
     });
@@ -287,6 +386,7 @@ function startGame() {
     enemies = [];
     bullets = [];
     kits = [];
+    meteors = []; 
     gameRunning = true;
     gameOverDisplay.style.display = "none";
     canvas.style.filter = "none";
@@ -302,6 +402,9 @@ function spawnEnemies() {
         }
         if (Math.random() < 0.1) { // 10% de probabilidad de que aparezca un kit
             spawnKit();
+        }
+        if (Math.random() < 0.05) { // 5% de probabilidad de que aparezca un meteorito
+            spawnMeteor();
         }
     }, 2000);
 }
