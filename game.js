@@ -73,10 +73,11 @@ const player = {
 };
 player.image.src = "assets/player.png";
 
-let bullets = [];
-let enemies = [];
-let kits = [];
-let meteors = []; 
+let bullets = []; // Balas del jugador
+let enemies = []; // Enemigos
+let kits = []; // Kits de salud
+let meteors = [];   // Meteoritos
+let enemyBullets = []; // Balas enemigas
 let score = 0;
 let level = 1;
 let gameRunning = false;
@@ -118,6 +119,7 @@ function shoot() {
     }
 }
 
+// Modificar la función spawnEnemy para incluir el nuevo tipo de enemigo
 function spawnEnemy() {
     const enemy = {
         x: Math.random() * (canvas.width - 50),
@@ -127,27 +129,50 @@ function spawnEnemy() {
         speed: Math.random() * 2 + 1,
         health: 1,
         image: new Image(),
+        canShoot: false,
+        lastShot: 0
     };
 
     // Determinar el tipo de enemigo basado en el nivel
-    if (level >= 20 && Math.random() > 0.85) {
-        // Enemigo tipo 3 (rápido)
+    if (level >= 30 && Math.random() > 0.9) {
+        // Enemigo tipo 4 (artillero)
         enemy.health = 2;
-        enemy.speed = Math.random() * 4 + 5; // Velocidad entre 5 y 9
+        enemy.speed = 0.5; // Muy lento
+        enemy.canShoot = true; // Puede disparar
+        enemy.image.src = "assets/enemy4.png";
+    } else if (level >= 20 && Math.random() > 0.85) {
+        // Enemigo tipo 3 (muy rápido)
+        enemy.health = 2;
+        enemy.speed = Math.random() * 4 + 5; // Velocidad entre 7 y 13
         enemy.image.src = "assets/enemy3.png";
     } else if (level >= 10 && Math.random() > 0.8) {
         // Enemigo tipo 2 (resistente)
         enemy.health = 3;
-        enemy.speed = Math.random() * 2 + 1;
+        enemy.speed = Math.random() * 2 + 1; // Velocidad entre 1 y 3
         enemy.image.src = "assets/enemy2.png";
     } else {
         // Enemigo tipo 1 (normal)
         enemy.health = 1;
-        enemy.speed = Math.random() * 2 + 1;
+        enemy.speed = Math.random() * 2 + 1; // Velocidad entre 1 y 3
         enemy.image.src = "assets/enemy1.png";
     }
 
     enemies.push(enemy);
+}
+
+// Añadir función para que el enemigo dispare
+function enemyShoot(enemy) {
+    const currentTime = Date.now();
+    if (currentTime - enemy.lastShot > 3000) { // Dispara cada 3 segundos
+        enemyBullets.push({
+            x: enemy.x + enemy.width / 2,
+            y: enemy.y + enemy.height,
+            speed: 5,
+            width: 3,
+            height: 8
+        });
+        enemy.lastShot = currentTime;
+    }
 }
 
 function spawnKit() {
@@ -167,8 +192,8 @@ function spawnMeteor() {
     const meteor = {
         x: Math.random() * (canvas.width - 70),
         y: -70,
-        width: 70,
-        height: 70,
+        width: 70,  // Aumentar el tamaño del meteorito
+        height: 70, // Aumentar el tamaño del meteorito
         speed: 3,
         image: new Image(),
         rotation: 0,
@@ -179,6 +204,7 @@ function spawnMeteor() {
     meteors.push(meteor);
 }
 
+// Modificar la función updateGame para incluir las balas enemigas
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -253,6 +279,38 @@ function updateGame() {
         }
     });
 
+    // Actualizar y dibujar balas enemigas
+    enemyBullets.forEach((bullet, i) => {
+        bullet.y += bullet.speed;
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+
+        // Colisión con el jugador
+        if (bullet.x < player.x + player.width &&
+            bullet.x + bullet.width > player.x &&
+            bullet.y < player.y + player.height &&
+            bullet.y + bullet.height > player.y) {
+            enemyBullets.splice(i, 1);
+            player.hearts--;
+            updateHeartsDisplay();
+            
+            if (player.hearts <= 0) {
+                gameRunning = false;
+                gameOver();
+            } else {
+                heartsDisplay.classList.add("pulse");
+                setTimeout(() => {
+                    heartsDisplay.classList.remove("pulse");
+                }, 1000);
+            }
+        }
+
+        // Eliminar balas que salen de la pantalla
+        if (bullet.y > canvas.height) {
+            enemyBullets.splice(i, 1);
+        }
+    });
+
     enemies.forEach((enemy, i) => {
         enemy.y += enemy.speed;
         ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
@@ -276,6 +334,11 @@ function updateGame() {
                     heartsDisplay.classList.remove("pulse");
                 }, 1000);
             }
+        }
+
+        // Hacer que el enemigo dispare si puede
+        if (enemy.canShoot) {
+            enemyShoot(enemy);
         }
     });
 
@@ -394,6 +457,7 @@ document.getElementById("restartBtn").addEventListener("click", () => {
     window.location.reload();
 });
 
+// Modificar la función startGame para limpiar las balas enemigas
 function startGame() {
     level = 1;
     score = 0;
@@ -405,6 +469,7 @@ function startGame() {
     bullets = [];
     kits = [];
     meteors = []; 
+    enemyBullets = []; // Limpiar las balas enemigas
     gameRunning = true;
     gameOverDisplay.style.display = "none";
     canvas.style.filter = "none";
