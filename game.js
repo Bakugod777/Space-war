@@ -22,7 +22,7 @@ document.getElementById("game-container").appendChild(levelDisplay);
 
 heartsDisplay.id = "heartsDisplay";
 heartsDisplay.style.position = "absolute";
-heartsDisplay.style.top = "50px"; // Cambiado para evitar superposición
+heartsDisplay.style.top = "50px"; 
 heartsDisplay.style.right = "20px";
 heartsDisplay.style.fontSize = "20px";
 heartsDisplay.style.background = "rgba(0, 0, 0, 0.5)";
@@ -76,7 +76,7 @@ player.image.src = "assets/player.png";
 let bullets = [];
 let enemies = [];
 let kits = [];
-let meteors = []; // Nueva array para meteoritos
+let meteors = []; 
 let score = 0;
 let level = 1;
 let gameRunning = false;
@@ -125,10 +125,28 @@ function spawnEnemy() {
         width: 50,
         height: 50,
         speed: Math.random() * 2 + 1,
-        health: level >= 10 && Math.random() > 0.8 ? 3 : 1, // Enemigo 2 tiene más vida y aparece menos
+        health: 1,
         image: new Image(),
     };
-    enemy.image.src = enemy.health > 1 ? "assets/enemy2.png" : "assets/enemy1.png";
+
+    // Determinar el tipo de enemigo basado en el nivel
+    if (level >= 20 && Math.random() > 0.85) {
+        // Enemigo tipo 3 (rápido)
+        enemy.health = 2;
+        enemy.speed = Math.random() * 4 + 5; // Velocidad entre 5 y 9
+        enemy.image.src = "assets/enemy3.png";
+    } else if (level >= 10 && Math.random() > 0.8) {
+        // Enemigo tipo 2 (resistente)
+        enemy.health = 3;
+        enemy.speed = Math.random() * 2 + 1;
+        enemy.image.src = "assets/enemy2.png";
+    } else {
+        // Enemigo tipo 1 (normal)
+        enemy.health = 1;
+        enemy.speed = Math.random() * 2 + 1;
+        enemy.image.src = "assets/enemy1.png";
+    }
+
     enemies.push(enemy);
 }
 
