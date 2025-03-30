@@ -78,6 +78,9 @@ let enemies = []; // Enemigos
 let kits = []; // Kits de salud
 let meteors = [];   // Meteoritos
 let enemyBullets = []; // Balas enemigas
+let xiaos = []; // Array para los kits especiales xiao
+let maxHearts = 3; // Corazones base máximos
+let hasExtraHeart = false; // Controla si el jugador tiene el corazón extra
 let score = 0;
 let level = 1;
 let gameRunning = false;
@@ -204,6 +207,20 @@ function spawnMeteor() {
     meteors.push(meteor);
 }
 
+// Añade la función para crear el kit especial xiao
+function spawnXiao() {
+    const xiao = {
+        x: Math.random() * (canvas.width - 50),
+        y: -50,
+        width: 50,
+        height: 50,
+        speed: 1.5, // Más lento que el kit normal
+        image: new Image(),
+    };
+    xiao.image.src = "assets/xiao.png"; // Necesitarás una imagen especial para este kit
+    xiaos.push(xiao);
+}
+
 // Modificar la función updateGame para incluir las balas enemigas
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -291,18 +308,7 @@ function updateGame() {
             bullet.y < player.y + player.height &&
             bullet.y + bullet.height > player.y) {
             enemyBullets.splice(i, 1);
-            player.hearts--;
-            updateHeartsDisplay();
-            
-            if (player.hearts <= 0) {
-                gameRunning = false;
-                gameOver();
-            } else {
-                heartsDisplay.classList.add("pulse");
-                setTimeout(() => {
-                    heartsDisplay.classList.remove("pulse");
-                }, 1000);
-            }
+            handlePlayerDamage();
         }
 
         // Eliminar balas que salen de la pantalla
@@ -322,18 +328,7 @@ function updateGame() {
             enemy.y < player.y + player.height &&
             enemy.y + enemy.height > player.y) {
             enemies.splice(i, 1);
-            player.hearts--;
-            updateHeartsDisplay();
-            if (player.hearts <= 0) {
-                gameRunning = false;
-                gameOver();
-            } else {
-                // Efecto de pérdida de vida en la barra de corazones
-                heartsDisplay.classList.add("pulse");
-                setTimeout(() => {
-                    heartsDisplay.classList.remove("pulse");
-                }, 1000);
-            }
+            handlePlayerDamage();
         }
 
         // Hacer que el enemigo dispare si puede
@@ -353,7 +348,7 @@ function updateGame() {
             kit.y < player.y + player.height &&
             kit.y + kit.height > player.y) {
             kits.splice(i, 1);
-            if (player.hearts < 3) {
+            if (player.hearts < maxHearts) {
                 player.hearts++;
                 updateHeartsDisplay();
             }
@@ -395,20 +390,41 @@ function updateGame() {
             meteor.y < player.y + player.height &&
             meteor.y + meteor.height > player.y) {
             meteors.splice(i, 1);
-            player.hearts--;
-            updateHeartsDisplay();
+            handlePlayerDamage();
             
             // Efecto visual y sonoro
             const explosionSound = new Audio("assets/explosion.wav");
             explosionSound.play();
-            
-            if (player.hearts <= 0) {
-                gameRunning = false;
-                gameOver();
-            } else {
-                heartsDisplay.classList.add("pulse");
+        }
+    });
+
+    xiaos.forEach((xiao, i) => {
+        xiao.y += xiao.speed;
+        ctx.drawImage(xiao.image, xiao.x, xiao.y, xiao.width, xiao.height);
+        
+        if (xiao.y > canvas.height) {
+            xiaos.splice(i, 1);
+        }
+
+        // Colisión con el jugador
+        if (xiao.x < player.x + player.width &&
+            xiao.x + xiao.width > player.x &&
+            xiao.y < player.y + player.height &&
+            xiao.y + xiao.height > player.y) {
+            xiaos.splice(i, 1);
+            if (player.hearts === maxHearts && !hasExtraHeart) {
+                player.hearts++;
+                hasExtraHeart = true;
+                updateHeartsDisplay();
+                
+                // Efecto visual y sonoro especial
+                const xiaoSound = new Audio("assets/xiao.wav");
+                xiaoSound.play();
+                
+                // Efecto visual especial
+                heartsDisplay.style.animation = "glow 1s ease-in-out";
                 setTimeout(() => {
-                    heartsDisplay.classList.remove("pulse");
+                    heartsDisplay.style.animation = "";
                 }, 1000);
             }
         }
@@ -421,9 +437,12 @@ function updateHeartsDisplay() {
     heartsDisplay.innerHTML = "";
     for (let i = 0; i < player.hearts; i++) {
         const heart = document.createElement("img");
-        heart.src = "assets/heart.png";
+        heart.src = i < maxHearts ? "assets/heart.png" : "assets/xiao_heart.png";
         heart.style.width = "20px";
         heart.style.margin = "0 5px";
+        if (i >= maxHearts) {
+            heart.style.filter = "hue-rotate(90deg)"; // Da un color diferente al corazón extra
+        }
         heartsDisplay.appendChild(heart);
     }
 }
@@ -457,11 +476,11 @@ document.getElementById("restartBtn").addEventListener("click", () => {
     window.location.reload();
 });
 
-// Modificar la función startGame para limpiar las balas enemigas
+// Modifica la función startGame para resetear el estado de xiao
 function startGame() {
     level = 1;
     score = 0;
-    player.hearts = 3;
+    player.hearts = maxHearts;
     levelDisplay.textContent = `Nivel: ${level}`;
     scoreDisplay.textContent = score;
     updateHeartsDisplay();
@@ -470,6 +489,8 @@ function startGame() {
     kits = [];
     meteors = []; 
     enemyBullets = []; // Limpiar las balas enemigas
+    xiaos = [];
+    hasExtraHeart = false;
     gameRunning = true;
     gameOverDisplay.style.display = "none";
     canvas.style.filter = "none";
@@ -477,6 +498,25 @@ function startGame() {
     updateGame();
 }
 
+// Modifica la función donde se pierde vida para manejar la pérdida del corazón extra
+function handlePlayerDamage() {
+    player.hearts--;
+    if (player.hearts === maxHearts) {
+        hasExtraHeart = false;
+    }
+    updateHeartsDisplay();
+    if (player.hearts <= 0) {
+        gameRunning = false;
+        gameOver();
+    } else {
+        heartsDisplay.classList.add("pulse");
+        setTimeout(() => {
+            heartsDisplay.classList.remove("pulse");
+        }, 1000);
+    }
+}
+
+// Modifica la función spawnEnemies para incluir la aparición de xiao
 function spawnEnemies() {
     setInterval(() => {
         let enemiesToSpawn = level % 10 === 0 ? 1 : level % 10;
@@ -488,6 +528,10 @@ function spawnEnemies() {
         }
         if (Math.random() < 0.05) { // 5% de probabilidad de que aparezca un meteorito
             spawnMeteor();
+        }
+        // Spawn xiao con 2% de probabilidad solo si el jugador tiene exactamente 3 corazones
+        if (Math.random() < 0.02 && player.hearts === maxHearts && !hasExtraHeart) {
+            spawnXiao();
         }
     }, 2000);
 }
