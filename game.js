@@ -101,8 +101,8 @@ const timerSpan = document.getElementById('timer');
 // Modifica estas variables globales
 let joystickActive = false;
 let joystickCenter = { x: 0, y: 0 };
-let maxJoystickDistance = 50; // Reducir de 50 a 40 para un control más preciso
-const deadzone = 8; // Reducir de 10 a 8 para mejor respuesta a movimientos pequeños
+let maxJoystickDistance = 45; // Reducir de 50 a 40 para un control más preciso
+const deadzone = 7; // Reducir de 10 a 7 para mejor respuesta a movimientos pequeños
 
 // Añadir después de las variables globales
 const shootButton = document.getElementById("shootButton");
