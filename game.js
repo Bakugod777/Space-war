@@ -103,6 +103,25 @@ let joystickActive = false;
 let joystickCenter = { x: 0, y: 0 };
 let maxJoystickDistance = 50;
 
+// Añadir después de las variables globales
+const shootButton = document.getElementById("shootButton");
+
+// Añadir los event listeners del botón de disparo
+shootButton.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    player.shooting = true;
+});
+
+shootButton.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    player.shooting = false;
+});
+
+shootButton.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
+    player.shooting = false;
+});
+
 startGameBtn.addEventListener("click", () => {
     playerName = playerNameInput.value || "Jugador";
     menu.style.display = "none";
@@ -844,32 +863,6 @@ function handleTouchEnd(e) {
     player.movingDown = false;
     player.shooting = false;
 }
-
-const leftButton = document.getElementById("leftButton");
-const rightButton = document.getElementById("rightButton");
-const upButton = document.getElementById("upButton");
-const downButton = document.getElementById("downButton");
-const shootButton = document.getElementById("shootButton");
-
-leftButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingLeft = true; });
-leftButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingLeft = false; });
-leftButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingLeft = false; });
-
-rightButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingRight = true; });
-rightButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingRight = false; });
-rightButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingRight = false; });
-
-upButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingUp = true; });
-upButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingUp = false; });
-upButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingUp = false; });
-
-downButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.movingDown = true; });
-downButton.addEventListener("touchend", (e) => { e.preventDefault(); player.movingDown = false; });
-downButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.movingDown = false; });
-
-shootButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.shooting = true; });
-shootButton.addEventListener("touchend", (e) => { e.preventDefault(); player.shooting = false; });
-shootButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.shooting = false; });
 
 // Añade esta nueva función para crear el efecto de curación
 function createHealEffect(x, y) {

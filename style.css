@@ -273,12 +273,28 @@ canvas {
 #shootButton {
     width: var(--button-size);
     height: var(--button-size);
-    font-size: min(35px, 6vw);
-    background: rgba(255, 0, 0, 0.25);
+    font-size: min(24px, 5vw);
+    background: rgba(255, 0, 0, 0.3);
     border: 2px solid rgba(255, 0, 0, 0.5);
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    text-transform: uppercase;
+    font-weight: bold;
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
     transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+#shootButton:active {
+    transform: scale(0.9);
+    background: rgba(255, 0, 0, 0.5);
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
 }
 
 .touchButton {
@@ -306,12 +322,6 @@ canvas {
     transform: scale(0.9);
     background: rgba(255, 255, 255, 0.3);
     box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
-}
-
-#shootButton:active {
-    transform: scale(0.9);
-    background: rgba(255, 0, 0, 0.4);
-    box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
 }
 
 #powerUpTimer {
