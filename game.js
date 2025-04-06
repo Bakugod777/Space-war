@@ -79,12 +79,21 @@ let kits = []; // Kits de salud
 let meteors = [];   // Meteoritos
 let enemyBullets = []; // Balas enemigas
 let xiaos = []; // Array para los kits especiales xiao
+let arlees = []; // Array para los power-ups de velocidad de disparo
+let hasFireRateBoost = false; // Control del power-up activo
+let normalFireRate = 500; // Cadencia normal de disparo (500ms)
+let boostedFireRate = 150; // Cadencia mejorada de disparo (150ms)
 let maxHearts = 3; // Corazones base máximos
 let hasExtraHeart = false; // Controla si el jugador tiene el corazón extra
 let score = 0;
 let level = 1;
 let gameRunning = false;
 let playerName = "";
+let powerUpTimer = null;
+let powerUpTimeLeft = 30;
+const powerUpTimerDisplay = document.getElementById('powerUpTimer');
+const timerSpan = document.getElementById('timer');
+
 startGameBtn.addEventListener("click", () => {
     playerName = playerNameInput.value || "Jugador";
     menu.style.display = "none";
@@ -111,6 +120,7 @@ document.addEventListener("keyup", (e) => {
 
 const shootSound = new Audio("assets/shoot.mp3");
 
+// Modifica la función shoot para usar la cadencia mejorada
 function shoot() {
     if (player.canShoot) {
         bullets.push({ x: player.x + 20, y: player.y, speed: 10 });
@@ -118,7 +128,7 @@ function shoot() {
         player.canShoot = false;
         setTimeout(() => {
             player.canShoot = true;
-        }, 500); // Cadencia de disparo de 500ms
+        }, hasFireRateBoost ? boostedFireRate : normalFireRate);
     }
 }
 
@@ -221,6 +231,20 @@ function spawnXiao() {
     xiaos.push(xiao);
 }
 
+// Añade la función para crear el power-up arlee
+function spawnArlee() {
+    const arlee = {
+        x: Math.random() * (canvas.width - 50),
+        y: -60,
+        width: 60,
+        height: 60,
+        speed: 2,
+        image: new Image(),
+    };
+    arlee.image.src = "assets/arlee.png";
+    arlees.push(arlee);
+}
+
 // Modificar la función updateGame para incluir las balas enemigas
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -248,14 +272,20 @@ function updateGame() {
                 bullets.splice(i, 1);
                 
                 if (enemy.health <= 0) {
+                    // Crear explosión en la posición del enemigo
+                    createExplosion(
+                        enemy.x + enemy.width/2,
+                        enemy.y + enemy.height/2
+                    );
+                    
                     enemies.splice(j, 1);
-                    score += 10; // Aquí es donde se suman los 10 puntos
+                    score += 10;
                     scoreDisplay.textContent = score;
                     
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
-                    
-                    // Incrementar nivel cada 100 puntos
+   
+
                     if (score % 100 === 0) {
                         level++;
                         levelDisplay.textContent = `Nivel: ${level}`;
@@ -283,6 +313,8 @@ function updateGame() {
                     
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
+                    
+                    createExplosion(meteor.x + meteor.width / 2, meteor.y + meteor.height / 2);
                 } else {
                     // Efecto visual de impacto
                     const impactSound = new Audio("assets/impact.wav");
@@ -351,6 +383,19 @@ function updateGame() {
             if (player.hearts < maxHearts) {
                 player.hearts++;
                 updateHeartsDisplay();
+                
+                // Efecto de sonido
+                const healSound = new Audio("assets/heal.wav");
+                healSound.play();
+                
+                // Efecto visual en el jugador
+                player.image.classList.add('healing');
+                setTimeout(() => {
+                    player.image.classList.remove('healing');
+                }, 500);
+                
+                // Efecto de partículas de curación
+                createHealEffect(player.x + player.width/2, player.y + player.height/2);
             }
         }
     });
@@ -395,6 +440,8 @@ function updateGame() {
             // Efecto visual y sonoro
             const explosionSound = new Audio("assets/explosion.wav");
             explosionSound.play();
+            
+            createExplosion(meteor.x + meteor.width / 2, meteor.y + meteor.height / 2);
         }
     });
 
@@ -427,6 +474,43 @@ function updateGame() {
                     heartsDisplay.style.animation = "";
                 }, 1000);
             }
+        }
+    });
+
+    arlees.forEach((arlee, i) => {
+        arlee.y += arlee.speed;
+        ctx.drawImage(arlee.image, arlee.x, arlee.y, arlee.width, arlee.height);
+        
+        if (arlee.y > canvas.height) {
+            arlees.splice(i, 1);
+        }
+
+        // Colisión con el jugador
+        if (arlee.x < player.x + player.width &&
+            arlee.x + arlee.width > player.x &&
+            arlee.y < player.y + player.height &&
+            arlee.y + arlee.height > player.y) {
+            arlees.splice(i, 1);
+            
+            // Si ya hay un power-up activo, solo reinicia el tiempo
+            if (hasFireRateBoost) {
+                powerUpTimeLeft = 30;
+            } else {
+                // Activar power-up por primera vez
+                hasFireRateBoost = true;
+                powerUpTimeLeft = 30;
+                powerUpTimerDisplay.style.display = 'block';
+                
+                // Iniciar el contador
+                startPowerUpTimer();
+            }
+            
+            // Efecto visual y sonoro
+            const powerUpSound = new Audio("assets/powerup.wav");
+            powerUpSound.play();
+            
+            // Efecto visual en el jugador
+            player.image.style.filter = "hue-rotate(90deg)";
         }
     });
 
@@ -476,7 +560,7 @@ document.getElementById("restartBtn").addEventListener("click", () => {
     window.location.reload();
 });
 
-// Modifica la función startGame para resetear el estado de xiao
+
 function startGame() {
     level = 1;
     score = 0;
@@ -490,7 +574,16 @@ function startGame() {
     meteors = []; 
     enemyBullets = []; // Limpiar las balas enemigas
     xiaos = [];
+    arlees = []; // Limpiar los power-ups de velocidad de disparo
     hasExtraHeart = false;
+    if (powerUpTimer) {
+        clearInterval(powerUpTimer);
+        powerUpTimer = null;
+    }
+    hasFireRateBoost = false;
+    powerUpTimeLeft = 30;
+    powerUpTimerDisplay.style.display = 'none';
+    player.image.style.filter = "none";
     gameRunning = true;
     gameOverDisplay.style.display = "none";
     canvas.style.filter = "none";
@@ -498,25 +591,79 @@ function startGame() {
     updateGame();
 }
 
-// Modifica la función donde se pierde vida para manejar la pérdida del corazón extra
+// Modifica la función handlePlayerDamage
 function handlePlayerDamage() {
     player.hearts--;
     if (player.hearts === maxHearts) {
         hasExtraHeart = false;
     }
     updateHeartsDisplay();
+
+    // Efecto visual en el jugador
+    player.image.classList.add('damage');
+    setTimeout(() => {
+        player.image.classList.remove('damage');
+    }, 500);
+
+    // Efecto de partículas de daño
+    createDamageEffect(player.x + player.width/2, player.y + player.height/2);
+
+    // Sonido de daño
+    const damageSound = new Audio("assets/damage.wav");
+    damageSound.play();
+
+    // Efecto en el contador de corazones
+    heartsDisplay.classList.add("pulse");
+    setTimeout(() => {
+        heartsDisplay.classList.remove("pulse");
+    }, 1000);
+
     if (player.hearts <= 0) {
         gameRunning = false;
         gameOver();
-    } else {
-        heartsDisplay.classList.add("pulse");
-        setTimeout(() => {
-            heartsDisplay.classList.remove("pulse");
-        }, 1000);
     }
 }
 
-// Modifica la función spawnEnemies para incluir la aparición de xiao
+// Añade esta nueva función para crear el efecto de daño
+function createDamageEffect(x, y) {
+    // Crear partículas de daño
+    for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'damage-particle';
+        
+        // Posición inicial
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        
+        // Dirección aleatoria
+        const angle = (Math.PI * 2 * i) / 12;
+        const distance = 50;
+        const finalX = x + Math.cos(angle) * distance;
+        const finalY = y + Math.sin(angle) * distance;
+        
+        // Animación
+        particle.animate([
+            { 
+                transform: 'translate(0, 0) scale(1)',
+                opacity: 1
+            },
+            { 
+                transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0)`,
+                opacity: 0
+            }
+        ], {
+            duration: 500,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        document.getElementById('game-container').appendChild(particle);
+        
+        // Eliminar la partícula después de la animación
+        setTimeout(() => particle.remove(), 500);
+    }
+}
+
 function spawnEnemies() {
     setInterval(() => {
         let enemiesToSpawn = level % 10 === 0 ? 1 : level % 10;
@@ -533,7 +680,32 @@ function spawnEnemies() {
         if (Math.random() < 0.02 && player.hearts === maxHearts && !hasExtraHeart) {
             spawnXiao();
         }
+        // Spawn arlee con 3% de probabilidad solo si el jugador no tiene el boost activo
+        if (Math.random() < 0.07) { // 3% de probabilidad de que aparezca arlee
+            spawnArlee();
+        }
     }, 2000);
+}
+
+function startPowerUpTimer() {
+    // Limpiar timer existente si hay uno
+    if (powerUpTimer) {
+        clearInterval(powerUpTimer);
+    }
+    
+    powerUpTimer = setInterval(() => {
+        powerUpTimeLeft--;
+        timerSpan.textContent = powerUpTimeLeft;
+        
+        if (powerUpTimeLeft <= 0) {
+            // Desactivar power-up
+            hasFireRateBoost = false;
+            player.image.style.filter = "none";
+            powerUpTimerDisplay.style.display = 'none';
+            clearInterval(powerUpTimer);
+            powerUpTimer = null;
+        }
+    }, 1000);
 }
 
 const bgMusic = new Audio("assets/background.mp3");
@@ -602,3 +774,72 @@ downButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.m
 shootButton.addEventListener("touchstart", (e) => { e.preventDefault(); player.shooting = true; });
 shootButton.addEventListener("touchend", (e) => { e.preventDefault(); player.shooting = false; });
 shootButton.addEventListener("touchcancel", (e) => { e.preventDefault(); player.shooting = false; });
+
+// Añade esta nueva función para crear el efecto de curación
+function createHealEffect(x, y) {
+    const effect = document.createElement('div');
+    effect.className = 'heal-effect';
+    effect.style.left = x + 'px';
+    effect.style.top = y + 'px';
+    document.getElementById('game-container').appendChild(effect);
+    
+    // Remover el elemento después de la animación
+    setTimeout(() => {
+        effect.remove();
+    }, 500);
+    
+    // Crear múltiples anillos de curación
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            const ring = document.createElement('div');
+            ring.className = 'heal-effect';
+            ring.style.left = x + 'px';
+            ring.style.top = y + 'px';
+            document.getElementById('game-container').appendChild(ring);
+            setTimeout(() => {
+                ring.remove();
+            }, 500);
+        }, i * 100);
+    }
+}
+
+// Añade esta nueva función para crear el efecto de explosión
+function createExplosion(x, y) {
+    // Crear múltiples partículas de explosión
+    for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'explosion-particle';
+        
+        // Tamaño aleatorio para cada partícula
+        const size = Math.random() * 20 + 10;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        
+        // Posición inicial
+        particle.style.left = (x - size/2) + 'px';
+        particle.style.top = (y - size/2) + 'px';
+        
+        // Animación
+        particle.style.animation = 'explosion 0.5s ease-out forwards';
+        
+        // Dirección aleatoria
+        const angle = (Math.PI * 2 * i) / 8;
+        const distance = 30;
+        const finalX = x + Math.cos(angle) * distance;
+        const finalY = y + Math.sin(angle) * distance;
+        
+        particle.animate([
+            { transform: `translate(0, 0)` },
+            { transform: `translate(${finalX - x}px, ${finalY - y}px)` }
+        ], {
+            duration: 500,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        
+        document.getElementById('game-container').appendChild(particle);
+        
+        // Eliminar la partícula después de la animación
+        setTimeout(() => particle.remove(), 500);
+    }
+}
