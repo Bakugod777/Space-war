@@ -61,7 +61,7 @@ const player = {
     y: canvas.height - 80,
     width: 50,
     height: 50,
-    speed: 10, // Aumentar la velocidad del jugador
+    speed: 10,
     image: new Image(),
     movingLeft: false,
     movingRight: false,
@@ -98,10 +98,11 @@ let powerUpTimeLeft = 30;
 const powerUpTimerDisplay = document.getElementById('powerUpTimer');
 const timerSpan = document.getElementById('timer');
 
-// Añade estas variables globales
+// Modifica estas variables globales
 let joystickActive = false;
 let joystickCenter = { x: 0, y: 0 };
-let maxJoystickDistance = 50;
+let maxJoystickDistance = 50; // Reducir de 50 a 40 para un control más preciso
+const deadzone = 8; // Reducir de 10 a 5 para mejor respuesta a movimientos pequeños
 
 // Añadir después de las variables globales
 const shootButton = document.getElementById("shootButton");
@@ -998,14 +999,15 @@ function updateJoystickPosition(touch) {
     // Mover el joystick
     joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
     
+
+    
     // Actualizar movimiento del jugador
-    const deadzone = 10;
     player.movingLeft = deltaX < -deadzone;
     player.movingRight = deltaX > deadzone;
     player.movingUp = deltaY < -deadzone;
     player.movingDown = deltaY > deadzone;
     
-    // Ajustar la velocidad según la distancia
-    const speedMultiplier = Math.min(distance / maxJoystickDistance, 1);
-    player.speed = 10 * speedMultiplier;
+    // Ajustar la velocidad según la distancia con una curva de aceleración suave
+    const speedMultiplier = Math.pow(Math.min(distance / maxJoystickDistance, 1), 1.5);
+    player.speed = 7 * speedMultiplier; // Cambiar de 10 a 5
 }
