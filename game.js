@@ -719,6 +719,7 @@ canvas.addEventListener("touchend", handleTouchEnd, false);
 
 let touchX, touchY;
 
+// Añadir eventos táctiles para los botones
 function handleTouchStart(e) {
     const touch = e.touches[0];
     touchX = touch.clientX;
