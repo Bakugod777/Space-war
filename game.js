@@ -102,7 +102,7 @@ const timerSpan = document.getElementById('timer');
 let joystickActive = false;
 let joystickCenter = { x: 0, y: 0 };
 let maxJoystickDistance = 50; // Reducir de 50 a 40 para un control más preciso
-const deadzone = 8; // Reducir de 10 a 5 para mejor respuesta a movimientos pequeños
+const deadzone = 8; // Reducir de 10 a 8 para mejor respuesta a movimientos pequeños
 
 // Añadir después de las variables globales
 const shootButton = document.getElementById("shootButton");
@@ -1009,5 +1009,5 @@ function updateJoystickPosition(touch) {
     
     // Ajustar la velocidad según la distancia con una curva de aceleración suave
     const speedMultiplier = Math.pow(Math.min(distance / maxJoystickDistance, 1), 1.5);
-    player.speed = 7 * speedMultiplier; // Cambiar de 10 a 5
+    player.speed = 7 * speedMultiplier; // Cambiar de 10 a 7
 }
