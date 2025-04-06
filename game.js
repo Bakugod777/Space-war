@@ -80,11 +80,15 @@ let meteors = [];   // Meteoritos
 let enemyBullets = []; // Balas enemigas
 let xiaos = []; // Array para los kits especiales xiao
 let arlees = []; // Array para los power-ups de velocidad de disparo
+let cynos = []; // Array para los power-ups de invulnerabilidad
 let hasFireRateBoost = false; // Control del power-up activo
 let normalFireRate = 500; // Cadencia normal de disparo (500ms)
 let boostedFireRate = 150; // Cadencia mejorada de disparo (150ms)
 let maxHearts = 3; // Corazones base máximos
 let hasExtraHeart = false; // Controla si el jugador tiene el corazón extra
+let isInvulnerable = false; // Control de invulnerabilidad
+let invulnerabilityTimer = null;
+let invulnerabilityTimeLeft = 10; // 10 segundos de invulnerabilidad
 let score = 0;
 let level = 1;
 let gameRunning = false;
@@ -93,6 +97,11 @@ let powerUpTimer = null;
 let powerUpTimeLeft = 30;
 const powerUpTimerDisplay = document.getElementById('powerUpTimer');
 const timerSpan = document.getElementById('timer');
+
+// Añade estas variables globales
+let joystickActive = false;
+let joystickCenter = { x: 0, y: 0 };
+let maxJoystickDistance = 50;
 
 startGameBtn.addEventListener("click", () => {
     playerName = playerNameInput.value || "Jugador";
@@ -243,6 +252,20 @@ function spawnArlee() {
     };
     arlee.image.src = "assets/arlee.png";
     arlees.push(arlee);
+}
+
+// Añade la función para crear el power-up cyno
+function spawnCyno() {
+    const cyno = {
+        x: Math.random() * (canvas.width - 50),
+        y: -60,
+        width: 60,
+        height: 60,
+        speed: 2,
+        image: new Image(),
+    };
+    cyno.image.src = "assets/cyno.png";
+    cynos.push(cyno);
 }
 
 // Modificar la función updateGame para incluir las balas enemigas
@@ -514,6 +537,40 @@ function updateGame() {
         }
     });
 
+    cynos.forEach((cyno, i) => {
+        cyno.y += cyno.speed;
+        ctx.drawImage(cyno.image, cyno.x, cyno.y, cyno.width, cyno.height);
+        
+        if (cyno.y > canvas.height) {
+            cynos.splice(i, 1);
+        }
+
+        // Colisión con el jugador
+        if (cyno.x < player.x + player.width &&
+            cyno.x + cyno.width > player.x &&
+            cyno.y < player.y + player.height &&
+            cyno.y + cyno.height > player.y) {
+            cynos.splice(i, 1);
+            
+            // Si ya es invulnerable, solo reinicia el tiempo
+            if (isInvulnerable) {
+                invulnerabilityTimeLeft = 10;
+            } else {
+                // Activar invulnerabilidad por primera vez
+                isInvulnerable = true;
+                invulnerabilityTimeLeft = 10;
+                startInvulnerabilityTimer();
+            }
+            
+            // Efecto visual y sonoro
+            const powerUpSound = new Audio("assets/shield.wav");
+            powerUpSound.play();
+            
+            // Efecto visual en el jugador
+            player.image.style.filter = "hue-rotate(180deg) brightness(1.5)";
+        }
+    });
+
     if (gameRunning) requestAnimationFrame(updateGame);
 }
 
@@ -575,6 +632,14 @@ function startGame() {
     enemyBullets = []; // Limpiar las balas enemigas
     xiaos = [];
     arlees = []; // Limpiar los power-ups de velocidad de disparo
+    cynos = [];
+    isInvulnerable = false;
+    if (invulnerabilityTimer) {
+        clearInterval(invulnerabilityTimer);
+        invulnerabilityTimer = null;
+    }
+    invulnerabilityTimeLeft = 10;
+    document.getElementById('invulnerabilityTimer').style.display = 'none';
     hasExtraHeart = false;
     if (powerUpTimer) {
         clearInterval(powerUpTimer);
@@ -589,10 +654,13 @@ function startGame() {
     canvas.style.filter = "none";
     spawnEnemies();
     updateGame();
+    initJoystick();
 }
 
 // Modifica la función handlePlayerDamage
 function handlePlayerDamage() {
+    if (isInvulnerable) return; // Si es invulnerable, no recibe daño
+    
     player.hearts--;
     if (player.hearts === maxHearts) {
         hasExtraHeart = false;
@@ -676,13 +744,17 @@ function spawnEnemies() {
         if (Math.random() < 0.05) { // 5% de probabilidad de que aparezca un meteorito
             spawnMeteor();
         }
-        // Spawn xiao con 2% de probabilidad solo si el jugador tiene exactamente 3 corazones
-        if (Math.random() < 0.02 && player.hearts === maxHearts && !hasExtraHeart) {
+        // Spawn xiao con % de probabilidad solo si el jugador tiene exactamente 3 corazones
+        if (Math.random() < 0.03 && player.hearts === maxHearts && !hasExtraHeart) {
             spawnXiao();
         }
-        // Spawn arlee con 3% de probabilidad solo si el jugador no tiene el boost activo
-        if (Math.random() < 0.07) { // 3% de probabilidad de que aparezca arlee
+        // Spawn arlee con 7% de probabilidad solo si el jugador no tiene el boost activo
+        if (Math.random() < 0.07) { // 7% de probabilidad de que aparezca arlee
             spawnArlee();
+        }
+        // Spawn cyno con 4% de probabilidad
+        if (Math.random() < 0.04) {
+            spawnCyno();
         }
     }, 2000);
 }
@@ -704,6 +776,29 @@ function startPowerUpTimer() {
             powerUpTimerDisplay.style.display = 'none';
             clearInterval(powerUpTimer);
             powerUpTimer = null;
+        }
+    }, 1000);
+}
+
+function startInvulnerabilityTimer() {
+    if (invulnerabilityTimer) {
+        clearInterval(invulnerabilityTimer);
+    }
+    
+    const invTimerDisplay = document.getElementById('invulnerabilityTimer');
+    const invTimerSpan = document.getElementById('invTimer');
+    invTimerDisplay.style.display = 'block';
+    
+    invulnerabilityTimer = setInterval(() => {
+        invulnerabilityTimeLeft--;
+        invTimerSpan.textContent = invulnerabilityTimeLeft;
+        
+        if (invulnerabilityTimeLeft <= 0) {
+            isInvulnerable = false;
+            player.image.style.filter = "none";
+            invTimerDisplay.style.display = 'none';
+            clearInterval(invulnerabilityTimer);
+            invulnerabilityTimer = null;
         }
     }, 1000);
 }
@@ -843,4 +938,81 @@ function createExplosion(x, y) {
         // Eliminar la partícula después de la animación
         setTimeout(() => particle.remove(), 500);
     }
+}
+
+// Añade estas funciones para el joystick
+function initJoystick() {
+    const joystickArea = document.getElementById('joystickArea');
+    const joystick = document.getElementById('joystick');
+    
+    joystickArea.addEventListener('touchstart', handleJoystickStart);
+    joystickArea.addEventListener('touchmove', handleJoystickMove);
+    joystickArea.addEventListener('touchend', handleJoystickEnd);
+    
+    // Obtener posición inicial del joystick
+    const rect = joystickArea.getBoundingClientRect();
+    joystickCenter.x = rect.left + rect.width / 2;
+    joystickCenter.y = rect.top + rect.height / 2;
+}
+
+function handleJoystickStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    joystickActive = true;
+    document.getElementById('joystick').classList.add('active');
+    updateJoystickPosition(touch);
+}
+
+function handleJoystickMove(e) {
+    e.preventDefault();
+    if (!joystickActive) return;
+    
+    const touch = e.touches[0];
+    updateJoystickPosition(touch);
+}
+
+function handleJoystickEnd(e) {
+    e.preventDefault();
+    joystickActive = false;
+    const joystick = document.getElementById('joystick');
+    joystick.style.transform = 'translate(-50%, -50%)';
+    joystick.classList.remove('active');
+    
+    // Detener movimiento del jugador
+    player.movingLeft = false;
+    player.movingRight = false;
+    player.movingUp = false;
+    player.movingDown = false;
+}
+
+function updateJoystickPosition(touch) {
+    const joystick = document.getElementById('joystick');
+    const area = document.getElementById('joystickArea');
+    const rect = area.getBoundingClientRect();
+    
+    // Calcular la distancia desde el centro
+    let deltaX = touch.clientX - (rect.left + rect.width / 2);
+    let deltaY = touch.clientY - (rect.top + rect.height / 2);
+    
+    // Limitar la distancia máxima
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (distance > maxJoystickDistance) {
+        const angle = Math.atan2(deltaY, deltaX);
+        deltaX = Math.cos(angle) * maxJoystickDistance;
+        deltaY = Math.sin(angle) * maxJoystickDistance;
+    }
+    
+    // Mover el joystick
+    joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+    
+    // Actualizar movimiento del jugador
+    const deadzone = 10;
+    player.movingLeft = deltaX < -deadzone;
+    player.movingRight = deltaX > deadzone;
+    player.movingUp = deltaY < -deadzone;
+    player.movingDown = deltaY > deadzone;
+    
+    // Ajustar la velocidad según la distancia
+    const speedMultiplier = Math.min(distance / maxJoystickDistance, 1);
+    player.speed = 10 * speedMultiplier;
 }

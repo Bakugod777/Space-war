@@ -69,20 +69,21 @@ body {
 }
 
 #menu h1 {
-    font-size: 3em;
+    font-size: min(3em, 10vw);
     margin-bottom: 20px;
     animation: fadeIn 2s ease-in-out;
 }
 
 #menu input {
-    padding: 10px;
-    font-size: 1em;
+    padding: min(10px, 3vw);
+    font-size: min(1em, 5vw);
     border: none;
     border-radius: 5px;
     margin-bottom: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     background: rgba(255, 255, 255, 0.1);
     color: white;
+    width: min(300px, 80vw);
 }
 
 #menu input::placeholder {
@@ -90,8 +91,8 @@ body {
 }
 
 #menu button {
-    padding: 10px 20px;
-    font-size: 1em;
+    padding: min(10px, 3vw);
+    font-size: min(1em, 5vw);
     border: none;
     border-radius: 5px;
     background-color: #ff5722;
@@ -99,6 +100,7 @@ body {
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: min(300px, 80vw);
 }
 
 #menu button:hover {
@@ -115,9 +117,9 @@ canvas {
     position: absolute;
     top: 10px;
     right: 20px;
-    font-size: 20px;
+    font-size: var(--font-size-base);
     background: rgba(0, 0, 0, 0.5);
-    padding: 10px;
+    padding: min(10px, 2vw);
     border-radius: 5px;
     transition: background 0.3s ease;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -129,7 +131,7 @@ canvas {
 }
 
 #heartsDisplay img {
-    width: 20px;
+    width: min(20px, 5vw);
     margin: 0 5px;
 }
 
@@ -262,37 +264,16 @@ canvas {
     right: 0;
     display: flex;
     justify-content: space-between;
-    padding: 20px;
+    padding: min(20px, 3vw);
+    gap: min(20px, 4vw);
     z-index: 999;
-}
-
-#leftControls {
-    position: fixed;
-    bottom: 40px;
-    left: 20px;
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-#rightControls {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-.horizontalControls {
-    display: flex;
-    gap: 15px;
+    touch-action: none;
 }
 
 #shootButton {
-    width: 80px;
-    height: 80px;
-    font-size: 35px;
+    width: var(--button-size);
+    height: var(--button-size);
+    font-size: min(35px, 6vw);
     background: rgba(255, 0, 0, 0.25);
     border: 2px solid rgba(255, 0, 0, 0.5);
     text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
@@ -317,6 +298,8 @@ canvas {
     -webkit-user-select: none;
     transition: all 0.2s ease;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
 }
 
 .touchButton:active {
@@ -335,9 +318,9 @@ canvas {
     position: absolute;
     top: 90px;
     right: 20px;
-    font-size: 20px;
+    font-size: var(--font-size-base);
     background: rgba(255, 0, 0, 0.3);
-    padding: 10px;
+    padding: min(10px, 2vw);
     border-radius: 5px;
     transition: background 0.3s ease;
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
@@ -348,6 +331,25 @@ canvas {
 #powerUpTimer span {
     font-weight: bold;
     color: #ff5722;
+}
+
+#invulnerabilityTimer {
+    position: absolute;
+    top: 130px;
+    right: 20px;
+    font-size: var(--font-size-base);
+    background: rgba(0, 255, 255, 0.3);
+    padding: min(10px, 2vw);
+    border-radius: 5px;
+    transition: background 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    animation: pulse 2s infinite;
+}
+
+#invulnerabilityTimer span {
+    font-weight: bold;
+    color: #00ffff;
 }
 
 @media (max-width: 768px) {
@@ -458,4 +460,88 @@ canvas {
     background: #ff0000;
     border-radius: 50%;
     z-index: 100;
+}
+
+/* Añade estos estilos para el joystick */
+#joystickArea {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    touch-action: none;
+}
+
+#joystick {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.2s;
+}
+
+#joystick.active {
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos base responsivos */
+:root {
+    --joystick-size: min(150px, 20vw);
+    --button-size: min(80px, 15vw);
+    --font-size-base: min(16px, 4vw);
+}
+
+/* Media queries mejoradas */
+@media screen and (max-height: 600px) {
+    #touchControls {
+        bottom: 10px;
+    }
+    
+    #joystickArea {
+        transform: scale(0.8);
+    }
+    
+    #shootButton {
+        transform: scale(0.8);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #menu h1 {
+        font-size: 2em;
+    }
+    
+    #scoreBoard, #powerUpTimer, #invulnerabilityTimer {
+        font-size: 14px;
+        padding: 8px;
+    }
+    
+    #highScores {
+        font-size: 0.8em;
+    }
+}
+
+/* Orientación landscape */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    #menu {
+        top: 15%;
+    }
+    
+    #touchControls {
+        transform: scale(0.7);
+        transform-origin: bottom;
+    }
+    
+    #joystickArea {
+        bottom: 5vh;
+    }
 }

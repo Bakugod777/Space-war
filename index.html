@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Shoot 'em up</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -21,17 +21,15 @@
         <canvas id="gameCanvas"></canvas>
         <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
         <div id="powerUpTimer" style="display: none">Power-Up: <span id="timer">30</span>s</div>
+        <div id="invulnerabilityTimer" style="display: none">Invulnerable: <span id="invTimer">10</span>s</div>
         <div id="touchControls">
             <div id="leftControls">
                 <div class="touchButton" id="shootButton">shoot</div>
             </div>
             <div id="rightControls">
-                <div class="touchButton" id="upButton">↑</div>
-                <div class="horizontalControls">
-                    <div class="touchButton" id="leftButton">←</div>
-                    <div class="touchButton" id="rightButton">→</div>
+                <div id="joystickArea">
+                    <div id="joystick"></div>
                 </div>
-                <div class="touchButton" id="downButton">↓</div>
             </div>
         </div>
     </div>
