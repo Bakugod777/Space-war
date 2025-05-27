@@ -98,16 +98,14 @@ let powerUpTimeLeft = 30;
 const powerUpTimerDisplay = document.getElementById('powerUpTimer');
 const timerSpan = document.getElementById('timer');
 
-// Modifica estas variables globales
+
 let joystickActive = false;
 let joystickCenter = { x: 0, y: 0 };
 let maxJoystickDistance = 45; // Reducir de 50 a 40 para un control más preciso
 const deadzone = 7; // Reducir de 10 a 7 para mejor respuesta a movimientos pequeños
 
-// Añadir después de las variables globales
 const shootButton = document.getElementById("shootButton");
 
-// Añadir los event listeners del botón de disparo
 shootButton.addEventListener("touchstart", (e) => {
     e.preventDefault();
     player.shooting = true;
@@ -149,7 +147,7 @@ document.addEventListener("keyup", (e) => {
 
 const shootSound = new Audio("assets/shoot.mp3");
 
-// Modifica la función shoot para usar la cadencia mejorada
+
 function shoot() {
     if (player.canShoot) {
         bullets.push({ x: player.x + 20, y: player.y, speed: 10 });
@@ -161,7 +159,7 @@ function shoot() {
     }
 }
 
-// Modificar la función spawnEnemy para incluir el nuevo tipo de enemigo
+
 function spawnEnemy() {
     const enemy = {
         x: Math.random() * (canvas.width - 50),
@@ -198,11 +196,20 @@ function spawnEnemy() {
         enemy.speed = Math.random() * 2 + 1; // Velocidad entre 1 y 3
         enemy.image.src = "assets/enemy1.png";
     }
+    if (Math.random() < 0.1) {
+        enemy.health = 2;
+        enemy.speedX = 2.5;
+        enemy.speedY = 3.5;
+        enemy.image.src = "assets/xiao_weapon.png";
+        enemies.push(enemy);
+        return;
+    }
+    
 
     enemies.push(enemy);
 }
 
-// Añadir función para que el enemigo dispare
+// función para que el enemigo dispare
 function enemyShoot(enemy) {
     const currentTime = Date.now();
     if (currentTime - enemy.lastShot > 3000) { // Dispara cada 3 segundos
@@ -246,7 +253,7 @@ function spawnMeteor() {
     meteors.push(meteor);
 }
 
-// Añade la función para crear el kit especial xiao
+// la función para crear el kit especial xiao
 function spawnXiao() {
     const xiao = {
         x: Math.random() * (canvas.width - 50),
@@ -260,7 +267,7 @@ function spawnXiao() {
     xiaos.push(xiao);
 }
 
-// Añade la función para crear el power-up arlee
+// la función para crear el power-up arlee
 function spawnArlee() {
     const arlee = {
         x: Math.random() * (canvas.width - 50),
@@ -274,7 +281,7 @@ function spawnArlee() {
     arlees.push(arlee);
 }
 
-// Añade la función para crear el power-up cyno
+// la función para crear el power-up cyno
 function spawnCyno() {
     const cyno = {
         x: Math.random() * (canvas.width - 50),
@@ -288,7 +295,8 @@ function spawnCyno() {
     cynos.push(cyno);
 }
 
-// Modificar la función updateGame para incluir las balas enemigas
+
+
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -411,6 +419,38 @@ function updateGame() {
             enemyShoot(enemy);
         }
     });
+        enemies.forEach((enemy, i) => {
+            // Movimiento especial si tiene speedX (es el xiao_weapon)
+            if (enemy.speedX !== undefined) {
+                enemy.x += enemy.speedX;
+                enemy.y += enemy.speedY;
+
+                // Rebote horizontal
+                if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
+                    enemy.speedX *= -1;
+                }
+            } else {
+                enemy.y += enemy.speed;
+            }
+
+            ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+
+            if (enemy.y > canvas.height) enemies.splice(i, 1);
+
+            // Colisión con el jugador
+            if (enemy.x < player.x + player.width &&
+                enemy.x + enemy.width > player.x &&
+                enemy.y < player.y + player.height &&
+                enemy.y + enemy.height > player.y) {
+                enemies.splice(i, 1);
+                handlePlayerDamage();
+            }
+
+            // Hacer que el enemigo dispare si puede
+            if (enemy.canShoot) {
+                enemyShoot(enemy);
+            }
+        });
 
     kits.forEach((kit, i) => {
         kit.y += kit.speed;
@@ -677,7 +717,6 @@ function startGame() {
     initJoystick();
 }
 
-// Modifica la función handlePlayerDamage
 function handlePlayerDamage() {
     if (isInvulnerable) return; // Si es invulnerable, no recibe daño
     
@@ -712,7 +751,6 @@ function handlePlayerDamage() {
     }
 }
 
-// Añade esta nueva función para crear el efecto de daño
 function createDamageEffect(x, y) {
     // Crear partículas de daño
     for (let i = 0; i < 12; i++) {
@@ -776,6 +814,11 @@ function spawnEnemies() {
         if (Math.random() < 0.04) {
             spawnCyno();
         }
+                // 6% probabilidad de que aparezca el enemigo xiao_weapon
+        if (Math.random() < 0.06) {
+            spawnXiaoWeapon();
+        }
+
     }, 2000);
 }
 
@@ -999,9 +1042,6 @@ function updateJoystickPosition(touch) {
     // Mover el joystick
     joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
     
-
-    
-    // Actualizar movimiento del jugador
     player.movingLeft = deltaX < -deadzone;
     player.movingRight = deltaX > deadzone;
     player.movingUp = deltaY < -deadzone;
@@ -1009,5 +1049,19 @@ function updateJoystickPosition(touch) {
     
     // Ajustar la velocidad según la distancia con una curva de aceleración suave
     const speedMultiplier = Math.pow(Math.min(distance / maxJoystickDistance, 1), 1.5);
-    player.speed = 7 * speedMultiplier; // Cambiar de 10 a 7
+    player.speed = 7 * speedMultiplier; // Cambio de 10 a 7
+}
+function spawnXiaoWeapon() {
+    const xiaoWeapon = {
+        x: Math.random() * (canvas.width - 50),
+        y: -50,
+        width: 50,
+        height: 50,
+        speedX: 2.5, // velocidad horizontal
+        speedY: 3.5, // velocidad vertical
+        health: 2,
+        image: new Image(),
+    };
+    xiaoWeapon.image.src = "assets/xiao_weapon.png";
+    enemies.push(xiaoWeapon);
 }
