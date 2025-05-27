@@ -295,6 +295,20 @@ function spawnCyno() {
     cynos.push(cyno);
 }
 
+function spawnXiaoWeapon() {
+    const xiaoWeapon = {
+        x: Math.random() * (canvas.width - 50),
+        y: -50,
+        width: 50,
+        height: 50,
+        speedX: 2.5, // velocidad horizontal
+        speedY: 3.5, // velocidad vertical
+        health: 2,
+        image: new Image(),
+    };
+    xiaoWeapon.image.src = "assets/xiao_weapon.png";
+    enemies.push(xiaoWeapon);
+}
 
 
 function updateGame() {
@@ -814,8 +828,8 @@ function spawnEnemies() {
         if (Math.random() < 0.04) {
             spawnCyno();
         }
-                // 6% probabilidad de que aparezca el enemigo xiao_weapon
-        if (Math.random() < 0.06) {
+         // 6% probabilidad de que aparezca el enemigo xiao_weapon
+        if (Math.random() < 0.10) {
             spawnXiaoWeapon();
         }
 
@@ -1050,18 +1064,4 @@ function updateJoystickPosition(touch) {
     // Ajustar la velocidad según la distancia con una curva de aceleración suave
     const speedMultiplier = Math.pow(Math.min(distance / maxJoystickDistance, 1), 1.5);
     player.speed = 7 * speedMultiplier; // Cambio de 10 a 7
-}
-function spawnXiaoWeapon() {
-    const xiaoWeapon = {
-        x: Math.random() * (canvas.width - 50),
-        y: -50,
-        width: 50,
-        height: 50,
-        speedX: 2.5, // velocidad horizontal
-        speedY: 3.5, // velocidad vertical
-        health: 2,
-        image: new Image(),
-    };
-    xiaoWeapon.image.src = "assets/xiao_weapon.png";
-    enemies.push(xiaoWeapon);
 }
