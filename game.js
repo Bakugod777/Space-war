@@ -148,14 +148,27 @@ document.addEventListener("keyup", (e) => {
 const shootSound = new Audio("assets/shoot.mp3");
 
 
+const cooldownBar = document.getElementById("shootCooldownFill");
+
 function shoot() {
     if (player.canShoot) {
         bullets.push({ x: player.x + 20, y: player.y, speed: 10 });
         shootSound.play();
         player.canShoot = false;
+
+        // Cadencia según si tiene boost o no
+        const cooldown = hasFireRateBoost ? boostedFireRate : normalFireRate;
+
+        // Inicia la animación de la barra
+        cooldownBar.style.transition = 'none';
+        cooldownBar.style.width = '0%';
+        void cooldownBar.offsetWidth; // Reinicia la transición
+        cooldownBar.style.transition = `width ${cooldown}ms linear`;
+        cooldownBar.style.width = '100%';
+
         setTimeout(() => {
             player.canShoot = true;
-        }, hasFireRateBoost ? boostedFireRate : normalFireRate);
+        }, cooldown);
     }
 }
 
