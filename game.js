@@ -95,6 +95,9 @@ let gameRunning = false;
 let playerName = "";
 let powerUpTimer = null;
 let powerUpTimeLeft = 30;
+let isFireRateReduced = false;
+let fireRateDebuffTimer = null;
+let fireRateDebuffTimeLeft = 10; // segundos
 const powerUpTimerDisplay = document.getElementById('powerUpTimer');
 const timerSpan = document.getElementById('timer');
 
@@ -210,14 +213,16 @@ function spawnEnemy() {
         enemy.image.src = "assets/enemy1.png";
     }
     if (Math.random() < 0.1) {
-        enemy.health = 2;
+        enemy.health = 1;
         enemy.speedX = 2.5;
         enemy.speedY = 3.5;
         enemy.image.src = "assets/xiao_weapon.png";
         enemies.push(enemy);
         return;
+    } 
+    if (Math.random() < 0.06) { // 6% de probabilidad
+        spawnIfa();
     }
-    
 
     enemies.push(enemy);
 }
@@ -321,6 +326,19 @@ function spawnXiaoWeapon() {
     };
     xiaoWeapon.image.src = "assets/xiao_weapon.png";
     enemies.push(xiaoWeapon);
+}
+function spawnIfa() {
+    const ifa = {
+        x: Math.random() * (canvas.width - 50),
+        y: -50,
+        width: 50,
+        height: 50,
+        speed: 1.5,
+        image: new Image(),
+        health: 1
+    };
+    ifa.image.src = "assets/ifa.png";
+    enemies.push(ifa);
 }
 
 
@@ -437,6 +455,9 @@ function updateGame() {
             enemy.x + enemy.width > player.x &&
             enemy.y < player.y + player.height &&
             enemy.y + enemy.height > player.y) {
+         if (enemy.image.src.includes("ifa.png")) {
+            applyFireRateDebuff();
+         }
             enemies.splice(i, 1);
             handlePlayerDamage();
         }
@@ -1077,4 +1098,32 @@ function updateJoystickPosition(touch) {
     // Ajustar la velocidad según la distancia con una curva de aceleración suave
     const speedMultiplier = Math.pow(Math.min(distance / maxJoystickDistance, 1), 1.5);
     player.speed = 7 * speedMultiplier; // Cambio de 10 a 7
+}
+function applyFireRateDebuff() {
+    if (isFireRateReduced) {
+        fireRateDebuffTimeLeft = 10;
+        return;
+    }
+
+    isFireRateReduced = true;
+    normalFireRate = 800; // más lento
+    fireRateDebuffTimeLeft = 10;
+
+    const fireRateDebuffDisplay = document.getElementById('fireRateDebuff');
+    const debuffTimerSpan = document.getElementById('debuffTimer');
+    fireRateDebuffDisplay.style.display = 'block';
+    debuffTimerSpan.textContent = fireRateDebuffTimeLeft;
+
+    fireRateDebuffTimer = setInterval(() => {
+        fireRateDebuffTimeLeft--;
+        debuffTimerSpan.textContent = fireRateDebuffTimeLeft;
+
+        if (fireRateDebuffTimeLeft <= 0) {
+            isFireRateReduced = false;
+            normalFireRate = 500; // volver al normal
+            fireRateDebuffDisplay.style.display = 'none';
+            clearInterval(fireRateDebuffTimer);
+            fireRateDebuffTimer = null;
+        }
+    }, 1000);
 }

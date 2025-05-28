@@ -564,6 +564,20 @@ button, .touchButton {
     transform-origin: left;
     transition: width 0s;
 }
+#fireRateDebuff {
+    position: absolute;
+    top: 170px;
+    right: 20px;
+    font-size: var(--font-size-base);
+    background: rgba(128, 0, 128, 0.3);
+    padding: min(10px, 2vw);
+    border-radius: 5px;
+    border: 2px solid rgba(128, 0, 128, 0.5);
+    color: #ff66ff;
+    box-shadow: 0 0 10px rgba(128, 0, 128, 0.5);
+    animation: pulse 2s infinite;
+    z-index: 999;
+}
 
 
 /* Media queries mejoradas */
