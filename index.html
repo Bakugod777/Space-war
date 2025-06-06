@@ -9,6 +9,17 @@
 <body>
     <div id="game-container">
         <div class="stars"></div>
+        <!-- Botón Moai -->
+        <button id="moaiButton" class="moai-btn">🗿</button>
+        
+        <!-- Modal para mensajes -->
+        <div id="moaiModal" class="moai-modal">
+            <div class="moai-modal-content">
+                <span class="moai-close">&times;</span>
+                <p id="moaiMessage"></p>
+            </div>
+        </div>
+        
         <div id="menu">
             <h1>Shoot 'em Up</h1>
             <input type="text" id="playerName" placeholder="Ingresa tu nombre">
@@ -42,6 +53,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             const scores = JSON.parse(localStorage.getItem("scores")) || [];
             displayScores(scores);
+            initMoaiButton();
         });
 
         function displayScores(scores) {
@@ -51,6 +63,134 @@
                 const li = document.createElement("li");
                 li.textContent = `${score.name}: ${score.score}`;
                 scoresList.appendChild(li);
+            });
+        }
+
+        function initMoaiButton() {
+            const moaiButton = document.getElementById('moaiButton');
+            const moaiModal = document.getElementById('moaiModal');
+            const moaiClose = document.querySelector('.moai-close');
+            const moaiMessage = document.getElementById('moaiMessage');
+
+            // Mensajes épicos organizados por día de la semana con múltiples opciones
+            const messages = {
+                0: [ // Domingo - Reflexión y sabiduría
+                    "🌟 'En el silencio del domingo, los guerreros más sabios preparan su estrategia para la semana. La reflexión es el arma más poderosa del conquistador de estrellas.'",
+                    "🔮 'Cada domingo es un nuevo capítulo en tu épica galáctica. Los héroes nacen en la quietud, pero se forjan en la batalla.'",
+                    "💫 'El domingo susurra secretos cósmicos: toda derrota es una lección disfrazada, toda victoria es el eco de tu perseverancia.'",
+                    "🌙 'En este día de descanso, recuerda: incluso las estrellas más brillantes tuvieron que atravesar la oscuridad para encontrar su luz.'",
+                    "⚡ 'Los domingos, el universo te regala tiempo para soñar. Sueña en grande, guerrero espacial, porque mañana conquistarás galaxias.'",
+                    "🎯 'La sabiduría del domingo dice: no importa cuántas veces caigas, sino cuántas veces te levantes con más fuerza que antes.'"
+                ],
+                1: [ // Lunes - Determinación y nuevo inicio
+                    "💪 '¡Lunes de fuego cósmico! Hoy no solo conquistas el espacio, sino que demuestras que ningún enemigo puede con tu determinación férrea.'",
+                    "🚀 'El lunes es tu plataforma de lanzamiento hacia la grandeza. Cada laser que disparas es una declaración de guerra contra la mediocridad.'",
+                    "⚔️ 'Los lunes son para los valientes. Mientras otros duermen, tú ya estás escribiendo leyendas en el cosmos con cada batalla ganada.'",
+                    "🌟 'Un nuevo lunes, una nueva oportunidad de demostrar que eres el piloto más temido de toda la galaxia. ¡A conquistar el universo!'",
+                    "🔥 'El lunes rugiente ha llegado: es hora de convertir cada obstáculo en combustible para tu nave y cada enemigo en una historia de victoria.'",
+                    "💎 'Los lunes forjan diamantes de voluntad. Hoy brillas más que cualquier estrella, porque tu determinación es inquebrantable.'"
+                ],
+                2: [ // Martes - Valentía y coraje
+                    "🚀 'Martes de valentía infinita: las estrellas solo brillan en la oscuridad, y tú eres la luz más intensa de esta galaxia.'",
+                    "⚡ 'En este martes de truenos cósmicos, recuerda que el coraje no es la ausencia de miedo, sino volar directo hacia él con los motores al máximo.'",
+                    "🌌 'Los martes nacieron para los audaces. Cada enemigo que enfrentas retrocede ante tu presencia, porque tu valor es legendario.'",
+                    "🔥 'Martes de llamas estelares: tu coraje es el combustible que impulsa a las estrellas. Hoy el universo tiembla ante tu determinación.'",
+                    "💫 'En este martes de gloria, recordar: los cobardes miran las estrellas, los valientes las alcanzan, pero los héroes las superan.'",
+                    "⭐ 'El martes te grita: ¡No hay fuerza en el cosmos que pueda detener a un corazón verdaderamente valiente como el tuyo!'"
+                ],
+                3: [ // Miércoles - Sabiduría y estrategia
+                    "⭐ 'Miércoles de sabiduría ancestral: un verdadero guerrero nunca se rinde, porque sabe que cada batalla perdida es un escalón hacia la victoria final.'",
+                    "🧠 'En el corazón de la semana, tu mente brilla como un púlsar. La estrategia es tu superpoder, la paciencia tu escudo más resistente.'",
+                    "🔮 'Los miércoles revelan verdades cósmicas: la sabiduría no está en ganar todas las batallas, sino en aprender de cada una de ellas.'",
+                    "💡 'Miércoles iluminado: tu inteligencia es tu arma más letal. Mientras otros disparan al azar, tú calculas cada movimiento con precisión mortal.'",
+                    "🌟 'En este miércoles de revelaciones, el universo te susurra: la verdadera fuerza no está en los músculos, sino en la mente que nunca se rinde.'",
+                    "⚡ 'Miércoles de poder mental: cada desafío que enfrentas alimenta tu sabiduría, cada victoria construye tu leyenda eterna.'"
+                ],
+                4: [ // Jueves - Esperanza y resistencia
+                    "🌌 'Jueves de esperanza estelar: cada enemigo derrotado no solo te hace más fuerte, sino que ilumina el camino para otros guerreros.'",
+                    "💪 'En este jueves de resistencia titánica, recuerda: las tormentas más feroces forjan a los pilotos más legendarios de la historia.'",
+                    "🌠 'Los jueves son días de metamorfosis cósmica. Cada golpe que recibes te transforma en una versión más poderosa de ti mismo.'",
+                    "⚡ 'Jueves de electricidad pura: tu esperanza es la chispa que enciende motores de naves imposibles y derriba imperios enemigos.'",
+                    "🔥 'En este jueves de fuego sagrado, tu espíritu indomable es la llama que nunca se apaga, sin importar cuán fuerte sople el viento cósmico.'",
+                    "💎 'Jueves de forja divina: bajo la presión de la batalla, te conviertes en algo más valioso que cualquier tesoro del universo.'"
+                ],
+                5: [ // Viernes - Victoria y celebración
+                    "🎯 'Viernes de victoria épica: tu perseverancia no es solo tu mejor arma, es la fuerza que reescribe las leyes del cosmos a tu favor.'",
+                    "🏆 'El viernes corona tu semana de batallas. Cada láser disparado, cada enemigo vencido, cada segundo de lucha te han traído hasta aquí: al triunfo.'",
+                    "🌟 'Viernes de gloria infinita: no importa cuántos enemigos te ataquen, tu determinación es un escudo impenetrable y tu valor un arma imparable.'",
+                    "💫 'En este viernes de conquista, el universo entero se detiene a contemplar tu grandeza. Eres la leyenda que otros solo sueñan ser.'",
+                    "🚀 'Viernes de ascensión: cada victoria te eleva más alto que las estrellas más distantes. Tu nombre ya resuena en galaxias lejanas.'",
+                    "⚡ 'El viernes te corona como el emperador de tu propio destino. Cada batalla ganada es un reino conquistado en el imperio de tu voluntad.'"
+                ],
+                6: [ // Sábado - Inspiración y poder
+                    "🌠 'Sábado de inspiración cósmica: los héroes no nacen, se forjan en el fuego de la batalla y se templan en el hielo del espacio.'",
+                    "💥 'En este sábado de poder ilimitado, recuerda: no eres solo un piloto, eres la fuerza que equilibra el universo entre el caos y el orden.'",
+                    "🔥 'Sábado de llamas eternas: tu espíritu arde con la intensidad de mil soles, y tu voluntad es más resistente que el metal más duro del cosmos.'",
+                    "⭐ 'Los sábados, el universo conspira a tu favor. Cada estrella que ves es un testigo de tu grandeza, cada planeta una conquista futura.'",
+                    "🌌 'Sábado de metamorfosis: no eres el mismo que empezó esta semana. Eres más fuerte, más sabio, más imparable que nunca antes.'",
+                    "💎 'En este sábado de transformación, brillas con una luz que ciega a tus enemigos y guía a tus aliados hacia la victoria eterna.'"
+                ]
+            };
+
+            // Mensajes especiales por hora del día
+            const hourlyMessages = {
+                morning: [
+                    "🌅 'El amanecer cósmico te saluda, guerrero. Hoy escribirás tu nombre en las estrellas con letras de fuego y victoria.'",
+                    "☀️ 'La mañana despierta con tu energía. Cada rayo de sol es un láser de esperanza que disparas contra la oscuridad del universo.'",
+                    "🌟 'Buenos días, leyenda viviente. El cosmos ha esperado toda la noche para verte conquistar nuevos horizontes estelares.'"
+                ],
+                afternoon: [
+                    "🌞 'La tarde te encuentra en tu máximo poder. Como el sol en su cénit, tu fuerza brilla con intensidad que atraviesa galaxias.'",
+                    "⚡ 'Mediodía de energía pura: tu determinación es como un rayo que conecta la tierra con las estrellas más distantes.'",
+                    "🔥 'La tarde arde con tu pasión. Cada segundo que pasa es otro paso hacia tu destino de gloria intergaláctica.'"
+                ],
+                evening: [
+                    "🌆 'El atardecer pinta el cielo con los colores de tus victorias. Cada batalla ganada es un pincelada en el lienzo del infinito.'",
+                    "🌙 'La noche se aproxima, pero tu luz interior brilla más fuerte que cualquier estrella. Eres un faro de esperanza en el cosmos.'",
+                    "💫 'Al caer la tarde, reflexiona: cada desafío superado hoy te ha convertido en una versión más épica de ti mismo.'"
+                ],
+                night: [
+                    "🌃 'La noche estrellada te abraza, comandante. En la oscuridad nacen las leyendas, y tú eres la más brillante de todas.'",
+                    "🌌 'Bajo el manto nocturno, tu espíritu se eleva hacia las constelaciones. Cada estrella es un sueño que ya has hecho realidad.'",
+                    "⭐ 'La noche susurra secretos de grandeza. Duerme sabiendo que mañana despertarás más poderoso que hoy.'"
+                ]
+            };
+
+            moaiButton.addEventListener('click', () => {
+                const today = new Date().getDay();
+                const hour = new Date().getHours();
+                
+                // Determinar el período del día
+                let timeOfDay;
+                if (hour >= 6 && hour < 12) timeOfDay = 'morning';
+                else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
+                else if (hour >= 18 && hour < 22) timeOfDay = 'evening';
+                else timeOfDay = 'night';
+                
+                // Elegir mensaje aleatorio
+                let selectedMessage;
+                if (Math.random() < 0.7) {
+                    // 70% de probabilidad de mensaje del día
+                    const dayMessages = messages[today];
+                    selectedMessage = dayMessages[Math.floor(Math.random() * dayMessages.length)];
+                } else {
+                    // 30% de probabilidad de mensaje por hora
+                    const timeMessages = hourlyMessages[timeOfDay];
+                    selectedMessage = timeMessages[Math.floor(Math.random() * timeMessages.length)];
+                }
+                
+                moaiMessage.textContent = selectedMessage;
+                moaiModal.style.display = 'block';
+            });
+
+            moaiClose.addEventListener('click', () => {
+                moaiModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target === moaiModal) {
+                    moaiModal.style.display = 'none';
+                }
             });
         }
     </script>

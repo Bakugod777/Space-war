@@ -579,6 +579,126 @@ button, .touchButton {
     z-index: 999;
 }
 
+/* Estilos para el botón Moai */
+.moai-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: transparent;
+    border: none;
+    font-size: 2.5em;
+    cursor: pointer;
+    z-index: 1001;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    padding: 5px;
+    border-radius: 50%;
+}
+
+.moai-btn:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+.moai-btn:active {
+    transform: scale(0.95);
+}
+
+/* Modal para mensajes del Moai */
+.moai-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.moai-modal-content {
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    margin: 10% auto;
+    padding: 30px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: min(400px, 80%);
+    max-width: 90%;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    animation: slideIn 0.4s ease-out;
+}
+
+.moai-modal-content p {
+    color: #fff;
+    font-size: 1.2em;
+    line-height: 1.6;
+    margin: 20px 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    font-family: 'Orbitron', sans-serif;
+}
+
+.moai-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.moai-close:hover,
+.moai-close:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ocultar el botón moai cuando el juego esté activo */
+canvas:not([style*="display: none"]) ~ .moai-btn,
+#menu[style*="display: none"] ~ .moai-btn {
+    display: none;
+}
+
+/* Responsive para el botón moai */
+@media (max-width: 768px) {
+    .moai-btn {
+        font-size: 2em;
+        top: 15px;
+        left: 15px;
+    }
+    
+    .moai-modal-content {
+        margin: 20% auto;
+        padding: 20px;
+    }
+    
+    .moai-modal-content p {
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .moai-btn {
+        font-size: 1.8em;
+        top: 10px;
+        left: 10px;
+    }
+}
 
 /* Media queries mejoradas */
 @media screen and (max-height: 600px) {
