@@ -54,6 +54,15 @@
             const scores = JSON.parse(localStorage.getItem("scores")) || [];
             displayScores(scores);
             initMoaiButton();
+            
+            // Controlar visibilidad del botón moai
+            const startGameBtn = document.getElementById("startGame");
+            const moaiButton = document.getElementById('moaiButton');
+            const menu = document.getElementById("menu");
+            
+            startGameBtn.addEventListener("click", () => {
+                moaiButton.style.display = "none"; // Ocultar moai cuando inicia el juego
+            });
         });
 
         function displayScores(scores) {

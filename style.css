@@ -669,9 +669,14 @@ button, .touchButton {
 }
 
 /* Ocultar el botón moai cuando el juego esté activo */
-canvas:not([style*="display: none"]) ~ .moai-btn,
-#menu[style*="display: none"] ~ .moai-btn {
-    display: none;
+#menu[style*="display: none"] + canvas + * + * + * + * + * + * .moai-btn,
+body:has(#menu[style*="display: none"]) .moai-btn {
+    display: none !important;
+}
+
+/* Alternativa más específica - oculta cuando el menú está oculto */
+#menu[style*="display: none"] ~ * .moai-btn {
+    display: none !important;
 }
 
 /* Responsive para el botón moai */
