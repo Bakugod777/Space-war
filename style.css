@@ -674,9 +674,31 @@ body:has(#menu[style*="display: none"]) .moai-btn {
     display: none !important;
 }
 
-/* Alternativa más específica - oculta cuando el menú está oculto */
-#menu[style*="display: none"] ~ * .moai-btn {
+/* Ocultar controles de juego cuando el menú está visible */
+#menu:not([style*="display: none"]) ~ #scoreBoard,
+#menu:not([style*="display: none"]) ~ #shootCooldownBar,
+#menu:not([style*="display: none"]) ~ #powerUpTimer,
+#menu:not([style*="display: none"]) ~ #invulnerabilityTimer,
+#menu:not([style*="display: none"]) ~ #fireRateDebuff,
+#menu:not([style*="display: none"]) ~ #touchControls {
     display: none !important;
+}
+
+/* También ocultar cuando el juego no está corriendo */
+body:not(.game-running) #scoreBoard,
+body:not(.game-running) #shootCooldownBar,
+body:not(.game-running) #powerUpTimer,
+body:not(.game-running) #invulnerabilityTimer,
+body:not(.game-running) #fireRateDebuff,
+body:not(.game-running) #touchControls {
+    display: none !important;
+}
+
+/* Mostrar controles solo cuando el juego está activo */
+body.game-running #scoreBoard,
+body.game-running #shootCooldownBar,
+body.game-running #touchControls {
+    display: block !important;
 }
 
 /* Responsive para el botón moai */

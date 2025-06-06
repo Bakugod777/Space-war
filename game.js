@@ -128,6 +128,10 @@ startGameBtn.addEventListener("click", () => {
     playerName = playerNameInput.value || "Jugador";
     menu.style.display = "none";
     canvas.style.display = "block";
+    
+    // Añadir clase para indicar que el juego está corriendo
+    document.body.classList.add('game-running');
+    
     gameRunning = true;
     startGame();
 });
@@ -699,6 +703,10 @@ function updateHeartsDisplay() {
 function gameOver() {
     gameOverDisplay.style.display = "block";
     canvas.style.filter = "grayscale(100%)";
+    
+    // Remover clase cuando el juego termina
+    document.body.classList.remove('game-running');
+    
     saveScore();
 }
 
@@ -722,6 +730,8 @@ function displayScores(scores) {
 }
 
 document.getElementById("restartBtn").addEventListener("click", () => {
+    // Remover clase antes de recargar
+    document.body.classList.remove('game-running');
     window.location.reload();
 });
 

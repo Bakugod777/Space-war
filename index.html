@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shoot 'em up</title>
+    <title>Space War</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
         </div>
         
         <div id="menu">
-            <h1>Shoot 'em Up</h1>
+            <h1>Space War</h1>
             <input type="text" id="playerName" placeholder="Ingresa tu nombre">
             <button id="startGame">Iniciar Juego</button>
             <div id="highScores">
@@ -29,12 +29,16 @@
                 <ul id="scoresList"></ul>
             </div>
         </div>
+        
         <canvas id="gameCanvas"></canvas>
+        
+        <!-- Estos elementos ahora solo aparecerán durante el juego -->
         <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
         <div id="shootCooldownBar"><div id="shootCooldownFill"></div></div>
         <div id="powerUpTimer" style="display: none">Power-Up: <span id="timer">30</span>s</div>
         <div id="invulnerabilityTimer" style="display: none">Invulnerable: <span id="invTimer">10</span>s</div>
         <div id="fireRateDebuff" style="display: none">¡Disparo lento! <span id="debuffTimer">10</span>s</div>
+        
         <div id="touchControls">
             <div id="leftControls">
                 <div class="touchButton" id="shootButton">shoot</div>
