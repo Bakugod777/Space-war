@@ -97,6 +97,10 @@ let powerUpTimer = null;
 let powerUpTimeLeft = 30;
 let isFireRateReduced = false;
 let fireRateDebuffTimer = null;
+let boss = null;
+let bossActive = false;
+let bossHealth = 5;
+const bossName = "Astraeus, Señor del Vacío";
 let fireRateDebuffTimeLeft = 10; // segundos
 const powerUpTimerDisplay = document.getElementById('powerUpTimer');
 const timerSpan = document.getElementById('timer');
@@ -155,13 +159,65 @@ document.addEventListener("keyup", (e) => {
 const shootSound = new Audio("assets/shoot.mp3");
 
 
+
+// Partículas al disparar (efecto inicial)
+function createBulletParticles(x, y) {
+    for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'bullet-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        // Dirección aleatoria
+        const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.3;
+        const distance = 18 + Math.random() * 8;
+        const finalX = x + Math.cos(angle) * distance;
+        const finalY = y + Math.sin(angle) * distance;
+        particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0.2)`, opacity: 0 }
+        ], {
+            duration: 350,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        document.getElementById('game-container').appendChild(particle);
+        setTimeout(() => particle.remove(), 350);
+    }
+}
+
+// Partículas de estela/trail para balas en movimiento
+function createBulletTrailParticles(x, y) {
+    for (let i = 0; i < 2; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'bullet-trail-particle';
+        particle.style.left = (x + (Math.random() - 0.5) * 6) + 'px';
+        particle.style.top = (y + 8 + Math.random() * 6) + 'px';
+        particle.style.opacity = 0.7;
+        particle.animate([
+            { transform: 'scale(1)', opacity: 0.7 },
+            { transform: 'scale(0.2)', opacity: 0 }
+        ], {
+            duration: 220,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        document.getElementById('game-container').appendChild(particle);
+        setTimeout(() => particle.remove(), 220);
+    }
+}
+
 const cooldownBar = document.getElementById("shootCooldownFill");
 
 function shoot() {
     if (player.canShoot) {
-        bullets.push({ x: player.x + 20, y: player.y, speed: 10 });
+        const bulletX = player.x + 20;
+        const bulletY = player.y;
+        bullets.push({ x: bulletX, y: bulletY, speed: 10 });
         shootSound.play();
         player.canShoot = false;
+
+        // Efecto de partículas al disparar
+        createBulletParticles(bulletX + 2, bulletY);
 
         // Cadencia según si tiene boost o no
         const cooldown = hasFireRateBoost ? boostedFireRate : normalFireRate;
@@ -357,35 +413,38 @@ function updateGame() {
 
     ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
     
+    // Elimina los disparos DOM previos
+    document.querySelectorAll('.bullet').forEach(el => el.remove());
     bullets.forEach((bullet, i) => {
         bullet.y -= bullet.speed;
-        ctx.fillStyle = "red";
-        ctx.fillRect(bullet.x, bullet.y, 5, 10);
-        
+        // Renderiza disparo como elemento DOM épico
+        let bulletDiv = document.createElement('div');
+        bulletDiv.className = 'bullet';
+        bulletDiv.style.left = (bullet.x - 3) + 'px';
+        bulletDiv.style.top = (bullet.y - 14) + 'px';
+        document.getElementById('game-container').appendChild(bulletDiv);
+
+        // Efecto de partículas en movimiento (trail)
+        createBulletTrailParticles(bullet.x + 2, bullet.y);
+
+        // ...colisiones y lógica original...
         enemies.forEach((enemy, j) => {
             if (bullet.x < enemy.x + enemy.width &&
                 bullet.x + 5 > enemy.x &&
                 bullet.y < enemy.y + enemy.height &&
                 bullet.y + 10 > enemy.y) {
-                
                 enemy.health--;
                 bullets.splice(i, 1);
-                
                 if (enemy.health <= 0) {
-                    // Crear explosión en la posición del enemigo
                     createExplosion(
                         enemy.x + enemy.width/2,
                         enemy.y + enemy.height/2
                     );
-                    
                     enemies.splice(j, 1);
                     score += 10;
                     scoreDisplay.textContent = score;
-                    
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
-   
-
                     if (score % 100 === 0) {
                         level++;
                         levelDisplay.textContent = `Nivel: ${level}`;
@@ -396,35 +455,97 @@ function updateGame() {
                 }
             }
         });
-
         meteors.forEach((meteor, j) => {
             if (bullet.x < meteor.x + meteor.width &&
                 bullet.x + 5 > meteor.x &&
                 bullet.y < meteor.y + meteor.height &&
                 bullet.y + 10 > meteor.y) {
-                
                 meteor.health--;
                 bullets.splice(i, 1);
-                
                 if (meteor.health <= 0) {
                     meteors.splice(j, 1);
-                    score += 20; // Más puntos por destruir un meteorito
+                    score += 20;
                     scoreDisplay.textContent = score;
-                    
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
-                    
                     createExplosion(meteor.x + meteor.width / 2, meteor.y + meteor.height / 2);
                 } else {
-                    // Efecto visual de impacto
                     const impactSound = new Audio("assets/impact.wav");
                     impactSound.play();
                 }
             }
         });
-
         if (bullet.y < 0) {
             bullets.splice(i, 1);
+        }
+    });
+// Partículas al disparar (efecto inicial)
+function createBulletParticles(x, y) {
+    for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'bullet-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        // Dirección aleatoria
+        const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.3;
+        const distance = 18 + Math.random() * 8;
+        const finalX = x + Math.cos(angle) * distance;
+        const finalY = y + Math.sin(angle) * distance;
+        particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0.2)`, opacity: 0 }
+        ], {
+            duration: 350,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        document.getElementById('game-container').appendChild(particle);
+        setTimeout(() => particle.remove(), 350);
+    }
+}
+
+// Partículas de estela/trail para balas en movimiento
+function createBulletTrailParticles(x, y) {
+    for (let i = 0; i < 2; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'bullet-trail-particle';
+        particle.style.left = (x + (Math.random() - 0.5) * 6) + 'px';
+        particle.style.top = (y + 8 + Math.random() * 6) + 'px';
+        particle.style.opacity = 0.7;
+        particle.animate([
+            { transform: 'scale(1)', opacity: 0.7 },
+            { transform: 'scale(0.2)', opacity: 0 }
+        ], {
+            duration: 220,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        document.getElementById('game-container').appendChild(particle);
+        setTimeout(() => particle.remove(), 220);
+    }
+}
+
+    // Elimina los disparos del boss previos
+    document.querySelectorAll('.boss-bullet').forEach(el => el.remove());
+    enemyBullets.forEach((bullet, i) => {
+        bullet.y += bullet.speed;
+        // Renderiza disparo del boss como elemento DOM épico
+        let bossBulletDiv = document.createElement('div');
+        bossBulletDiv.className = 'boss-bullet';
+        bossBulletDiv.style.left = (bullet.x - 4) + 'px';
+        bossBulletDiv.style.top = (bullet.y - 18) + 'px';
+        document.getElementById('game-container').appendChild(bossBulletDiv);
+
+        // Colisión con el jugador
+        if (bullet.x < player.x + player.width &&
+            bullet.x + bullet.width > player.x &&
+            bullet.y < player.y + player.height &&
+            bullet.y + bullet.height > player.y) {
+            enemyBullets.splice(i, 1);
+            handlePlayerDamage();
+        }
+        if (bullet.y > canvas.height) {
+            enemyBullets.splice(i, 1);
         }
     });
 
@@ -683,6 +804,44 @@ function updateGame() {
         }
     });
 
+    // Boss logic
+    if (bossActive && boss) {
+        animateBoss(ctx); // animación y dibujo del boss
+        bossAttack();
+
+        // Colisión con balas del jugador
+        bullets.forEach((bullet, i) => {
+            if (boss) {
+                if (
+                    bullet.x < boss.x + boss.width &&
+                    bullet.x + 5 > boss.x &&
+                    bullet.y < boss.y + boss.height &&
+                    bullet.y + 10 > boss.y
+                ) {
+                    bullets.splice(i, 1);
+                    handleBossHit();
+                }
+            }
+        });
+
+        // Colisión con el jugador
+        if (boss) {
+            if (
+                boss.x < player.x + player.width &&
+                boss.x + boss.width > player.x &&
+                boss.y < player.y + boss.height &&
+                boss.y + boss.height > player.y
+            ) {
+                handlePlayerDamage();
+            }
+        }
+    }
+
+    // Boss aparece en nivel 15
+    if (level === 15  && !bossActive && !boss) {
+        spawnBoss();
+    }
+
     if (gameRunning) requestAnimationFrame(updateGame);
 }
 
@@ -850,6 +1009,8 @@ function createDamageEffect(x, y) {
 
 function spawnEnemies() {
     setInterval(() => {
+        if (bossActive) return; // No generar enemigos si el boss está activo
+
         let enemiesToSpawn = level % 10 === 0 ? 1 : level % 10;
         for (let i = 0; i < enemiesToSpawn; i++) {
             spawnEnemy();
@@ -1136,4 +1297,186 @@ function applyFireRateDebuff() {
             fireRateDebuffTimer = null;
         }
     }, 1000);
+}
+
+
+// Elementos para la barra de vida y nombre del boss
+const bossBar = document.createElement("div");
+bossBar.id = "bossBar";
+bossBar.style.position = "absolute";
+bossBar.style.top = "60px";
+bossBar.style.left = "50%";
+bossBar.style.transform = "translateX(-50%)";
+bossBar.style.width = "400px";
+bossBar.style.height = "30px";
+bossBar.style.background = "rgba(0,0,0,0.7)";
+bossBar.style.border = "2px solid #fff";
+bossBar.style.borderRadius = "10px";
+bossBar.style.display = "none";
+bossBar.style.zIndex = "1002";
+bossBar.innerHTML = `
+    <div id="bossName" style="text-align:center;font-size:22px;color:#ffeb3b;font-weight:bold;margin-bottom:2px;">${bossName}</div>
+    <div id="bossHealthBar" style="width:100%;height:14px;background:#222;border-radius:7px;overflow:hidden;">
+        <div id="bossHealthFill" style="width:100%;height:100%;background:linear-gradient(90deg,#ff1744,#ffeb3b);transition:width 0.3s;"></div>
+    </div>
+`;
+document.getElementById("game-container").appendChild(bossBar);
+
+function spawnBoss() {
+    boss = {
+        x: canvas.width / 2 - 180,
+        y: 40,
+        width: 360,
+        height: 180,
+        health: bossHealth,
+        image: new Image(),
+        attackTimer: 0,
+        meteorTimer: 0,
+        appearing: true,
+        appearAnim: 0,
+        dying: false,
+        damageAnim: 0
+    };
+    boss.image.src = "assets/Boss.png";
+    bossActive = true;
+    bossBar.style.display = "block";
+    updateBossBar();
+
+    // Animación de aparición
+    boss.appearing = true;
+    boss.appearAnim = 0;
+
+    // Bloquear enemigos normales
+    enemies = [];
+}
+
+function animateBoss(ctx) {
+    if (!boss) return;
+    ctx.save();
+
+    // Movimiento lateral simple
+    if (!boss.dying && !boss.appearing) {
+        boss.x += Math.sin(Date.now() / 600) * 2; // Oscila suavemente
+        // Rebote en los bordes
+        if (boss.x < 0) boss.x = 0;
+        if (boss.x + boss.width > canvas.width) boss.x = canvas.width - boss.width;
+    }
+
+    // Animación de aparición
+    let scale = 1;
+    let opacity = 1;
+    if (boss.appearing) {
+        boss.appearAnim += 0.04;
+        scale = Math.min(1, boss.appearAnim);
+        opacity = Math.min(1, boss.appearAnim);
+        if (scale >= 1) boss.appearing = false;
+    }
+
+    // Animación de daño
+    if (boss.damageAnim > 0) {
+        opacity = 0.5 + 0.5 * Math.sin(boss.damageAnim * 20);
+        boss.damageAnim -= 0.08;
+        if (boss.damageAnim < 0) boss.damageAnim = 0;
+    }
+
+    // Animación de muerte
+    if (boss.dying) {
+        scale = 1 + boss.dying * 0.5;
+        opacity = 1 - boss.dying;
+        boss.dying += 0.04;
+        if (boss.dying > 1) {
+            bossActive = false;
+            bossBar.style.display = "none";
+            boss = null;
+        }
+    }
+
+    ctx.globalAlpha = opacity;
+    ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
+    ctx.scale(scale, scale);
+    ctx.drawImage(boss.image, -boss.width / 2, -boss.height / 2, boss.width, boss.height);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+}
+
+function bossAttack() {
+    if (!boss || boss.appearing || boss.dying) return;
+    // Ataque especial: disparo múltiple cada 2 segundos
+    if (Date.now() - boss.attackTimer > 2000) {
+        for (let i = -2; i <= 2; i++) {
+            enemyBullets.push({
+                x: boss.x + boss.width / 2 + i * 40,
+                y: boss.y + boss.height,
+                speed: 7,
+                width: 8,
+                height: 18
+            });
+        }
+        boss.attackTimer = Date.now();
+    }
+    // Ataque especial: lluvia de meteoritos cada 5 segundos
+    if (Date.now() - boss.meteorTimer > 5000) {
+        for (let i = 0; i < 4; i++) {
+            meteors.push({
+                x: Math.random() * (canvas.width - 70),
+                y: boss.y + boss.height,
+                width: 70,
+                height: 70,
+                speed: 4 + Math.random() * 2,
+                image: (() => { let img = new Image(); img.src = "assets/meteor.png"; return img; })(),
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.1,
+                health: 2
+            });
+        }
+        boss.meteorTimer = Date.now();
+    }
+}
+
+function handleBossHit() {
+    if (!boss || boss.dying) return;
+    boss.health--;
+    boss.damageAnim = 1; // Inicia animación de daño
+    bossBar.classList.add("boss-bar-damage");
+    setTimeout(() => bossBar.classList.remove("boss-bar-damage"), 300);
+    updateBossBar();
+    if (boss.health <= 0) {
+        // Guarda la posición antes de eliminar el boss
+        const bossX = boss.x;
+        const bossY = boss.y;
+        const bossWidth = boss.width;
+        const bossHeight = boss.height;
+
+        // Explosión épica
+        for (let i = 0; i < 12; i++) {
+            setTimeout(() => {
+                createExplosion(
+                    bossX + bossWidth / 2 + Math.cos((Math.PI * 2 * i) / 12) * 80,
+                    bossY + bossHeight / 2 + Math.sin((Math.PI * 2 * i) / 12) * 60
+                );
+            }, i * 80);
+        }
+        score += 100; // Suficiente para pasar de nivel
+        scoreDisplay.textContent = score;
+        // Sonido de victoria
+        const victorySound = new Audio("assets/explosion.wav");
+        victorySound.play();
+        // Eliminar boss inmediatamente
+        bossActive = false;
+        bossBar.style.display = "none";
+        boss = null;
+        // Sube de nivel y limpia enemigos
+        level++;
+        levelDisplay.textContent = `Nivel: ${level}`;
+        enemies = [];
+        // Permitir que vuelvan a aparecer enemigos normales
+        if (typeof enemySpawnInterval !== 'undefined') clearInterval(enemySpawnInterval);
+        spawnEnemies();
+    }
+}
+
+function updateBossBar() {
+    if (!boss) return;
+    const percent = (boss.health / bossHealth) * 100;
+    document.getElementById("bossHealthFill").style.width = percent + "%";
 }

@@ -1,3 +1,63 @@
+/* Partículas épicas al disparar */
+.bullet-particle {
+    position: absolute;
+    pointer-events: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #00eaff 60%, #fff 100%, transparent 120%);
+    box-shadow: 0 0 18px 8px #00eaff, 0 0 8px #fff inset;
+    z-index: 101;
+    opacity: 0.85;
+}
+
+/* Partículas de estela/trail de las balas */
+.bullet-trail-particle {
+    position: absolute;
+    pointer-events: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #00eaff 60%, #fff 100%, transparent 120%);
+    box-shadow: 0 0 10px 4px #00eaff, 0 0 4px #fff inset;
+    z-index: 100;
+    opacity: 0.7;
+}
+/* Disparos épicos del jugador */
+.bullet {
+    position: absolute;
+    width: 12px;
+    height: 28px;
+    background: linear-gradient(180deg, #fff 0%, #00eaff 60%, #0077ff 100%);
+    border-radius: 6px 6px 12px 12px;
+    box-shadow: 0 0 18px 6px #00eaff, 0 0 8px #fff inset;
+    animation: bulletGlow 0.5s infinite alternate;
+    z-index: 100;
+    border: 2px solid #00eaff;
+}
+
+@keyframes bulletGlow {
+    0% { box-shadow: 0 0 18px 6px #00eaff, 0 0 8px #fff inset; }
+    100% { box-shadow: 0 0 28px 12px #00eaff, 0 0 12px #fff inset; }
+}
+
+/* Disparos épicos del boss */
+.boss-bullet {
+    position: absolute;
+    width: 16px;
+    height: 36px;
+    background: linear-gradient(180deg, #ff1744 0%, #ffeb3b 100%);
+    border-radius: 8px 8px 18px 18px;
+    box-shadow: 0 0 24px 8px #ff1744, 0 0 10px #ffeb3b inset;
+    animation: bossBulletGlow 0.5s infinite alternate;
+    z-index: 100;
+    border: 2px solid #ff1744;
+}
+
+@keyframes bossBulletGlow {
+    0% { box-shadow: 0 0 24px 8px #ff1744, 0 0 10px #ffeb3b inset; }
+    100% { box-shadow: 0 0 36px 16px #ff1744, 0 0 18px #ffeb3b inset; }
+}
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
 body {
@@ -824,4 +884,88 @@ body.game-running #touchControls {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Boss Bar Styles */
+#bossBar {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    height: 38px;
+    background: rgba(10, 10, 30, 0.85);
+    border: 2px solid #ffeb3b;
+    border-radius: 14px;
+    box-shadow: 0 0 30px 8px #ffeb3b88, 0 0 8px #222 inset;
+    z-index: 1002;
+    display: none;
+    padding: 4px 0 0 0;
+    transition: box-shadow 0.3s;
+}
+
+#bossBar #bossName {
+    text-align: center;
+    font-size: 22px;
+    color: #ffeb3b;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px #ffeb3b, 0 0 2px #fff;
+    margin-bottom: 2px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#bossHealthBar {
+    width: 96%;
+    margin: 0 auto;
+    height: 16px;
+    background: #222;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 8px #ff1744 inset;
+    border: 1px solid #ff1744;
+}
+
+#bossHealthFill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff1744 0%, #ffeb3b 100%);
+    transition: width 0.3s;
+    box-shadow: 0 0 12px #ff1744, 0 0 8px #ffeb3b inset;
+}
+
+/* Responsive Boss Bar */
+@media (max-width: 600px) {
+    #bossBar {
+        width: 95vw;
+        height: 32px;
+        font-size: 16px;
+        top: 40px;
+        border-radius: 10px;
+    }
+    #bossBar #bossName {
+        font-size: 16px;
+    }
+    #bossHealthBar {
+        height: 12px;
+        border-radius: 6px;
+    }
+}
+
+/* Boss Bar Animation (optional, for epic effect) */
+@keyframes bossBarGlow {
+    0% { box-shadow: 0 0 30px 8px #ffeb3b88, 0 0 8px #222 inset; }
+    50% { box-shadow: 0 0 40px 16px #ff1744cc, 0 0 12px #ffeb3b inset; }
+    100% { box-shadow: 0 0 30px 8px #ffeb3b88, 0 0 8px #222 inset; }
+}
+#bossBar {
+    animation: bossBarGlow 2s infinite;
+}
+.boss-bar-damage #bossHealthFill {
+    animation: bossHealthFlash 0.3s;
+}
+@keyframes bossHealthFlash {
+    0% { box-shadow: 0 0 20px #fff, 0 0 8px #ff1744 inset; background: #fff; }
+    50% { box-shadow: 0 0 40px #ff1744, 0 0 16px #ffeb3b inset; background: #ff1744; }
+    100% { box-shadow: 0 0 12px #ff1744, 0 0 8px #ffeb3b inset; background: linear-gradient(90deg, #ff1744 0%, #ffeb3b 100%);}
 }
