@@ -837,8 +837,8 @@ function createBulletTrailParticles(x, y) {
         }
     }
 
-    // Boss aparece en nivel 15
-    if (level === 15  && !bossActive && !boss) {
+    // Boss aparece en nivel 10
+    if (level === 10  && !bossActive && !boss) {
         spawnBoss();
     }
 
