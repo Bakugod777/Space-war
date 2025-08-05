@@ -53,6 +53,27 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
     player.x = canvas.width / 2;
     player.y = canvas.height - 80;
+    
+    // Actualizar clases de responsive para elementos activos
+    const notification = document.getElementById('achievementNotification');
+    const modal = document.getElementById('achievementModal');
+    
+    if (notification && notification.classList.contains('show')) {
+        if (isMobileDevice()) {
+            notification.classList.add('mobile-notification');
+        } else {
+            notification.classList.remove('mobile-notification');
+        }
+    }
+    
+    // Ajustar modal si está abierto
+    if (modal && modal.style.display === 'flex') {
+        if (isMobileDevice()) {
+            modal.classList.add('mobile-modal');
+        } else {
+            modal.classList.remove('mobile-modal');
+        }
+    }
 });
 
 // Variables del jugador
@@ -98,6 +119,17 @@ let powerUpTimeLeft = 30;
 let isFireRateReduced = false;
 let fireRateDebuffTimer = null;
 let boss = null;
+
+// Funciones temporales para evitar errores (se redefinen más abajo)
+function updateStatsOnShoot() {}
+function updateStatsOnScore() {}
+function updateStatsOnDamage() {}
+function updateStatsOnGameStart() {}
+function updateStatsOnGameEnd() {}
+function updateStatsOnKill() {}
+function updateStatsOnBossKill() {}
+function updateStatsOnPowerUpCollected() {}
+function checkAchievements() {}
 let bossActive = false;
 let bossHealth = 5;
 const bossName = "Astraeus, Señor del Vacío";
@@ -218,6 +250,9 @@ function shoot() {
 
         // Efecto de partículas al disparar
         createBulletParticles(bulletX + 2, bulletY);
+
+        // Actualizar estadísticas de disparos
+        updateStatsOnShoot();
 
         // Cadencia según si tiene boost o no
         const cooldown = hasFireRateBoost ? boostedFireRate : normalFireRate;
@@ -440,9 +475,25 @@ function updateGame() {
                         enemy.x + enemy.width/2,
                         enemy.y + enemy.height/2
                     );
+                    
+                    // Determinar tipo de enemigo para estadísticas
+                    let enemyType = 'type1'; // Por defecto
+                    if (enemy.image.src.includes('enemy2.png')) enemyType = 'type2';
+                    else if (enemy.image.src.includes('enemy3.png')) enemyType = 'type3';
+                    else if (enemy.image.src.includes('enemy4.png')) enemyType = 'type4';
+                    else if (enemy.image.src.includes('ifa.png')) enemyType = 'ifa';
+                    else if (enemy.image.src.includes('xiao_weapon.png')) enemyType = 'xiao_weapon';
+                    
+                    // Actualizar estadísticas de muertes
+                    updateStatsOnKill(enemyType);
+                    
                     enemies.splice(j, 1);
                     score += 10;
                     scoreDisplay.textContent = score;
+                    
+                    // Actualizar estadísticas de puntuación en tiempo real
+                    updateStatsOnScore(10);
+                    
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
                     if (score % 100 === 0) {
@@ -636,6 +687,10 @@ function createBulletTrailParticles(x, y) {
             kit.y < player.y + player.height &&
             kit.y + kit.height > player.y) {
             kits.splice(i, 1);
+            
+            // Actualizar estadísticas de power-up recolectado
+            updateStatsOnPowerUpCollected('kit');
+            
             if (player.hearts < maxHearts) {
                 player.hearts++;
                 updateHeartsDisplay();
@@ -715,6 +770,10 @@ function createBulletTrailParticles(x, y) {
             xiao.y < player.y + player.height &&
             xiao.y + xiao.height > player.y) {
             xiaos.splice(i, 1);
+            
+            // Actualizar estadísticas de power-up recolectado
+            updateStatsOnPowerUpCollected('xiao');
+            
             if (player.hearts === maxHearts && !hasExtraHeart) {
                 player.hearts++;
                 hasExtraHeart = true;
@@ -747,6 +806,9 @@ function createBulletTrailParticles(x, y) {
             arlee.y < player.y + player.height &&
             arlee.y + arlee.height > player.y) {
             arlees.splice(i, 1);
+            
+            // Actualizar estadísticas de power-up recolectado
+            updateStatsOnPowerUpCollected('arlee');
             
             // Si ya hay un power-up activo, solo reinicia el tiempo
             if (hasFireRateBoost) {
@@ -784,6 +846,9 @@ function createBulletTrailParticles(x, y) {
             cyno.y < player.y + player.height &&
             cyno.y + cyno.height > player.y) {
             cynos.splice(i, 1);
+            
+            // Actualizar estadísticas de power-up recolectado
+            updateStatsOnPowerUpCollected('cyno');
             
             // Si ya es invulnerable, solo reinicia el tiempo
             if (isInvulnerable) {
@@ -866,6 +931,9 @@ function gameOver() {
     // Remover clase cuando el juego termina
     document.body.classList.remove('game-running');
     
+    // Actualizar estadísticas de fin de partida
+    updateStatsOnGameEnd();
+    
     saveScore();
 }
 
@@ -929,6 +997,10 @@ function startGame() {
     gameRunning = true;
     gameOverDisplay.style.display = "none";
     canvas.style.filter = "none";
+    
+    // Actualizar estadísticas de inicio de partida
+    updateStatsOnGameStart();
+    
     spawnEnemies();
     updateGame();
     initJoystick();
@@ -942,6 +1014,9 @@ function handlePlayerDamage() {
         hasExtraHeart = false;
     }
     updateHeartsDisplay();
+
+    // Actualizar estadísticas de daño
+    updateStatsOnDamage();
 
     // Efecto visual en el jugador
     player.image.classList.add('damage');
@@ -1447,6 +1522,9 @@ function handleBossHit() {
         const bossWidth = boss.width;
         const bossHeight = boss.height;
 
+        // Actualizar estadísticas de muerte de boss
+        updateStatsOnBossKill();
+
         // Explosión épica
         for (let i = 0; i < 12; i++) {
             setTimeout(() => {
@@ -1458,6 +1536,10 @@ function handleBossHit() {
         }
         score += 100; // Suficiente para pasar de nivel
         scoreDisplay.textContent = score;
+        
+        // Actualizar estadísticas de puntuación en tiempo real
+        updateStatsOnScore(100);
+        
         // Sonido de victoria
         const victorySound = new Audio("assets/explosion.wav");
         victorySound.play();
@@ -1480,3 +1562,867 @@ function updateBossBar() {
     const percent = (boss.health / bossHealth) * 100;
     document.getElementById("bossHealthFill").style.width = percent + "%";
 }
+
+// =================== SISTEMA DE LOGROS ÉPICO ===================
+
+// Estadísticas del jugador para logros
+let playerStats = {
+    totalScore: 0,
+    cumulativeScore: 0, // Nueva estadística para puntuación acumulativa
+    totalKills: 0,
+    totalShots: 0,
+    totalGameTime: 0,
+    maxLevel: 0,
+    maxHearts: 0,
+    powerUpsCollected: 0,
+    bossesKilled: 0,
+    meteorsDestroyed: 0,
+    gamesPlayed: 0,
+    totalDamageReceived: 0,
+    consecutiveKills: 0,
+    maxConsecutiveKills: 0,
+    xiaosCollected: 0,
+    arleesCollected: 0,
+    cynosCollected: 0,
+    kitsCollected: 0,
+    timeWithoutDamage: 0,
+    maxTimeWithoutDamage: 0,
+    perfectLevels: 0,
+    enemyTypesKilled: { type1: 0, type2: 0, type3: 0, type4: 0, ifa: 0, xiao_weapon: 0 },
+    sessionStartTime: 0
+};
+
+// Definición de todos los logros épicos
+const achievements = [
+    // COMBATE ⚔️
+    {
+        id: 'first_blood',
+        name: '🗡️ Primera Sangre',
+        description: 'Destruye tu primer enemigo',
+        category: 'combat',
+        rarity: 'common',
+        points: 10,
+        icon: '⚔️',
+        condition: () => playerStats.totalKills >= 1,
+        unlocked: false
+    },
+    {
+        id: 'newbie_killer',
+        name: '🔪 Asesino Novato',
+        description: 'Destruye 5 enemigos',
+        category: 'combat',
+        rarity: 'common',
+        points: 15,
+        icon: '🔪',
+        condition: () => playerStats.totalKills >= 5,
+        unlocked: false
+    },
+    {
+        id: 'marksman',
+        name: '🎯 Tirador Experto',
+        description: 'Dispara 100 veces',
+        category: 'combat',
+        rarity: 'common',
+        points: 15,
+        icon: '🎯',
+        condition: () => playerStats.totalShots >= 100,
+        unlocked: false
+    },
+    {
+        id: 'trigger_happy',
+        name: '💥 Gatillo Alegre',
+        description: 'Dispara 25 veces',
+        category: 'combat',
+        rarity: 'common',
+        points: 10,
+        icon: '💥',
+        condition: () => playerStats.totalShots >= 25,
+        unlocked: false
+    },
+    {
+        id: 'slayer',
+        name: '💀 Exterminador',
+        description: 'Destruye 50 enemigos',
+        category: 'combat',
+        rarity: 'rare',
+        points: 25,
+        icon: '💀',
+        condition: () => playerStats.totalKills >= 50,
+        unlocked: false
+    },
+    {
+        id: 'genocide',
+        name: '☠️ Genocidio Espacial',
+        description: 'Destruye 500 enemigos',
+        category: 'combat',
+        rarity: 'epic',
+        points: 50,
+        icon: '☠️',
+        condition: () => playerStats.totalKills >= 500,
+        unlocked: false
+    },
+    {
+        id: 'killing_spree',
+        name: '🔥 Masacre Espacial',
+        description: 'Mata 10 enemigos consecutivos sin recibir daño',
+        category: 'combat',
+        rarity: 'rare',
+        points: 30,
+        icon: '🔥',
+        condition: () => playerStats.maxConsecutiveKills >= 10,
+        unlocked: false
+    },
+    {
+        id: 'unstoppable',
+        name: '⚡ Imparable',
+        description: 'Mata 25 enemigos consecutivos sin recibir daño',
+        category: 'combat',
+        rarity: 'epic',
+        points: 75,
+        icon: '⚡',
+        condition: () => playerStats.maxConsecutiveKills >= 25,
+        unlocked: false
+    },
+    {
+        id: 'boss_slayer',
+        name: '👑 Matador de Jefes',
+        description: 'Derrota tu primer boss',
+        category: 'combat',
+        rarity: 'epic',
+        points: 100,
+        icon: '👑',
+        condition: () => playerStats.bossesKilled >= 1,
+        unlocked: false
+    },
+    {
+        id: 'boss_destroyer',
+        name: '🐉 Destructor de Titanes',
+        description: 'Derrota 5 bosses',
+        category: 'combat',
+        rarity: 'legendary',
+        points: 200,
+        icon: '🐉',
+        condition: () => playerStats.bossesKilled >= 5,
+        unlocked: false
+    },
+    {
+        id: 'meteor_master',
+        name: '☄️ Maestro de Meteoritos',
+        description: 'Destruye 20 meteoritos',
+        category: 'combat',
+        rarity: 'rare',
+        points: 40,
+        icon: '☄️',
+        condition: () => playerStats.meteorsDestroyed >= 20,
+        unlocked: false
+    },
+    {
+        id: 'diversified_killer',
+        name: '🎭 Exterminador Diverso',
+        description: 'Mata al menos 10 enemigos de cada tipo',
+        category: 'combat',
+        rarity: 'epic',
+        points: 60,
+        icon: '🎭',
+        condition: () => {
+            const types = playerStats.enemyTypesKilled;
+            return types.type1 >= 10 && types.type2 >= 10 && types.type3 >= 10 && types.type4 >= 10;
+        },
+        unlocked: false
+    },
+
+    // SUPERVIVENCIA 🛡️
+    {
+        id: 'survivor',
+        name: '🛡️ Superviviente',
+        description: 'Sobrevive 5 minutos en una partida',
+        category: 'survival',
+        rarity: 'common',
+        points: 20,
+        icon: '🛡️',
+        condition: () => playerStats.totalGameTime >= 300000, // 5 minutos en ms
+        unlocked: false
+    },
+    {
+        id: 'marathon_runner',
+        name: '🏃 Corredor de Maratón',
+        description: 'Juega por un total de 1 hora',
+        category: 'survival',
+        rarity: 'rare',
+        points: 50,
+        icon: '🏃',
+        condition: () => playerStats.totalGameTime >= 3600000, // 1 hora en ms
+        unlocked: false
+    },
+    {
+        id: 'level_master',
+        name: '🌟 Maestro de Niveles',
+        description: 'Alcanza el nivel 20',
+        category: 'survival',
+        rarity: 'epic',
+        points: 80,
+        icon: '🌟',
+        condition: () => playerStats.maxLevel >= 20,
+        unlocked: false
+    },
+    {
+        id: 'level_god',
+        name: '⭐ Dios de los Niveles',
+        description: 'Alcanza el nivel 50',
+        category: 'survival',
+        rarity: 'legendary',
+        points: 150,
+        icon: '⭐',
+        condition: () => playerStats.maxLevel >= 50,
+        unlocked: false
+    },
+    {
+        id: 'untouchable',
+        name: '👻 Intocable',
+        description: 'Sobrevive 2 minutos sin recibir daño',
+        category: 'survival',
+        rarity: 'epic',
+        points: 70,
+        icon: '👻',
+        condition: () => playerStats.maxTimeWithoutDamage >= 120000, // 2 minutos
+        unlocked: false
+    },
+    {
+        id: 'iron_will',
+        name: '🔨 Voluntad de Hierro',
+        description: 'Completa un nivel sin recibir daño',
+        category: 'survival',
+        rarity: 'rare',
+        points: 35,
+        icon: '🔨',
+        condition: () => playerStats.perfectLevels >= 1,
+        unlocked: false
+    },
+    {
+        id: 'perfectionist',
+        name: '💎 Perfeccionista',
+        description: 'Completa 5 niveles sin recibir daño',
+        category: 'survival',
+        rarity: 'epic',
+        points: 100,
+        icon: '💎',
+        condition: () => playerStats.perfectLevels >= 5,
+        unlocked: false
+    },
+    {
+        id: 'heart_collector',
+        name: '❤️ Coleccionista de Corazones',
+        description: 'Alcanza 6 corazones de vida',
+        category: 'survival',
+        rarity: 'rare',
+        points: 40,
+        icon: '❤️',
+        condition: () => playerStats.maxHearts >= 6,
+        unlocked: false
+    },
+
+    // COLECCIÓN 💎
+    {
+        id: 'first_powerup',
+        name: '🎁 Primer Power-Up',
+        description: 'Recolecta tu primer power-up',
+        category: 'collection',
+        rarity: 'common',
+        points: 10,
+        icon: '🎁',
+        condition: () => playerStats.powerUpsCollected >= 1,
+        unlocked: false
+    },
+    {
+        id: 'powerup_addict',
+        name: '💊 Adicto a los Power-Ups',
+        description: 'Recolecta 50 power-ups',
+        category: 'collection',
+        rarity: 'rare',
+        points: 30,
+        icon: '💊',
+        condition: () => playerStats.powerUpsCollected >= 50,
+        unlocked: false
+    },
+    {
+        id: 'xiao_fan',
+        name: '🍃 Fan de Xiao',
+        description: 'Recolecta 10 power-ups de Xiao',
+        category: 'collection',
+        rarity: 'rare',
+        points: 25,
+        icon: '🍃',
+        condition: () => playerStats.xiaosCollected >= 10,
+        unlocked: false
+    },
+    {
+        id: 'arlee_enthusiast',
+        name: '🏹 Entusiasta de Arlee',
+        description: 'Recolecta 10 power-ups de Arlee',
+        category: 'collection',
+        rarity: 'rare',
+        points: 25,
+        icon: '🏹',
+        condition: () => playerStats.arleesCollected >= 10,
+        unlocked: false
+    },
+    {
+        id: 'cyno_devotee',
+        name: '⚡ Devoto de Cyno',
+        description: 'Recolecta 10 power-ups de Cyno',
+        category: 'collection',
+        rarity: 'rare',
+        points: 25,
+        icon: '⚡',
+        condition: () => playerStats.cynosCollected >= 10,
+        unlocked: false
+    },
+    {
+        id: 'genshin_collector',
+        name: '🌸 Coleccionista de Genshin',
+        description: 'Recolecta al menos 5 de cada power-up de Genshin',
+        category: 'collection',
+        rarity: 'epic',
+        points: 75,
+        icon: '🌸',
+        condition: () => playerStats.xiaosCollected >= 5 && playerStats.arleesCollected >= 5 && playerStats.cynosCollected >= 5,
+        unlocked: false
+    },
+    {
+        id: 'medic',
+        name: '🏥 Médico Espacial',
+        description: 'Recolecta 25 kits de salud',
+        category: 'collection',
+        rarity: 'common',
+        points: 20,
+        icon: '🏥',
+        condition: () => playerStats.kitsCollected >= 25,
+        unlocked: false
+    },
+
+    // MAESTRÍA 👑
+    {
+        id: 'first_points',
+        name: '🎯 Primeros Puntos',
+        description: 'Acumula 1,000 puntos totales',
+        category: 'mastery',
+        rarity: 'common',
+        points: 10,
+        icon: '🎯',
+        condition: () => playerStats.cumulativeScore >= 1000,
+        unlocked: false
+    },
+    {
+        id: 'point_collector',
+        name: '💰 Coleccionista de Puntos',
+        description: 'Acumula 5,000 puntos totales',
+        category: 'mastery',
+        rarity: 'common',
+        points: 20,
+        icon: '💰',
+        condition: () => playerStats.cumulativeScore >= 5000,
+        unlocked: false
+    },
+    {
+        id: 'high_scorer',
+        name: '📊 Puntuador Alto',
+        description: 'Acumula 10,000 puntos totales',
+        category: 'mastery',
+        rarity: 'rare',
+        points: 40,
+        icon: '📊',
+        condition: () => playerStats.cumulativeScore >= 10000,
+        unlocked: false
+    },
+    {
+        id: 'score_enthusiast',
+        name: '🎪 Entusiasta de la Puntuación',
+        description: 'Acumula 25,000 puntos totales',
+        category: 'mastery',
+        rarity: 'rare',
+        points: 60,
+        icon: '🎪',
+        condition: () => playerStats.cumulativeScore >= 25000,
+        unlocked: false
+    },
+    {
+        id: 'score_master',
+        name: '🏆 Maestro de Puntuación',
+        description: 'Acumula 50,000 puntos totales',
+        category: 'mastery',
+        rarity: 'epic',
+        points: 100,
+        icon: '🏆',
+        condition: () => playerStats.cumulativeScore >= 50000,
+        unlocked: false
+    },
+    {
+        id: 'score_legend',
+        name: '🌟 Leyenda de la Puntuación',
+        description: 'Acumula 100,000 puntos totales',
+        category: 'mastery',
+        rarity: 'legendary',
+        points: 200,
+        icon: '🌟',
+        condition: () => playerStats.cumulativeScore >= 100000,
+        unlocked: false
+    },
+    {
+        id: 'score_god',
+        name: '⭐ Dios de la Puntuación',
+        description: 'Acumula 500,000 puntos totales',
+        category: 'mastery',
+        rarity: 'mythic',
+        points: 500,
+        icon: '⭐',
+        condition: () => playerStats.cumulativeScore >= 500000,
+        unlocked: false
+    },
+    {
+        id: 'score_transcendent',
+        name: '🌌 Trascendente de la Puntuación',
+        description: 'Acumula 1,000,000 puntos totales',
+        category: 'mastery',
+        rarity: 'mythic',
+        points: 1000,
+        icon: '🌌',
+        condition: () => playerStats.cumulativeScore >= 1000000,
+        unlocked: false
+    },
+    {
+        id: 'veteran',
+        name: '🎖️ Veterano',
+        description: 'Juega 50 partidas',
+        category: 'mastery',
+        rarity: 'rare',
+        points: 30,
+        icon: '🎖️',
+        condition: () => playerStats.gamesPlayed >= 50,
+        unlocked: false
+    },
+    {
+        id: 'dedicated_player',
+        name: '🏅 Jugador Dedicado',
+        description: 'Juega 100 partidas',
+        category: 'mastery',
+        rarity: 'epic',
+        points: 60,
+        icon: '🏅',
+        condition: () => playerStats.gamesPlayed >= 100,
+        unlocked: false
+    },
+
+    // SECRETOS 🌟
+    {
+        id: 'ifa_victim',
+        name: '🔮 Víctima de Ifa',
+        description: 'Sé afectado por el debuff de Ifa',
+        category: 'secret',
+        rarity: 'rare',
+        points: 25,
+        icon: '🔮',
+        condition: () => playerStats.enemyTypesKilled.ifa >= 1,
+        unlocked: false
+    },
+    {
+        id: 'xiao_weapon_hunter',
+        name: '🗡️ Cazador de Armas Xiao',
+        description: 'Destruye 5 enemigos tipo Xiao Weapon',
+        category: 'secret',
+        rarity: 'epic',
+        points: 50,
+        icon: '🗡️',
+        condition: () => playerStats.enemyTypesKilled.xiao_weapon >= 5,
+        unlocked: false
+    },
+    {
+        id: 'moai_friend',
+        name: '🗿 Amigo del Moai',
+        description: 'Haz clic en el Moai 10 veces',
+        category: 'secret',
+        rarity: 'common',
+        points: 15,
+        icon: '🗿',
+        condition: () => parseInt(localStorage.getItem('moaiClicks') || '0') >= 10,
+        unlocked: false
+    },
+    {
+        id: 'achievement_hunter',
+        name: '🏆 Cazador de Logros',
+        description: 'Abre el panel de logros por primera vez',
+        category: 'secret',
+        rarity: 'common',
+        points: 5,
+        icon: '🏆',
+        condition: () => parseInt(localStorage.getItem('achievementsOpened') || '0') >= 1,
+        unlocked: false
+    },
+    {
+        id: 'completionist',
+        name: '💯 Completista',
+        description: 'Desbloquea el 80% de todos los logros',
+        category: 'secret',
+        rarity: 'mythic',
+        points: 500,
+        icon: '💯',
+        condition: () => {
+            const unlockedCount = achievements.filter(a => a.unlocked).length;
+            const totalCount = achievements.length;
+            return (unlockedCount / totalCount) >= 0.8;
+        },
+        unlocked: false
+    },
+    {
+        id: 'legend',
+        name: '🌟 Leyenda Viviente',
+        description: 'Desbloquea TODOS los logros',
+        category: 'secret',
+        rarity: 'mythic',
+        points: 1000,
+        icon: '🌟',
+        condition: () => {
+            const unlockedCount = achievements.filter(a => a.id !== 'legend' && a.unlocked).length;
+            const totalCount = achievements.length - 1; // Excluir este mismo logro
+            return unlockedCount === totalCount;
+        },
+        unlocked: false
+    }
+];
+
+// Cargar estadísticas y logros desde localStorage
+function loadPlayerStats() {
+    const savedStats = localStorage.getItem('playerStats');
+    if (savedStats) {
+        playerStats = { ...playerStats, ...JSON.parse(savedStats) };
+    }
+    
+    const savedAchievements = localStorage.getItem('achievements');
+    if (savedAchievements) {
+        const saved = JSON.parse(savedAchievements);
+        achievements.forEach(achievement => {
+            const savedAchievement = saved.find(a => a.id === achievement.id);
+            if (savedAchievement) {
+                achievement.unlocked = savedAchievement.unlocked;
+            }
+        });
+    }
+}
+
+// Guardar estadísticas y logros
+function savePlayerStats() {
+    localStorage.setItem('playerStats', JSON.stringify(playerStats));
+    localStorage.setItem('achievements', JSON.stringify(achievements.map(a => ({ id: a.id, unlocked: a.unlocked }))));
+}
+
+// Verificar logros
+function checkAchievements() {
+    achievements.forEach(achievement => {
+        if (!achievement.unlocked && achievement.condition()) {
+            unlockAchievement(achievement);
+        }
+    });
+}
+
+// Desbloquear logro
+function unlockAchievement(achievement) {
+    achievement.unlocked = true;
+    showAchievementNotification(achievement);
+    savePlayerStats();
+    updateAchievementStats();
+}
+
+// Mostrar notificación de logro
+function isMobileDevice() {
+    return window.innerWidth <= 768 || 
+           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function showAchievementNotification(achievement) {
+    const notification = document.getElementById('achievementNotification');
+    const nameEl = document.getElementById('notificationName');
+    const descEl = document.getElementById('notificationDescription');
+    const pointsEl = document.getElementById('notificationPoints');
+    
+    nameEl.textContent = achievement.name;
+    descEl.textContent = achievement.description;
+    pointsEl.textContent = `+${achievement.points} puntos`;
+    
+    // Añadir clase específica para móviles
+    if (isMobileDevice()) {
+        notification.classList.add('mobile-notification');
+    } else {
+        notification.classList.remove('mobile-notification');
+    }
+    
+    notification.classList.add('show');
+    
+    // Reproducir sonido de logro (si existe) - volumen más bajo en móviles
+    try {
+        const achievementSound = new Audio('assets/achievement.mp3');
+        achievementSound.volume = isMobileDevice() ? 0.3 : 0.5;
+        achievementSound.play().catch(() => {}); // Ignorar errores de audio
+    } catch(e) {}
+    
+    // Tiempo de display más corto en móviles para ser menos intrusivo
+    const displayTime = isMobileDevice() ? 3000 : 5000;
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.classList.remove('mobile-notification');
+        }, 300); // Limpiar clase después de la animación
+    }, displayTime);
+}
+
+// Inicializar sistema de logros
+function initAchievementSystem() {
+    loadPlayerStats();
+    
+    const achievementsBtn = document.getElementById('achievementsButton');
+    const achievementsModal = document.getElementById('achievementsModal');
+    const achievementsClose = document.querySelector('.achievements-close');
+    
+    // Abrir modal de logros
+    achievementsBtn.addEventListener('click', () => {
+        achievementsModal.style.display = 'block';
+        
+        // Agregar clase móvil si es necesario
+        if (isMobileDevice()) {
+            achievementsModal.classList.add('mobile-modal');
+        } else {
+            achievementsModal.classList.remove('mobile-modal');
+        }
+        
+        renderAchievements();
+        updateAchievementStats();
+        
+        // Logro secreto por abrir el panel
+        let achievementsOpened = parseInt(localStorage.getItem('achievementsOpened') || '0');
+        achievementsOpened++;
+        localStorage.setItem('achievementsOpened', achievementsOpened.toString());
+        checkAchievements();
+    });
+    
+    // Cerrar modal
+    achievementsClose.addEventListener('click', () => {
+        achievementsModal.style.display = 'none';
+        achievementsModal.classList.remove('mobile-modal');
+    });
+    
+    // Cerrar con clic fuera del modal
+    window.addEventListener('click', (e) => {
+        if (e.target === achievementsModal) {
+            achievementsModal.style.display = 'none';
+            achievementsModal.classList.remove('mobile-modal');
+        }
+    });
+    
+    // Tabs de categorías
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAchievements(btn.dataset.category);
+        });
+    });
+    
+    // Tracking de clics en Moai para logro secreto
+    const moaiBtn = document.getElementById('moaiButton');
+    moaiBtn.addEventListener('click', () => {
+        let moaiClicks = parseInt(localStorage.getItem('moaiClicks') || '0');
+        moaiClicks++;
+        localStorage.setItem('moaiClicks', moaiClicks.toString());
+        checkAchievements();
+    });
+}
+
+// Renderizar logros
+function renderAchievements(category = 'all') {
+    const achievementsList = document.getElementById('achievementsList');
+    achievementsList.innerHTML = '';
+    
+    const filteredAchievements = category === 'all' 
+        ? achievements 
+        : achievements.filter(a => a.category === category);
+    
+    filteredAchievements.forEach(achievement => {
+        const achievementEl = document.createElement('div');
+        achievementEl.className = `achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
+        
+        const progress = getAchievementProgress(achievement);
+        
+        achievementEl.innerHTML = `
+            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-details">
+                <div class="achievement-name">${achievement.name}</div>
+                <div class="achievement-description">${achievement.description}</div>
+                <div class="achievement-progress">${progress}</div>
+            </div>
+            <div class="achievement-points">+${achievement.points}</div>
+            <div class="achievement-rarity rarity-${achievement.rarity}">${achievement.rarity}</div>
+        `;
+        
+        achievementsList.appendChild(achievementEl);
+    });
+}
+
+// Obtener progreso del logro
+function getAchievementProgress(achievement) {
+    if (achievement.unlocked) return '✅ Desbloqueado';
+    
+    // Progreso específico para cada logro
+    switch(achievement.id) {
+        case 'first_blood':
+            return `${Math.min(playerStats.totalKills, 1)}/1 enemigos`;
+        case 'newbie_killer':
+            return `${Math.min(playerStats.totalKills, 5)}/5 enemigos`;
+        case 'trigger_happy':
+            return `${Math.min(playerStats.totalShots, 25)}/25 disparos`;
+        case 'marksman':
+            return `${Math.min(playerStats.totalShots, 100)}/100 disparos`;
+        case 'slayer':
+            return `${Math.min(playerStats.totalKills, 50)}/50 enemigos`;
+        case 'genocide':
+            return `${Math.min(playerStats.totalKills, 500)}/500 enemigos`;
+        case 'killing_spree':
+            return `${Math.min(playerStats.maxConsecutiveKills, 10)}/10 consecutivos`;
+        case 'unstoppable':
+            return `${Math.min(playerStats.maxConsecutiveKills, 25)}/25 consecutivos`;
+        case 'boss_slayer':
+            return `${Math.min(playerStats.bossesKilled, 1)}/1 boss`;
+        case 'boss_destroyer':
+            return `${Math.min(playerStats.bossesKilled, 5)}/5 bosses`;
+        case 'meteor_master':
+            return `${Math.min(playerStats.meteorsDestroyed, 20)}/20 meteoritos`;
+        case 'survivor':
+            return `${Math.floor(Math.min(playerStats.totalGameTime, 300000) / 60000)}/5 minutos`;
+        case 'level_master':
+            return `${Math.min(playerStats.maxLevel, 20)}/20 nivel`;
+        case 'level_god':
+            return `${Math.min(playerStats.maxLevel, 50)}/50 nivel`;
+        case 'heart_collector':
+            return `${Math.min(playerStats.maxHearts, 6)}/6 corazones`;
+        case 'powerup_addict':
+            return `${Math.min(playerStats.powerUpsCollected, 50)}/50 power-ups`;
+        case 'first_points':
+            return `${Math.min(playerStats.cumulativeScore, 1000).toLocaleString()}/1,000 puntos`;
+        case 'point_collector':
+            return `${Math.min(playerStats.cumulativeScore, 5000).toLocaleString()}/5,000 puntos`;
+        case 'high_scorer':
+            return `${Math.min(playerStats.cumulativeScore, 10000).toLocaleString()}/10,000 puntos`;
+        case 'score_enthusiast':
+            return `${Math.min(playerStats.cumulativeScore, 25000).toLocaleString()}/25,000 puntos`;
+        case 'score_master':
+            return `${Math.min(playerStats.cumulativeScore, 50000).toLocaleString()}/50,000 puntos`;
+        case 'score_legend':
+            return `${Math.min(playerStats.cumulativeScore, 100000).toLocaleString()}/100,000 puntos`;
+        case 'score_god':
+            return `${Math.min(playerStats.cumulativeScore, 500000).toLocaleString()}/500,000 puntos`;
+        case 'score_transcendent':
+            return `${Math.min(playerStats.cumulativeScore, 1000000).toLocaleString()}/1,000,000 puntos`;
+        case 'veteran':
+            return `${Math.min(playerStats.gamesPlayed, 50)}/50 partidas`;
+        case 'dedicated_player':
+            return `${Math.min(playerStats.gamesPlayed, 100)}/100 partidas`;
+        case 'moai_friend':
+            return `${Math.min(parseInt(localStorage.getItem('moaiClicks') || '0'), 10)}/10 clics`;
+        default:
+            return 'En progreso...';
+    }
+}
+
+// Actualizar estadísticas de logros
+function updateAchievementStats() {
+    const unlockedCount = achievements.filter(a => a.unlocked).length;
+    const totalCount = achievements.length;
+    const totalPoints = achievements.filter(a => a.unlocked).reduce((sum, a) => sum + a.points, 0);
+    const completionPercent = Math.round((unlockedCount / totalCount) * 100);
+    
+    document.getElementById('totalAchievements').textContent = `${unlockedCount}/${totalCount}`;
+    document.getElementById('achievementPoints').textContent = totalPoints;
+    document.getElementById('completionPercent').textContent = `${completionPercent}%`;
+}
+
+// Funciones para actualizar estadísticas durante el juego
+function updateStatsOnKill(enemyType) {
+    playerStats.totalKills++;
+    playerStats.consecutiveKills++;
+    playerStats.maxConsecutiveKills = Math.max(playerStats.maxConsecutiveKills, playerStats.consecutiveKills);
+    
+    if (playerStats.enemyTypesKilled[enemyType] !== undefined) {
+        playerStats.enemyTypesKilled[enemyType]++;
+    }
+    
+    savePlayerStats();
+    checkAchievements();
+}
+
+function updateStatsOnShoot() {
+    playerStats.totalShots++;
+    checkAchievements();
+}
+
+function updateStatsOnScore(points) {
+    // Actualizar puntuación acumulativa en tiempo real
+    playerStats.cumulativeScore += points;
+    checkAchievements();
+}
+
+function updateStatsOnDamage() {
+    playerStats.totalDamageReceived++;
+    playerStats.consecutiveKills = 0; // Reset consecutive kills
+    playerStats.timeWithoutDamage = 0; // Reset time without damage
+    checkAchievements();
+}
+
+function updateStatsOnBossKill() {
+    playerStats.bossesKilled++;
+    savePlayerStats();
+    checkAchievements();
+}
+
+function updateStatsOnPowerUpCollected(type) {
+    playerStats.powerUpsCollected++;
+    
+    switch(type) {
+        case 'xiao': playerStats.xiaosCollected++; break;
+        case 'arlee': playerStats.arleesCollected++; break;
+        case 'cyno': playerStats.cynosCollected++; break;
+        case 'kit': playerStats.kitsCollected++; break;
+    }
+    
+    savePlayerStats();
+    checkAchievements();
+}
+
+function updateStatsOnGameStart() {
+    playerStats.gamesPlayed++;
+    playerStats.sessionStartTime = Date.now();
+    savePlayerStats();
+    checkAchievements();
+}
+
+function updateStatsOnGameEnd() {
+    if (playerStats.sessionStartTime > 0) {
+        const sessionTime = Date.now() - playerStats.sessionStartTime;
+        playerStats.totalGameTime += sessionTime;
+        playerStats.sessionStartTime = 0;
+    }
+    
+    // Actualizar puntuación máxima por partida
+    playerStats.totalScore = Math.max(playerStats.totalScore, score);
+    
+    // Añadir puntuación actual a la puntuación acumulativa
+    playerStats.cumulativeScore += score;
+    
+    playerStats.maxLevel = Math.max(playerStats.maxLevel, level);
+    playerStats.maxHearts = Math.max(playerStats.maxHearts, player.hearts);
+    
+    savePlayerStats();
+    checkAchievements();
+}
+
+// Inicializar el sistema cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    initAchievementSystem();
+});
