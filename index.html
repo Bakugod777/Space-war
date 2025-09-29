@@ -15,6 +15,15 @@
         <!-- Botón de Logros -->
         <button id="achievementsButton" class="achievements-btn">🏆</button>
         
+        <!-- Controles de Audio -->
+        <div id="audioControls" class="audio-controls">
+            <button id="muteButton" class="audio-btn mute-btn">🔊</button>
+            <div class="volume-control">
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
+                <div class="volume-label">Vol</div>
+            </div>
+        </div>
+        
         <!-- Modal para mensajes -->
         <div id="moaiModal" class="moai-modal">
             <div class="moai-modal-content">
@@ -158,6 +167,7 @@
             displayScores(scores);
             initMoaiButton();
             initUpdatePopup();
+            initAudioControls();
             
             // Controlar visibilidad del botón moai
             const startGameBtn = document.getElementById("startGame");
@@ -166,6 +176,7 @@
             
             startGameBtn.addEventListener("click", () => {
                 moaiButton.style.display = "none"; // Ocultar moai cuando inicia el juego
+                document.body.classList.add('game-running'); 
             });
         });
 
@@ -185,7 +196,7 @@
             const moaiClose = document.querySelector('.moai-close');
             const moaiMessage = document.getElementById('moaiMessage');
 
-            // Mensajes épicos organizados por día de la semana con MUCHOS más mensajes
+            // Mensajes épicos organizados por día de la semana con MUCHOS más mensajes LPTM ME PASE CON ESTO EN QUE MOMENTO DIOS MIO QUE ME PASA EN LA CABEZA XDDD
             const messages = {
                 0: [ // Domingo - Reflexión y sabiduría
                     "🌟 'En el silencio del domingo, los guerreros más sabios preparan su estrategia para la semana. La reflexión es el arma más poderosa del conquistador de estrellas.'",
@@ -961,30 +972,99 @@
             const confirmBtn = document.getElementById('confirmAlert');
             const hasSeenUpdate = localStorage.getItem('hasSeenUpdatePopup');
             
-            // Mostrar el popup después de un pequeño delay
-            setTimeout(() => {
-                updatePopup.classList.add('show');
-            }, 1000);
+            // Solo mostrar si no ha sido cerrado antes
+            if (hasSeenUpdate !== 'true') {
+                // Mostrar el popup después de un pequeño delay
+                setTimeout(() => {
+                    updatePopup.classList.add('show');
+                }, 1000);
+            }
             
-            // Manejar el cierre del popup - MOSTRAR ALERTA PERSONALIZADA
+            // Manejar el cierre del popup - Cerrar directamente y guardar preferencia
             closeBtn.addEventListener('click', () => {
-                // Mostrar la alerta de confirmación
-                customAlert.classList.add('show');
+                updatePopup.classList.remove('show');
+                // Guardar que el usuario ya cerró el popup para que no aparezca nunca más
+                localStorage.setItem('hasSeenUpdatePopup', 'true');
             });
             
-            // Manejar botón "Cancelar" de la alerta
+            // Los botones de alerta ya no son necesarios para el popup de actualización
+            // pero se mantienen para otras funcionalidades futuras
             cancelBtn.addEventListener('click', () => {
                 customAlert.classList.remove('show');
             });
             
-            // Manejar botón "Confirmar" de la alerta
             confirmBtn.addEventListener('click', () => {
                 customAlert.classList.remove('show');
-                updatePopup.classList.remove('show');
-                localStorage.setItem('hasSeenUpdatePopup', 'true');
+            });
+        }
+
+        function initAudioControls() {
+            const muteButton = document.getElementById('muteButton');
+            const volumeSlider = document.getElementById('volumeSlider');
+            
+            // Cargar configuración guardada
+            const savedVolume = localStorage.getItem('gameVolume') || '50';
+            const savedMuted = localStorage.getItem('gameMuted') === 'true';
+            
+            volumeSlider.value = savedVolume;
+            
+            // Aplicar configuración inicial
+            if (savedMuted) {
+                muteButton.textContent = '🔇';
+                muteButton.classList.add('muted');
+            }
+            
+            // Función para obtener el objeto de música
+            function getBgMusic() {
+                return window.bgMusic || (typeof initBgMusic === 'function' ? initBgMusic() : null);
+            }
+            
+            // Control de mute/unmute
+            muteButton.addEventListener('click', () => {
+                const music = getBgMusic();
+                if (music) {
+                    const isMuted = music.volume === 0;
+                    
+                    if (isMuted) {
+                        // Unmute
+                        music.volume = parseFloat(volumeSlider.value) / 100;
+                        muteButton.textContent = '🔊';
+                        muteButton.classList.remove('muted');
+                        localStorage.setItem('gameMuted', 'false');
+                        console.log('Audio unmuted, volumen:', music.volume);
+                    } else {
+                        // Mute
+                        music.volume = 0;
+                        muteButton.textContent = '🔇';
+                        muteButton.classList.add('muted');
+                        localStorage.setItem('gameMuted', 'true');
+                        console.log('Audio muted');
+                    }
+                }
             });
             
-           
+            // Control de volumen
+            volumeSlider.addEventListener('input', (e) => {
+                const volume = parseFloat(e.target.value) / 100;
+                localStorage.setItem('gameVolume', e.target.value);
+                
+                const music = getBgMusic();
+                if (music) {
+                    music.volume = volume;
+                    console.log('Volumen cambiado a:', volume);
+                    
+                    // Actualizar botón de mute según el volumen
+                    if (volume === 0) {
+                        muteButton.textContent = '🔇';
+                        muteButton.classList.add('muted');
+                        localStorage.setItem('gameMuted', 'true');
+                    } else {
+                        muteButton.textContent = '🔊';
+                        muteButton.classList.remove('muted');
+                        localStorage.setItem('gameMuted', 'false');
+                    }
+                }
+            });
         }
     </script>
 </body>

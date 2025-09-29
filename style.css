@@ -832,6 +832,221 @@ button, .touchButton {
     }
 }
 
+/* =================== CONTROLES DE AUDIO =================== */
+.audio-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1500;
+    background: rgba(0, 20, 40, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 8px 12px;
+    border-radius: 25px;
+    border: 2px solid rgba(0, 255, 255, 0.4);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.audio-btn {
+    background: linear-gradient(135deg, 
+        rgba(0, 100, 200, 0.8) 0%, 
+        rgba(0, 150, 255, 0.8) 100%);
+    border: 2px solid rgba(0, 255, 255, 0.6);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.audio-btn:hover {
+    background: linear-gradient(135deg, 
+        rgba(0, 150, 255, 0.9) 0%, 
+        rgba(0, 200, 255, 0.9) 100%);
+    transform: scale(1.1);
+    box-shadow: 
+        0 0 25px rgba(0, 255, 255, 0.6),
+        inset 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.audio-btn:active {
+    transform: scale(0.95);
+}
+
+.audio-btn.muted {
+    background: linear-gradient(135deg, 
+        rgba(120, 0, 0, 0.8) 0%, 
+        rgba(180, 0, 0, 0.8) 100%);
+    border-color: rgba(255, 100, 100, 0.6);
+    box-shadow: 
+        0 0 15px rgba(255, 0, 0, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.audio-btn.muted:hover {
+    background: linear-gradient(135deg, 
+        rgba(180, 0, 0, 0.9) 0%, 
+        rgba(220, 0, 0, 0.9) 100%);
+    box-shadow: 
+        0 0 25px rgba(255, 0, 0, 0.6),
+        inset 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.volume-label {
+    color: rgba(0, 255, 255, 0.8);
+    font-size: 11px;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    min-width: 20px;
+}
+
+.volume-slider {
+    width: 80px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.volume-slider:hover {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+}
+
+.volume-slider::-webkit-slider-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.volume-slider::-webkit-slider-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00ffff, #0080ff);
+    cursor: pointer;
+    -webkit-appearance: none;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.6),
+        inset 0 0 5px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #00ffff, #00aaff);
+    transform: scale(1.2);
+    box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.8),
+        inset 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+/* Firefox */
+.volume-slider::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.volume-slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00ffff, #0080ff);
+    cursor: pointer;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.6),
+        inset 0 0 5px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive para controles de audio */
+@media (max-width: 768px) {
+    .audio-controls {
+        top: 10px;
+        right: 10px;
+        padding: 6px 10px;
+        gap: 8px;
+    }
+    
+    .audio-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+    
+    .volume-slider {
+        width: 60px;
+        height: 5px;
+    }
+    
+    .volume-slider::-webkit-slider-thumb {
+        height: 14px;
+        width: 14px;
+    }
+    
+    .volume-label {
+        font-size: 10px;
+        min-width: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .audio-controls {
+        top: 5px;
+        right: 5px;
+        padding: 5px 8px;
+        gap: 6px;
+    }
+    
+    .audio-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    .volume-slider {
+        width: 50px;
+        height: 4px;
+    }
+    
+    .volume-slider::-webkit-slider-thumb {
+        height: 12px;
+        width: 12px;
+    }
+    
+    .volume-label {
+        font-size: 9px;
+        min-width: 16px;
+    }
+}
+
 /* Modal para mensajes del Moai */
 .moai-modal {
     display: none;
@@ -1502,9 +1717,10 @@ body:not(.game-running) #touchControls {
     display: none !important;
 }
 
-/* Ocultar botones cuando el juego está corriendo */
+/* Ocultar botones y controles de audio cuando el juego está corriendo */
 body.game-running .moai-btn,
-body.game-running .achievements-btn {
+body.game-running .achievements-btn,
+body.game-running .audio-controls {
     display: none !important;
 }
 

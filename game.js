@@ -980,8 +980,16 @@ function updateHeartsDisplay() {
 }
 
 function gameOver() {
+    gameRunning = false;
     gameOverDisplay.style.display = "block";
     canvas.style.filter = "grayscale(100%)";
+    
+    // Pausar la música cuando el juego termina
+    const music = initBgMusic();
+    if (music) {
+        music.pause();
+        console.log("Música pausada al terminar el juego");
+    }
     
     // Remover clase cuando el juego termina
     document.body.classList.remove('game-running');
@@ -1063,6 +1071,36 @@ function startGame() {
     gameRunning = true;
     gameOverDisplay.style.display = "none";
     canvas.style.filter = "none";
+    
+    // Añadir clase para ocultar controles de menú
+    document.body.classList.add('game-running');
+    
+    // Reproducir música de fondo con configuración robusta
+    const music = initBgMusic();
+    if (music) {
+        music.currentTime = 0; // Reiniciar desde el principio
+        music.loop = true; // Asegurar que esté en loop
+        
+        // Configurar volumen actual
+        const currentVolume = localStorage.getItem('gameVolume') || '50';
+        const currentMuted = localStorage.getItem('gameMuted') === 'true';
+        music.volume = currentMuted ? 0 : parseFloat(currentVolume) / 100;
+        
+        console.log("Intentando reproducir música, volumen:", music.volume);
+        
+        music.play().then(() => {
+            console.log("Música reproduciéndose correctamente");
+        }).catch((error) => {
+            console.log("Error al reproducir música:", error);
+            // Intentar reproducir en el próximo clic del usuario
+            document.addEventListener('click', function playMusic() {
+                music.play().then(() => {
+                    console.log("Música iniciada después de clic del usuario");
+                }).catch(() => {});
+                document.removeEventListener('click', playMusic);
+            }, { once: true });
+        });
+    }
     
     // Actualizar estadísticas de inicio de partida
     updateStatsOnGameStart();
@@ -1252,9 +1290,45 @@ function startDoublePointsTimer() {
     }, 1000);
 }
 
-const bgMusic = new Audio("assets/background.mp3");
-bgMusic.loop = true;
-bgMusic.play();
+// Configuración de música de fondo
+let bgMusic = null;
+
+function initBgMusic() {
+    if (!bgMusic) {
+        bgMusic = new Audio("assets/background.mp3");
+        bgMusic.loop = true;
+        
+        // Configurar volumen inicial
+        const savedVolume = localStorage.getItem('gameVolume') || '50';
+        const savedMuted = localStorage.getItem('gameMuted') === 'true';
+        bgMusic.volume = savedMuted ? 0 : parseFloat(savedVolume) / 100;
+        
+        // Evento para reiniciar la música si se detiene inesperadamente
+        bgMusic.addEventListener('ended', () => {
+            if (gameRunning && bgMusic.loop) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().catch(() => {});
+            }
+        });
+        
+        // Evento para manejar errores de carga
+        bgMusic.addEventListener('error', (e) => {
+            console.log("Error al cargar la música:", e);
+        });
+        
+        // Evento cuando la música está lista para reproducir
+        bgMusic.addEventListener('canplay', () => {
+            console.log("Música lista para reproducir");
+        });
+        
+        console.log("Música de fondo inicializada");
+    }
+    return bgMusic;
+}
+
+// Inicializar música inmediatamente y hacerla accesible globalmente
+bgMusic = initBgMusic();
+window.bgMusic = bgMusic;
 
 // Controles táctiles para dispositivos móviles y botones en pantalla
 canvas.addEventListener("touchstart", handleTouchStart, false);
