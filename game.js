@@ -102,9 +102,13 @@ let enemyBullets = []; // Balas enemigas
 let xiaos = []; // Array para los kits especiales xiao
 let arlees = []; // Array para los power-ups de velocidad de disparo
 let cynos = []; // Array para los power-ups de invulnerabilidad
+let flins = []; // Array para los power-ups de puntos dobles
 let hasFireRateBoost = false; // Control del power-up activo
 let normalFireRate = 500; // Cadencia normal de disparo (500ms)
 let boostedFireRate = 150; // Cadencia mejorada de disparo (150ms)
+let hasDoublePoints = false; // Control del power-up de puntos dobles
+let doublePointsTimer = null;
+let doublePointsTimeLeft = 30; // 30 segundos de puntos dobles
 let maxHearts = 3; // Corazones base máximos
 let hasExtraHeart = false; // Controla si el jugador tiene el corazón extra
 let isInvulnerable = false; // Control de invulnerabilidad
@@ -436,6 +440,20 @@ function spawnIfa() {
     enemies.push(ifa);
 }
 
+// la función para crear el power-up flins (puntos dobles)
+function spawnFlins() {
+    const flin = {
+        x: Math.random() * (canvas.width - 50),
+        y: -50,
+        width: 50,
+        height: 50,
+        speed: 2,
+        image: new Image(),
+    };
+    flin.image.src = "assets/flins.png";
+    flins.push(flin);
+}
+
 
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -488,11 +506,7 @@ function updateGame() {
                     updateStatsOnKill(enemyType);
                     
                     enemies.splice(j, 1);
-                    score += 10;
-                    scoreDisplay.textContent = score;
-                    
-                    // Actualizar estadísticas de puntuación en tiempo real
-                    updateStatsOnScore(10);
+                    addPoints(10);
                     
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
@@ -515,8 +529,7 @@ function updateGame() {
                 bullets.splice(i, 1);
                 if (meteor.health <= 0) {
                     meteors.splice(j, 1);
-                    score += 20;
-                    scoreDisplay.textContent = score;
+                    addPoints(20);
                     const explosionSound = new Audio("assets/explosion.wav");
                     explosionSound.play();
                     createExplosion(meteor.x + meteor.width / 2, meteor.y + meteor.height / 2);
@@ -869,6 +882,48 @@ function createBulletTrailParticles(x, y) {
         }
     });
 
+    flins.forEach((flin, i) => {
+        flin.y += flin.speed;
+        
+        // Efecto visual especial para flins - brillo dorado
+        ctx.save();
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 15;
+        ctx.drawImage(flin.image, flin.x, flin.y, flin.width, flin.height);
+        ctx.restore();
+        
+        if (flin.y > canvas.height) {
+            flins.splice(i, 1);
+        }
+
+        // Colisión con el jugador
+        if (flin.x < player.x + player.width &&
+            flin.x + flin.width > player.x &&
+            flin.y < player.y + player.height &&
+            flin.y + flin.height > player.y) {
+            flins.splice(i, 1);
+            
+            // Actualizar estadísticas de power-up recolectado
+            updateStatsOnPowerUpCollected('flins');
+            
+            // Si ya tiene puntos dobles, solo reinicia el tiempo
+            if (hasDoublePoints) {
+                doublePointsTimeLeft = 30;
+            } else {
+                // Activar puntos dobles por primera vez
+                hasDoublePoints = true;
+                doublePointsTimeLeft = 30;
+                startDoublePointsTimer();
+            }
+            
+            // Efecto visual y sonoro épico
+            createDoublePointsEffect(player.x + player.width/2, player.y + player.height/2);
+            const powerUpSound = new Audio("assets/coin.wav");
+            powerUpSound.volume = 0.7;
+            powerUpSound.play().catch(() => {});
+        }
+    });
+
     // Boss logic
     if (bossActive && boss) {
         animateBoss(ctx); // animación y dibujo del boss
@@ -978,6 +1033,7 @@ function startGame() {
     xiaos = [];
     arlees = []; // Limpiar los power-ups de velocidad de disparo
     cynos = [];
+    flins = []; // Limpiar los power-ups de puntos dobles
     isInvulnerable = false;
     if (invulnerabilityTimer) {
         clearInterval(invulnerabilityTimer);
@@ -993,6 +1049,16 @@ function startGame() {
     hasFireRateBoost = false;
     powerUpTimeLeft = 30;
     powerUpTimerDisplay.style.display = 'none';
+    
+    // Limpiar timer de puntos dobles
+    hasDoublePoints = false;
+    if (doublePointsTimer) {
+        clearInterval(doublePointsTimer);
+        doublePointsTimer = null;
+    }
+    doublePointsTimeLeft = 30;
+    document.getElementById('doublePointsTimer').style.display = 'none';
+    
     player.image.style.filter = "none";
     gameRunning = true;
     gameOverDisplay.style.display = "none";
@@ -1108,6 +1174,10 @@ function spawnEnemies() {
         if (Math.random() < 0.04) {
             spawnCyno();
         }
+        // Spawn flins solo en el nivel 1 con 8% de probabilidad
+        if (level === 1 && Math.random() < 0.08) {
+            spawnFlins();
+        }
          // 6% probabilidad de que aparezca el enemigo xiao_weapon
         if (Math.random() < 0.10) {
             spawnXiaoWeapon();
@@ -1156,6 +1226,28 @@ function startInvulnerabilityTimer() {
             invTimerDisplay.style.display = 'none';
             clearInterval(invulnerabilityTimer);
             invulnerabilityTimer = null;
+        }
+    }, 1000);
+}
+
+function startDoublePointsTimer() {
+    if (doublePointsTimer) {
+        clearInterval(doublePointsTimer);
+    }
+    
+    const doublePointsDisplay = document.getElementById('doublePointsTimer');
+    const doublePointsSpan = document.getElementById('doublePointsTime');
+    doublePointsDisplay.style.display = 'block';
+    
+    doublePointsTimer = setInterval(() => {
+        doublePointsTimeLeft--;
+        doublePointsSpan.textContent = doublePointsTimeLeft;
+        
+        if (doublePointsTimeLeft <= 0) {
+            hasDoublePoints = false;
+            doublePointsDisplay.style.display = 'none';
+            clearInterval(doublePointsTimer);
+            doublePointsTimer = null;
         }
     }, 1000);
 }
@@ -1228,6 +1320,64 @@ function createHealEffect(x, y) {
             }, 500);
         }, i * 100);
     }
+}
+
+// Función para crear el efecto visual de puntos dobles
+function createDoublePointsEffect(x, y) {
+    // Crear efecto principal de monedas doradas
+    const mainEffect = document.createElement('div');
+    mainEffect.className = 'double-points-effect';
+    mainEffect.style.left = (x - 25) + 'px';
+    mainEffect.style.top = (y - 25) + 'px';
+    mainEffect.innerHTML = '✨ x2 PUNTOS ✨';
+    document.getElementById('game-container').appendChild(mainEffect);
+    
+    // Remover después de la animación
+    setTimeout(() => {
+        mainEffect.remove();
+    }, 2000);
+    
+    // Crear partículas doradas flotantes
+    for (let i = 0; i < 12; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.className = 'gold-particle';
+            particle.style.left = (x + Math.random() * 60 - 30) + 'px';
+            particle.style.top = (y + Math.random() * 60 - 30) + 'px';
+            particle.innerHTML = ['💰', '💎', '⭐', '✨'][Math.floor(Math.random() * 4)];
+            document.getElementById('game-container').appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 1500);
+        }, i * 100);
+    }
+}
+
+// Función para añadir puntos considerando el multiplicador
+function addPoints(basePoints, showFloatingText = true) {
+    const finalPoints = hasDoublePoints ? basePoints * 2 : basePoints;
+    score += finalPoints;
+    scoreDisplay.textContent = score;
+    
+    // Actualizar estadísticas de puntuación en tiempo real
+    updateStatsOnScore(finalPoints);
+    
+    // Mostrar texto flotante de puntos si se requiere
+    if (showFloatingText && hasDoublePoints) {
+        const floatingText = document.createElement('div');
+        floatingText.className = 'floating-points';
+        floatingText.style.left = (player.x + player.width/2) + 'px';
+        floatingText.style.top = (player.y - 20) + 'px';
+        floatingText.innerHTML = `+${finalPoints}`;
+        document.getElementById('game-container').appendChild(floatingText);
+        
+        setTimeout(() => {
+            floatingText.remove();
+        }, 1000);
+    }
+    
+    return finalPoints;
 }
 
 // Añade esta nueva función para crear el efecto de explosión
@@ -1585,6 +1735,7 @@ let playerStats = {
     arleesCollected: 0,
     cynosCollected: 0,
     kitsCollected: 0,
+    flinsCollected: 0,
     timeWithoutDamage: 0,
     maxTimeWithoutDamage: 0,
     perfectLevels: 0,
@@ -1878,14 +2029,25 @@ const achievements = [
         unlocked: false
     },
     {
+        id: 'flins_fortune',
+        name: '💰 Fortuna de Flins',
+        description: 'Recolecta 5 power-ups de Flins para duplicar puntos',
+        category: 'collection',
+        rarity: 'epic',
+        points: 40,
+        icon: '💰',
+        condition: () => playerStats.flinsCollected >= 5,
+        unlocked: false
+    },
+    {
         id: 'genshin_collector',
         name: '🌸 Coleccionista de Genshin',
-        description: 'Recolecta al menos 5 de cada power-up de Genshin',
+        description: 'Recolecta al menos 3 de cada power-up especial',
         category: 'collection',
         rarity: 'epic',
         points: 75,
         icon: '🌸',
-        condition: () => playerStats.xiaosCollected >= 5 && playerStats.arleesCollected >= 5 && playerStats.cynosCollected >= 5,
+        condition: () => playerStats.xiaosCollected >= 3 && playerStats.arleesCollected >= 3 && playerStats.cynosCollected >= 3 && playerStats.flinsCollected >= 3,
         unlocked: false
     },
     {
@@ -2389,6 +2551,7 @@ function updateStatsOnPowerUpCollected(type) {
         case 'arlee': playerStats.arleesCollected++; break;
         case 'cyno': playerStats.cynosCollected++; break;
         case 'kit': playerStats.kitsCollected++; break;
+        case 'flins': playerStats.flinsCollected++; break;
     }
     
     savePlayerStats();

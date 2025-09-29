@@ -73,6 +73,50 @@
             </div>
             <div class="notification-progress"></div>
         </div>
+
+        <!-- Update Popup -->
+        <div id="updatePopup" class="update-popup">
+            <div class="update-popup-content">
+                <div class="update-header">
+                    <h2>Un mensajito especial para una personita que quiero</h2>
+                </div>
+                <div class="update-body">
+                    <p> Hola, sé que no has tenido una buena racha, que bueno las cosas son complicadas y que los días han sido duros.
+                        Aun así, quiero que este pequeño regalo te dé un respiro y te brinde un instante de alegría
+                    </p>
+
+                    <p>puede que sea poquito y que no sea gran cosa pero es un proyecto que he hecho con mucho cariño y amor 
+                        para ti que sea especialmente pensado para ti, que te guste, que te haga feliz, que logre sacarte una sonrisa,
+                        y con esto solo busco darte un poquito de brillo a tu dia y espero que esto que te ofrezco te llegue de la mejor manera posible
+                    </p>
+
+                    <p> Y si lees esto quiero agradecerte por el tiempito invertido en mi pequeña 
+                        tonteria y mis proyectos que hago
+                    </p>  
+                    <p>Con Amor M</p>
+                </div>
+                <div class="update-footer">
+                    <button id="closeUpdatePopup" class="close-update-btn">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerta Personalizada -->
+        <div id="customAlert" class="custom-alert">
+            <div class="custom-alert-content">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-title">¡Atención!</div>
+                <div class="alert-message">
+                    Una vez que cierres esto, nunca más volverá a aparecer.
+                    <br><br>
+                    ¿Estás segura de que quieres continuar?
+                </div>
+                <div class="alert-buttons">
+                    <button id="cancelAlert" class="alert-btn cancel-btn">Cancelar</button>
+                    <button id="confirmAlert" class="alert-btn confirm-btn">Sí, cerrar definitivamente</button>
+                </div>
+            </div>
+        </div>
         
         <div id="menu">
             <h1>Space War</h1>
@@ -91,6 +135,7 @@
         <div id="shootCooldownBar"><div id="shootCooldownFill"></div></div>
         <div id="powerUpTimer" style="display: none">Power-Up: <span id="timer">30</span>s</div>
         <div id="invulnerabilityTimer" style="display: none">Invulnerable: <span id="invTimer">10</span>s</div>
+        <div id="doublePointsTimer" style="display: none">Puntos x2: <span id="doublePointsTime">30</span>s</div>
         <div id="fireRateDebuff" style="display: none">¡Disparo lento! <span id="debuffTimer">10</span>s</div>
         
         <div id="touchControls">
@@ -112,6 +157,7 @@
             const scores = JSON.parse(localStorage.getItem("scores")) || [];
             displayScores(scores);
             initMoaiButton();
+            initUpdatePopup();
             
             // Controlar visibilidad del botón moai
             const startGameBtn = document.getElementById("startGame");
@@ -905,6 +951,40 @@
                     moaiModal.style.display = 'none';
                 }
             });
+        }
+
+        function initUpdatePopup() {
+            const updatePopup = document.getElementById('updatePopup');
+            const closeBtn = document.getElementById('closeUpdatePopup');
+            const customAlert = document.getElementById('customAlert');
+            const cancelBtn = document.getElementById('cancelAlert');
+            const confirmBtn = document.getElementById('confirmAlert');
+            const hasSeenUpdate = localStorage.getItem('hasSeenUpdatePopup');
+            
+            // Mostrar el popup después de un pequeño delay
+            setTimeout(() => {
+                updatePopup.classList.add('show');
+            }, 1000);
+            
+            // Manejar el cierre del popup - MOSTRAR ALERTA PERSONALIZADA
+            closeBtn.addEventListener('click', () => {
+                // Mostrar la alerta de confirmación
+                customAlert.classList.add('show');
+            });
+            
+            // Manejar botón "Cancelar" de la alerta
+            cancelBtn.addEventListener('click', () => {
+                customAlert.classList.remove('show');
+            });
+            
+            // Manejar botón "Confirmar" de la alerta
+            confirmBtn.addEventListener('click', () => {
+                customAlert.classList.remove('show');
+                updatePopup.classList.remove('show');
+                localStorage.setItem('hasSeenUpdatePopup', 'true');
+            });
+            
+           
         }
     </script>
 </body>
