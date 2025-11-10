@@ -116,7 +116,7 @@ body {
         9500px 19000px #FFF,
         10000px 20000px #FFF;
 }
-#scoreBoard, #powerUpTimer, #invulnerabilityTimer, #doublePointsTimer, #levelDisplay, #heartsDisplay {
+#scoreBoard, #powerUpTimer, #invulnerabilityTimer, #doublePointsTimer, #temporaryHeartTimer, #levelDisplay, #heartsDisplay {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
@@ -472,6 +472,50 @@ canvas {
     }
 }
 
+#temporaryHeartTimer {
+    position: absolute;
+    top: 210px;
+    right: 20px;
+    font-size: var(--font-size-base);
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.4), rgba(30, 144, 255, 0.4));
+    padding: min(10px, 2vw);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 0 15px rgba(0, 191, 255, 0.6),
+        0 0 30px rgba(30, 144, 255, 0.3);
+    border: 2px solid rgba(0, 191, 255, 0.8);
+    animation: bluePulse 1.5s infinite;
+    backdrop-filter: blur(5px);
+}
+
+#temporaryHeartTimer span {
+    font-weight: bold;
+    color: #00BFFF;
+    text-shadow: 0 0 5px rgba(0, 191, 255, 0.8);
+}
+
+@keyframes bluePulse {
+    0% { 
+        box-shadow: 
+            0 0 15px rgba(0, 191, 255, 0.6),
+            0 0 30px rgba(30, 144, 255, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 25px rgba(0, 191, 255, 0.8),
+            0 0 40px rgba(30, 144, 255, 0.5);
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 
+            0 0 15px rgba(0, 191, 255, 0.6),
+            0 0 30px rgba(30, 144, 255, 0.3);
+        transform: scale(1);
+    }
+}
+
 @media (max-width: 768px) {
     .touchButton {
         width: 55px;
@@ -664,6 +708,231 @@ canvas {
     }
 }
 
+/* Efectos épicos para el corazón temporal */
+.temporary-heart-effect {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #00BFFF;
+    text-shadow: 
+        0 0 10px rgba(0, 191, 255, 0.8),
+        0 0 20px rgba(30, 144, 255, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: temporaryHeartFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(30, 144, 255, 0.2));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(0, 191, 255, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(0, 191, 255, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.blue-heart-particle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    z-index: 999;
+    animation: blueHeartParticleFloat 1.5s ease-out forwards;
+    filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.8));
+}
+
+@keyframes temporaryHeartFloat {
+    0% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0;
+    }
+    20% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-80px) scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes blueHeartParticleFloat {
+    0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-60px) rotate(360deg) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* Notificaciones genéricas de power-ups */
+.powerup-notification-green {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #2ecc71;
+    text-shadow: 
+        0 0 10px rgba(46, 204, 113, 0.8),
+        0 0 20px rgba(46, 204, 113, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: powerupFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(46, 204, 113, 0.1));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(46, 204, 113, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(46, 204, 113, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.powerup-notification-red {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff5722;
+    text-shadow: 
+        0 0 10px rgba(255, 87, 34, 0.8),
+        0 0 20px rgba(255, 87, 34, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: powerupFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(255, 87, 34, 0.2), rgba(255, 87, 34, 0.1));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 87, 34, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(255, 87, 34, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.powerup-notification-cyan {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #00ffff;
+    text-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.8),
+        0 0 20px rgba(0, 255, 255, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: powerupFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(0, 255, 255, 0.1));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(0, 255, 255, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.powerup-notification-gold {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: powerupFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 215, 0, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.powerup-notification-blue {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #00BFFF;
+    text-shadow: 
+        0 0 10px rgba(0, 191, 255, 0.8),
+        0 0 20px rgba(0, 191, 255, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: powerupFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(0, 191, 255, 0.1));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(0, 191, 255, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(0, 191, 255, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.powerup-notification-purple {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #9b59b6;
+    text-shadow: 
+        0 0 10px rgba(155, 89, 182, 0.8),
+        0 0 20px rgba(155, 89, 182, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    animation: powerupFloat 2s ease-out forwards;
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(155, 89, 182, 0.1));
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(155, 89, 182, 0.6);
+    backdrop-filter: blur(5px);
+    box-shadow: 
+        0 0 20px rgba(155, 89, 182, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.powerup-particle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    z-index: 999;
+    animation: powerupParticleFloat 1.5s ease-out forwards;
+}
+
+@keyframes powerupFloat {
+    0% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0;
+    }
+    20% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-80px) scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes powerupParticleFloat {
+    0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-60px) rotate(360deg) scale(0.5);
+        opacity: 0;
+    }
+}
+
 /* Añade estos estilos para el joystick */
 #joystickArea {
     position: fixed;
@@ -792,8 +1061,8 @@ button, .touchButton {
 /* Estilos para el botón de Logros */
 .achievements-btn {
     position: absolute;
-    top: 80px;
-    left: 20px;
+    top: 20px;
+    left: 100px;
     background: linear-gradient(145deg, #ffd700, #ffb300);
     border: 2px solid #fff;
     font-size: 2.2em;
@@ -1701,6 +1970,7 @@ body:has(#menu[style*="display: none"]) .achievements-btn {
 #menu:not([style*="display: none"]) ~ #powerUpTimer,
 #menu:not([style*="display: none"]) ~ #invulnerabilityTimer,
 #menu:not([style*="display: none"]) ~ #doublePointsTimer,
+#menu:not([style*="display: none"]) ~ #temporaryHeartTimer,
 #menu:not([style*="display: none"]) ~ #fireRateDebuff,
 #menu:not([style*="display: none"]) ~ #touchControls {
     display: none !important;
@@ -1712,6 +1982,7 @@ body:not(.game-running) #shootCooldownBar,
 body:not(.game-running) #powerUpTimer,
 body:not(.game-running) #invulnerabilityTimer,
 body:not(.game-running) #doublePointsTimer,
+body:not(.game-running) #temporaryHeartTimer,
 body:not(.game-running) #fireRateDebuff,
 body:not(.game-running) #touchControls {
     display: none !important;
@@ -1753,8 +2024,8 @@ body.game-running #touchControls {
         font-size: 1.8em;
         width: 50px;
         height: 50px;
-        top: 70px;
-        left: 15px;
+        top: 15px;
+        left: 85px;
     }
     
     .achievements-modal-content {
@@ -2625,5 +2896,1444 @@ body.game-running #touchControls {
     
     .alert-message {
         font-size: 13px;
+    }
+}
+
+/* =================== ESTILOS DE LA TIENDA CÓSMICA =================== */
+
+/* Botón de Tienda */
+.shop-btn {
+    position: absolute;
+    top: 20px;
+    left: 180px;
+    background: linear-gradient(145deg, #4CAF50, #45a049);
+    border: 2px solid #fff;
+    font-size: 2.2em;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5), 0 0 40px rgba(76, 175, 80, 0.3);
+    animation: shopGlow 2s ease-in-out infinite alternate;
+}
+
+.shop-btn:hover {
+    transform: scale(1.15) rotate(-10deg);
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.8), 0 0 60px rgba(76, 175, 80, 0.5);
+    filter: brightness(1.2);
+}
+
+.shop-btn:active {
+    transform: scale(1.05) rotate(-5deg);
+}
+
+@keyframes shopGlow {
+    0% { 
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.5), 0 0 40px rgba(76, 175, 80, 0.3);
+        filter: brightness(1);
+    }
+    100% { 
+        box-shadow: 0 0 25px rgba(76, 175, 80, 0.7), 0 0 50px rgba(76, 175, 80, 0.4);
+        filter: brightness(1.1);
+    }
+}
+
+/* Modal de Tienda */
+.shop-modal {
+    display: none;
+    position: fixed;
+    z-index: 2002;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    animation: fadeIn 0.3s ease-out;
+    overflow-y: auto;
+}
+
+.shop-modal-content {
+    background: linear-gradient(145deg, #0a0a1a, #1a1a2e, #16213e);
+    margin: 2% auto;
+    padding: 0;
+    border: 3px solid #4CAF50;
+    border-radius: 20px;
+    width: min(95%, 900px);
+    max-height: 95vh;
+    position: relative;
+    box-shadow: 
+        0 0 50px rgba(76, 175, 80, 0.5),
+        0 0 100px rgba(76, 175, 80, 0.3),
+        inset 0 0 50px rgba(255, 255, 255, 0.1);
+    animation: shopModalSlide 0.5s ease-out;
+    overflow: hidden;
+}
+
+@keyframes shopModalSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-100px) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.shop-close {
+    color: #4CAF50;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    cursor: pointer;
+    z-index: 2003;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+}
+
+.shop-close:hover,
+.shop-close:focus {
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    transform: rotate(90deg) scale(1.2);
+}
+
+/* Header de la Tienda */
+.shop-header {
+    background: linear-gradient(135deg, #4CAF50, #45a049, #388e3c);
+    padding: 25px;
+    text-align: center;
+    border-radius: 17px 17px 0 0;
+    border-bottom: 3px solid #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.shop-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+.shop-header h2 {
+    margin: 0 0 20px 0;
+    font-size: 2.5em;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+
+.shop-stats {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.shop-stat-item {
+    text-align: center;
+    min-width: 100px;
+}
+
+.shop-stat-number {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: 'Orbitron', sans-serif;
+}
+
+.shop-stat-label {
+    display: block;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* Tabs de Categorías de Tienda */
+.shop-category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0;
+    margin: 0;
+    border-bottom: 2px solid #4CAF50;
+}
+
+.shop-tab-btn {
+    flex: 1;
+    padding: 15px 10px;
+    background: transparent;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    border-right: 1px solid rgba(76, 175, 80, 0.3);
+    min-width: 100px;
+}
+
+.shop-tab-btn:last-child {
+    border-right: none;
+}
+
+.shop-tab-btn:hover {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.shop-tab-btn.active {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: #fff;
+    font-weight: bold;
+    box-shadow: inset 0 -3px 0 #fff;
+}
+
+/* Lista de Items de la Tienda */
+.shop-items-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #0a0a1a, #1a1a2e);
+}
+
+.shop-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin: 10px 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 2px solid transparent;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    gap: 15px;
+}
+
+.shop-item:hover:not(.purchased) {
+    border-color: #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    transform: translateY(-2px);
+}
+
+.shop-item.purchased {
+    border-color: #45a049;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.1));
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.shop-item.purchased:hover {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+}
+
+.shop-item-icon {
+    font-size: 3em;
+    margin-right: 10px;
+    min-width: 80px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.shop-item-details {
+    flex: 1;
+}
+
+.shop-item-name {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 5px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.shop-item-description {
+    color: #ccc;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.shop-item-rarity {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.shop-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 120px;
+}
+
+.shop-item-cost {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #4CAF50;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.shop-buy-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+    white-space: nowrap;
+}
+
+.shop-buy-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #45a049, #388e3c);
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(76, 175, 80, 0.7);
+}
+
+.shop-buy-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.shop-buy-btn:disabled {
+    background: #555;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #666;
+    box-shadow: none;
+}
+
+/* Modal de Contenido del Item */
+.item-content-modal {
+    display: none;
+    position: fixed;
+    z-index: 2004;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.item-content-modal-content {
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    margin: 5% auto;
+    padding: 60px 40px 40px 40px;
+    border: 3px solid #4CAF50;
+    border-radius: 20px;
+    width: min(600px, 90%);
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    text-align: center;
+    position: relative;
+    box-shadow: 
+        0 0 50px rgba(76, 175, 80, 0.5),
+        inset 0 0 30px rgba(255, 255, 255, 0.1);
+    animation: contentSlide 0.4s ease-out;
+    scrollbar-width: thin;
+    scrollbar-color: #4CAF50 rgba(255, 255, 255, 0.1);
+}
+
+/* Estilos personalizados para la barra de scroll */
+.item-content-modal-content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.item-content-modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.item-content-modal-content::-webkit-scrollbar-thumb {
+    background: #4CAF50;
+    border-radius: 10px;
+    border: 2px solid rgba(26, 26, 46, 0.5);
+}
+
+.item-content-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #66BB6A;
+}
+
+@keyframes contentSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.item-content-modal-content h2 {
+    color: #4CAF50;
+    font-size: 2em;
+    margin-top: 0;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    position: sticky;
+    top: -60px;
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    z-index: 1;
+}
+
+.item-content-text {
+    color: #fff;
+    font-size: 1.1em;
+    line-height: 1.9;
+    text-align: left;
+    white-space: pre-line;
+    font-family: 'Orbitron', sans-serif;
+    padding-bottom: 20px;
+}
+
+.item-content-close {
+    color: #4CAF50;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    background: rgba(26, 26, 46, 0.8);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 2px solid #4CAF50;
+}
+
+.item-content-close:hover,
+.item-content-close:focus {
+    color: #fff;
+    background: #4CAF50;
+    text-decoration: none;
+    transform: rotate(90deg);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+}
+
+/* Responsive para Tienda */
+@media (max-width: 768px) {
+    .shop-btn {
+        font-size: 1.8em;
+        width: 50px;
+        height: 50px;
+        top: 130px;
+        left: 15px;
+    }
+    
+    .shop-modal-content {
+        width: 98%;
+        margin: 1% auto;
+        max-height: 98vh;
+        border-radius: 15px;
+    }
+    
+    .shop-header {
+        padding: 20px 15px;
+    }
+    
+    .shop-header h2 {
+        font-size: 1.8em;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+    
+    .shop-stats {
+        flex-direction: row;
+        gap: 10px;
+        justify-content: space-around;
+    }
+    
+    .shop-stat-item {
+        min-width: 70px;
+    }
+    
+    .shop-stat-number {
+        font-size: 1.5em;
+    }
+    
+    .shop-stat-label {
+        font-size: 0.75em;
+    }
+    
+    .shop-category-tabs {
+        flex-wrap: wrap;
+        padding: 0 5px;
+    }
+    
+    .shop-tab-btn {
+        flex: none;
+        min-width: 80px;
+        padding: 12px 8px;
+        font-size: 0.8em;
+        margin: 2px;
+        border-radius: 8px;
+    }
+    
+    .shop-items-list {
+        max-height: 50vh;
+        padding: 15px 10px;
+    }
+    
+    .shop-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px 10px;
+        margin: 8px 0;
+        border-radius: 12px;
+    }
+    
+    .shop-item-icon {
+        margin-right: 0;
+        margin-bottom: 8px;
+        font-size: 2.5em;
+    }
+    
+    .shop-item-name {
+        font-size: 1.1em;
+        margin-bottom: 6px;
+    }
+    
+    .shop-item-description {
+        font-size: 0.85em;
+        margin-bottom: 6px;
+    }
+    
+    .shop-item-actions {
+        min-width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+    
+    .shop-item-cost {
+        font-size: 1.1em;
+    }
+    
+    .shop-buy-btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+    
+    .item-content-modal-content {
+        margin: 5% auto;
+        padding: 50px 20px 20px 20px;
+        max-height: 90vh;
+        width: 95%;
+    }
+    
+    .item-content-modal-content h2 {
+        font-size: 1.5em;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        top: -50px;
+    }
+    
+    .item-content-text {
+        font-size: 0.95em;
+        line-height: 1.7;
+    }
+    
+    .item-content-close {
+        font-size: 28px;
+        width: 35px;
+        height: 35px;
+        right: 10px;
+        top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shop-btn {
+        font-size: 1.5em;
+        width: 45px;
+        height: 45px;
+        top: 115px;
+        left: 10px;
+        min-height: 44px;
+        min-width: 44px;
+        padding: 5px;
+        backdrop-filter: blur(8px);
+        background: rgba(0, 50, 20, 0.85);
+        border: 2px solid rgba(76, 175, 80, 0.6);
+        box-shadow: 
+            0 0 15px rgba(76, 175, 80, 0.4),
+            0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .shop-modal-content {
+        width: 99%;
+        margin: 0.5% auto;
+        max-height: 99vh;
+        border-radius: 12px;
+        border-width: 2px;
+    }
+    
+    .shop-header {
+        padding: 15px 10px;
+    }
+    
+    .shop-header h2 {
+        font-size: 1.4em;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+    }
+    
+    .shop-stats {
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .shop-stat-item {
+        min-width: 60px;
+        margin: 2px;
+    }
+    
+    .shop-stat-number {
+        font-size: 1.3em;
+    }
+    
+    .shop-stat-label {
+        font-size: 0.65em;
+    }
+    
+    .shop-category-tabs {
+        padding: 0 2px;
+    }
+    
+    .shop-tab-btn {
+        min-width: 65px;
+        padding: 10px 5px;
+        font-size: 0.7em;
+        margin: 1px;
+        border-radius: 6px;
+    }
+    
+    .shop-items-list {
+        max-height: 45vh;
+        padding: 10px 5px;
+    }
+    
+    .shop-item {
+        margin: 6px 0;
+        padding: 10px 6px;
+        border-radius: 10px;
+    }
+    
+    .shop-item-icon {
+        font-size: 2em;
+        margin-bottom: 6px;
+    }
+    
+    .shop-item-name {
+        font-size: 1em;
+        margin-bottom: 4px;
+        line-height: 1.2;
+    }
+    
+    .shop-item-description {
+        font-size: 0.8em;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+    
+    .shop-item-rarity {
+        font-size: 0.65em;
+        padding: 2px 6px;
+    }
+    
+    .shop-item-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .shop-item-cost {
+        font-size: 1em;
+    }
+    
+    .shop-buy-btn {
+        padding: 6px 12px;
+        font-size: 0.8em;
+        border-radius: 8px;
+    }
+    
+    .shop-close {
+        font-size: 28px;
+        right: 15px;
+        top: 12px;
+    }
+    
+    .item-content-modal-content {
+        margin: 2% auto;
+        padding: 50px 15px 15px 15px;
+        max-height: 95vh;
+        width: 98%;
+        border-radius: 15px;
+    }
+    
+    .item-content-modal-content h2 {
+        font-size: 1.2em;
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        top: -50px;
+    }
+    
+    .item-content-text {
+        font-size: 0.85em;
+        line-height: 1.6;
+    }
+    
+    .item-content-close {
+        font-size: 26px;
+        width: 32px;
+        height: 32px;
+        right: 8px;
+        top: 8px;
+    }
+}
+
+/* Ocultar botón de tienda durante el juego */
+body.game-running .shop-btn {
+    display: none !important;
+}
+
+/* =================== ANIMACIONES ÉPICAS DE COMPRA =================== */
+
+/* Overlay de animación de compra */
+.purchase-animation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(76, 175, 80, 0.3), rgba(0, 0, 0, 0.8));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+    animation: purchaseOverlayFadeIn 0.3s ease-out;
+}
+
+@keyframes purchaseOverlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Explosión de fondo */
+.purchase-burst {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, 
+        rgba(255, 215, 0, 0.8) 0%, 
+        rgba(76, 175, 80, 0.6) 30%,
+        rgba(0, 255, 0, 0.3) 60%,
+        transparent 100%);
+    border-radius: 50%;
+    animation: burstExplosion 2s ease-out;
+}
+
+@keyframes burstExplosion {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Contenido de la compra */
+.purchase-content {
+    position: relative;
+    text-align: center;
+    animation: purchaseContentAppear 0.8s ease-out 0.3s both;
+}
+
+@keyframes purchaseContentAppear {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.purchase-icon {
+    font-size: 8em;
+    margin-bottom: 20px;
+    animation: purchaseIconBounce 1s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes purchaseIconBounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.1);
+    }
+}
+
+.purchase-name {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 0 40px rgba(255, 215, 0, 0.6),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    margin-bottom: 15px;
+    animation: purchaseTextGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes purchaseTextGlow {
+    0%, 100% {
+        text-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.8),
+            0 0 40px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        text-shadow: 
+            0 0 40px rgba(255, 215, 0, 1),
+            0 0 80px rgba(255, 215, 0, 0.8),
+            0 0 120px rgba(255, 215, 0, 0.6);
+    }
+}
+
+.purchase-category {
+    font-size: 1.5em;
+    color: #4CAF50;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+}
+
+.purchase-success {
+    font-size: 2em;
+    color: #FFF;
+    font-weight: bold;
+    text-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    animation: purchaseSuccessPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes purchaseSuccessPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Partículas de compra */
+.purchase-particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 3em;
+    pointer-events: none;
+    animation: particleExplosion var(--duration) ease-out forwards;
+}
+
+@keyframes particleExplosion {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: 
+            translate(
+                calc(-50% + cos(var(--angle)) * var(--distance)),
+                calc(-50% + sin(var(--angle)) * var(--distance))
+            )
+            rotate(720deg)
+            scale(0);
+        opacity: 0;
+    }
+}
+
+/* Rayos de energía */
+.purchase-energy-ray {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 50%;
+    background: linear-gradient(to bottom, 
+        rgba(255, 215, 0, 1),
+        rgba(255, 215, 0, 0.5),
+        transparent);
+    transform-origin: top center;
+    animation: energyRayPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes energyRayPulse {
+    0%, 100% {
+        opacity: 0.6;
+        height: 50%;
+    }
+    50% {
+        opacity: 1;
+        height: 70%;
+    }
+}
+
+/* =================== SISTEMA DE TÍTULOS =================== */
+
+/* Botón selector de títulos */
+.title-selector-btn {
+    position: absolute;
+    top: 20px;
+    left: 260px;
+    width: 60px;
+    height: 60px;
+    font-size: 2em;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    border: 3px solid #FFF;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1001;
+    animation: titleButtonFloat 3s ease-in-out infinite;
+}
+
+@keyframes titleButtonFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.title-selector-btn:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 
+        0 0 40px rgba(255, 215, 0, 0.9),
+        0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.title-selector-btn:active {
+    transform: scale(0.95);
+}
+
+/* Display del título del jugador */
+#playerTitleDisplay {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, 
+        rgba(255, 215, 0, 0.95) 0%, 
+        rgba(255, 165, 0, 0.95) 100%);
+    padding: 12px 30px;
+    border-radius: 25px;
+    border: 3px solid #FFF;
+    box-shadow: 
+        0 0 30px rgba(255, 215, 0, 0.8),
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    z-index: 1000;
+    animation: titleDisplayGlow 2s ease-in-out infinite;
+}
+
+@keyframes titleDisplayGlow {
+    0%, 100% {
+        box-shadow: 
+            0 0 30px rgba(255, 215, 0, 0.8),
+            0 4px 8px rgba(0, 0, 0, 0.3),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 
+            0 0 50px rgba(255, 215, 0, 1),
+            0 0 70px rgba(255, 215, 0, 0.6),
+            0 4px 8px rgba(0, 0, 0, 0.3),
+            inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    }
+}
+
+#playerTitle {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 
+        0 1px 2px rgba(255, 255, 255, 0.8),
+        0 0 10px rgba(255, 255, 255, 0.5);
+    letter-spacing: 1px;
+}
+
+/* Modal selector de títulos */
+.title-selector-modal {
+    display: block;
+    position: fixed;
+    z-index: 10002;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.title-selector-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    margin: 5% auto;
+    padding: 30px;
+    border: 3px solid #FFD700;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 
+        0 0 50px rgba(255, 215, 0, 0.5),
+        0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    animation: modalSlideIn 0.5s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.title-selector-content h2 {
+    color: #FFD700;
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    animation: titleHeaderPulse 2s ease-in-out infinite;
+}
+
+@keyframes titleHeaderPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.title-selector-subtitle {
+    text-align: center;
+    color: #AAA;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+
+.title-selector-close {
+    color: #FFD700;
+    float: right;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+    margin-top: -10px;
+}
+
+.title-selector-close:hover,
+.title-selector-close:focus {
+    color: #FFF;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    transform: scale(1.2) rotate(90deg);
+}
+
+/* Grid de títulos */
+.titles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.title-option {
+    background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3a 100%);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #4CAF50;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.title-option::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 215, 0, 0.1),
+        transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+}
+
+.title-option:hover::before {
+    left: 100%;
+}
+
+.title-option:hover {
+    transform: translateY(-5px) scale(1.05);
+    border-color: #FFD700;
+    box-shadow: 
+        0 0 30px rgba(255, 215, 0, 0.5),
+        0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.title-option.active {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    border-color: #FFF;
+    box-shadow: 
+        0 0 40px rgba(255, 215, 0, 0.8),
+        0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.title-option.active .title-option-icon {
+    animation: activeIconSpin 2s linear infinite;
+}
+
+@keyframes activeIconSpin {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.1);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+.title-option.active .title-option-text {
+    color: #000;
+    font-weight: bold;
+}
+
+.title-option-icon {
+    font-size: 3em;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    transition: all 0.3s ease;
+}
+
+.title-option:hover .title-option-icon {
+    transform: scale(1.2) rotate(10deg);
+}
+
+.title-option-text {
+    color: #FFF;
+    font-size: 1.1em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+}
+
+/* Bonificación del título */
+.title-bonus {
+    color: #4CAF50;
+    font-size: 1em;
+    font-weight: bold;
+    margin: 8px 0 4px 0;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+    animation: bonusPulse 2s ease-in-out infinite;
+}
+
+@keyframes bonusPulse {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+    }
+    50% {
+        transform: scale(1.05);
+        text-shadow: 0 0 20px rgba(76, 175, 80, 1);
+    }
+}
+
+/* Efecto visual del título */
+.title-effect {
+    color: #FFD700;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-top: 4px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.6);
+}
+
+.title-option.active .title-bonus {
+    color: #000;
+    text-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.title-option.active .title-effect {
+    color: #333;
+    text-shadow: 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+/* Botón remover título */
+.remove-title-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border: 2px solid #FFF;
+    border-radius: 25px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 0 20px rgba(231, 76, 60, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.remove-title-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 
+        0 0 30px rgba(231, 76, 60, 0.8),
+        0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.remove-title-btn:active {
+    transform: scale(0.95);
+}
+
+/* Responsive para títulos */
+@media (max-width: 768px) {
+    .title-selector-btn {
+        top: 165px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+    }
+    
+    #playerTitleDisplay {
+        top: 80px;
+        padding: 8px 20px;
+    }
+    
+    #playerTitle {
+        font-size: 1.2em;
+    }
+    
+    .title-selector-content {
+        width: 95%;
+        padding: 20px;
+        margin: 10% auto;
+    }
+    
+    .title-selector-content h2 {
+        font-size: 2em;
+    }
+    
+    .titles-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .title-selector-btn {
+        top: 165px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3em;
+    }
+    
+    #playerTitleDisplay {
+        top: 70px;
+        padding: 6px 15px;
+        font-size: 0.9em;
+    }
+    
+    #playerTitle {
+        font-size: 1em;
+    }
+    
+    .title-selector-content h2 {
+        font-size: 1.6em;
+    }
+    
+    .title-option-icon {
+        font-size: 2.5em;
+    }
+    
+    .title-option-text {
+        font-size: 1em;
+    }
+}
+
+/* Ocultar botón de títulos y display durante el juego */
+body.game-running .title-selector-btn {
+    display: none !important;
+}
+
+body.game-running #playerTitleDisplay {
+    display: none !important;
+}
+
+/* =================== EFECTOS VISUALES DE TÍTULOS =================== */
+
+/* Partículas de efecto de título */
+.title-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 999;
+    animation: titleParticleFloat 1.5s ease-out forwards;
+}
+
+@keyframes titleParticleFloat {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.3) translateY(-80px);
+        opacity: 0;
+    }
+}
+
+/* Aura verde */
+.title-particle-aura {
+    animation: titleAuraFloat 1.5s ease-out forwards;
+}
+
+@keyframes titleAuraFloat {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+    }
+}
+
+/* Estrellas doradas */
+.title-particle-star {
+    animation: titleStarTwinkle 1.5s ease-out forwards;
+}
+
+@keyframes titleStarTwinkle {
+    0% {
+        transform: scale(0.5) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Aura arcoíris */
+.title-particle-rainbow {
+    animation: titleRainbowPulse 1.5s ease-out forwards;
+}
+
+@keyframes titleRainbowPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+        filter: hue-rotate(0deg);
+    }
+    50% {
+        transform: scale(2);
+        opacity: 0.6;
+        filter: hue-rotate(180deg);
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+        filter: hue-rotate(360deg);
     }
 }

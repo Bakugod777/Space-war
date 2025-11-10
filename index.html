@@ -15,6 +15,9 @@
         <!-- Botón de Logros -->
         <button id="achievementsButton" class="achievements-btn">🏆</button>
         
+        <!-- Botón de Tienda -->
+        <button id="shopButton" class="shop-btn">🛒</button>
+        
         <!-- Controles de Audio -->
         <div id="audioControls" class="audio-controls">
             <button id="muteButton" class="audio-btn mute-btn">🔊</button>
@@ -83,6 +86,57 @@
             <div class="notification-progress"></div>
         </div>
 
+        <!-- Modal de Tienda -->
+        <div id="shopModal" class="shop-modal">
+            <div class="shop-modal-content">
+                <span class="shop-close">&times;</span>
+                <div class="shop-header">
+                    <h2>🛒 TIENDA CÓSMICA 🛒</h2>
+                    <div class="shop-stats">
+                        <div class="shop-stat-item">
+                            <span class="shop-stat-number" id="availablePoints">0</span>
+                            <span class="shop-stat-label">Puntos Disponibles</span>
+                        </div>
+                        <div class="shop-stat-item">
+                            <span class="shop-stat-number" id="totalShopPoints">0</span>
+                            <span class="shop-stat-label">Puntos Totales</span>
+                        </div>
+                        <div class="shop-stat-item">
+                            <span class="shop-stat-number" id="spentPoints">0</span>
+                            <span class="shop-stat-label">Puntos Gastados</span>
+                        </div>
+                        <div class="shop-stat-item">
+                            <span class="shop-stat-number" id="purchasedItems">0/0</span>
+                            <span class="shop-stat-label">Items Comprados</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="shop-categories">
+                    <div class="shop-category-tabs">
+                        <button class="shop-tab-btn active" data-category="all">Todos</button>
+                        <button class="shop-tab-btn" data-category="poems">📜 Poemas</button>
+                        <button class="shop-tab-btn" data-category="secrets">🔮 Secretos</button>
+                        <button class="shop-tab-btn" data-category="avatars">🎭 Avatares</button>
+                        <button class="shop-tab-btn" data-category="quotes">💬 Frases</button>
+                        <button class="shop-tab-btn" data-category="facts">🔬 Curiosidades</button>
+                        <button class="shop-tab-btn" data-category="messages">💌 Mensajes</button>
+                    </div>
+                    <div class="shop-items-list" id="shopItemsList">
+                        <!-- Los items se generarán dinámicamente aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Mostrar Contenido del Item -->
+        <div id="itemContentModal" class="item-content-modal">
+            <div class="item-content-modal-content">
+                <span class="item-content-close">&times;</span>
+                <h2 id="itemContentTitle"></h2>
+                <div class="item-content-text" id="itemContentText"></div>
+            </div>
+        </div>
+
         <!-- Update Popup -->
         <div id="updatePopup" class="update-popup">
             <div class="update-popup-content">
@@ -141,10 +195,14 @@
         
         <!-- Estos elementos ahora solo aparecerán durante el juego -->
         <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
+        <div id="playerTitleDisplay" style="display: none">
+            <span id="playerTitle"></span>
+        </div>
         <div id="shootCooldownBar"><div id="shootCooldownFill"></div></div>
         <div id="powerUpTimer" style="display: none">Power-Up: <span id="timer">30</span>s</div>
         <div id="invulnerabilityTimer" style="display: none">Invulnerable: <span id="invTimer">10</span>s</div>
         <div id="doublePointsTimer" style="display: none">Puntos x2: <span id="doublePointsTime">30</span>s</div>
+        <div id="temporaryHeartTimer" style="display: none">💙 Corazón Temporal: <span id="temporaryHeartTime">10</span>s</div>
         <div id="fireRateDebuff" style="display: none">¡Disparo lento! <span id="debuffTimer">10</span>s</div>
         
         <div id="touchControls">
