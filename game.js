@@ -3185,7 +3185,7 @@ const shopItems = [
   },
   {
     id: "poem_love",
-    name: "💖 Poema: Amor Cósmico",
+    name: "💖 Poema:Cósmico",
     description: "Palabras de amor que trascienden el espacio y el tiempo",
     category: "poems",
     cost: 100,
