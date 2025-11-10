@@ -1730,16 +1730,24 @@ function createTemporaryHeartEffect(x, y) {
 // Función para añadir puntos considerando el multiplicador
 function addPoints(basePoints, showFloatingText = true) {
   let finalPoints = basePoints;
+  let multiplierText = "";
 
-  // Aplicar bono de power-up de puntos dobles
+  // Aplicar bono de power-up de puntos dobles primero
   if (hasDoublePoints) {
     finalPoints *= 2;
+    multiplierText = "x2";
   }
 
-  // Aplicar bono de título
-  const titleBonus = getActiveTitleBonus();
-  if (titleBonus > 0) {
-    finalPoints = Math.floor(finalPoints * (1 + titleBonus));
+  // Aplicar multiplicador del título (se acumula con el de puntos dobles)
+  const titleMultiplier = getActiveTitleBonus();
+  if (titleMultiplier > 0) {
+    finalPoints = Math.floor(finalPoints * titleMultiplier);
+    if (hasDoublePoints) {
+      // Si hay ambos, mostrar el multiplicador total
+      multiplierText = `x${2 * titleMultiplier}`;
+    } else {
+      multiplierText = `x${titleMultiplier}`;
+    }
   }
 
   score += finalPoints;
@@ -1749,16 +1757,30 @@ function addPoints(basePoints, showFloatingText = true) {
   updateStatsOnScore(finalPoints);
 
   // Mostrar texto flotante de puntos si se requiere
-  if (showFloatingText && (hasDoublePoints || titleBonus > 0)) {
+  if (showFloatingText && (hasDoublePoints || titleMultiplier > 0)) {
     const floatingText = document.createElement("div");
     floatingText.className = "floating-points";
     floatingText.style.left = player.x + player.width / 2 + "px";
     floatingText.style.top = player.y - 20 + "px";
     floatingText.innerHTML = `+${finalPoints}`;
-    if (titleBonus > 0) {
-      floatingText.style.color = "#FFD700";
+    
+    // Agregar multiplicador al texto
+    if (multiplierText) {
+      floatingText.innerHTML += ` <span style="font-size: 0.8em; color: #FFD700;">${multiplierText}</span>`;
+    }
+    
+    // Color según el multiplicador
+    if (titleMultiplier >= 4) {
+      floatingText.style.color = "#FF1493"; // Rosa brillante para x4
+      floatingText.style.textShadow = "0 0 15px rgba(255, 20, 147, 0.8)";
+    } else if (titleMultiplier >= 3) {
+      floatingText.style.color = "#9b59b6"; // Púrpura para x3
+      floatingText.style.textShadow = "0 0 12px rgba(155, 89, 182, 0.8)";
+    } else if (titleMultiplier >= 2) {
+      floatingText.style.color = "#FFD700"; // Dorado para x2
       floatingText.style.textShadow = "0 0 10px rgba(255, 215, 0, 0.8)";
     }
+    
     document.getElementById("game-container").appendChild(floatingText);
 
     setTimeout(() => {
@@ -1783,10 +1805,17 @@ function getActiveTitleBonus() {
   );
 
   if (titleItem && titleItem.bonus && titleItem.bonus.type === "points") {
-    return titleItem.bonus.multiplier - 1; // Retornar el porcentaje adicional
+    return titleItem.bonus.multiplier; // Retornar el multiplicador completo (2, 3, o 4)
   }
 
   return 0;
+}
+
+// Obtener multiplicador del título como texto
+function getActiveTitleMultiplierText() {
+  const multiplier = getActiveTitleBonus();
+  if (multiplier === 0) return "";
+  return `x${multiplier}`;
 }
 
 // Añade esta nueva función para crear el efecto de explosión
@@ -3253,9 +3282,25 @@ const shopItems = [
 
   // AVATARES 🎭
   {
+    id: "avatar_novice",
+    name: "🌟 Avatar: Explorador Estelar",
+    description: "🎁 x2 PUNTOS por partida | ✨ Aura blanca brillante",
+    category: "avatars",
+    cost: 50,
+    rarity: "common",
+    icon: "🌟",
+    content: "TÍTULO DESBLOQUEADO: 🌟 Explorador Estelar 🌟",
+    bonus: {
+      type: "points",
+      multiplier: 2,
+      effect: "white-aura",
+    },
+    purchased: false,
+  },
+  {
     id: "avatar_galaxy",
     name: "🌌 Avatar: Guardián Galáctico",
-    description: "🎁 +5% puntos por partida | ✨ Aura verde brillante",
+    description: "🎁 x2 PUNTOS por partida | ✨ Aura verde brillante",
     category: "avatars",
     cost: 100,
     rarity: "rare",
@@ -3263,7 +3308,7 @@ const shopItems = [
     content: "TÍTULO DESBLOQUEADO: 🌌 Guardián Galáctico 🌌",
     bonus: {
       type: "points",
-      multiplier: 1.05,
+      multiplier: 2,
       effect: "green-aura",
     },
     purchased: false,
@@ -3271,7 +3316,7 @@ const shopItems = [
   {
     id: "avatar_legend",
     name: "👑 Avatar: Leyenda Estelar",
-    description: "🎁 +10% puntos por partida | ⭐ Estrellas doradas flotantes",
+    description: "🎁 x3 PUNTOS por partida | ⭐ Estrellas doradas flotantes",
     category: "avatars",
     cost: 250,
     rarity: "epic",
@@ -3279,7 +3324,7 @@ const shopItems = [
     content: "TÍTULO DESBLOQUEADO: 👑 Leyenda Estelar 👑",
     bonus: {
       type: "points",
-      multiplier: 1.1,
+      multiplier: 3,
       effect: "golden-stars",
     },
     purchased: false,
@@ -3287,7 +3332,7 @@ const shopItems = [
   {
     id: "avatar_cosmic",
     name: "⭐ Avatar: Emperador Cósmico",
-    description: "🎁 +15% puntos por partida | 💫 Aura arcoíris épica",
+    description: "🎁 x3 PUNTOS por partida | 💫 Aura arcoíris épica",
     category: "avatars",
     cost: 500,
     rarity: "legendary",
@@ -3295,8 +3340,24 @@ const shopItems = [
     content: "TÍTULO DESBLOQUEADO: ⭐ Emperador Cósmico ⭐",
     bonus: {
       type: "points",
-      multiplier: 1.15,
+      multiplier: 3,
       effect: "rainbow-aura",
+    },
+    purchased: false,
+  },
+  {
+    id: "avatar_supreme",
+    name: "💎 Avatar: Supremo del Cosmos",
+    description: "🎁 x4 PUNTOS por partida | 🌈 Aura suprema radiante",
+    category: "avatars",
+    cost: 1000,
+    rarity: "mythic",
+    icon: "💎",
+    content: "TÍTULO DESBLOQUEADO: 💎 Supremo del Cosmos 💎",
+    bonus: {
+      type: "points",
+      multiplier: 4,
+      effect: "supreme-aura",
     },
     purchased: false,
   },
@@ -3913,6 +3974,15 @@ function applyTitleVisualEffects() {
         ];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
         createTitleParticle(centerX, centerY, randomColor, "rainbow");
+        break;
+      case "white-aura":
+        createTitleParticle(centerX, centerY, "#FFFFFF", "white");
+        break;
+      case "supreme-aura":
+        // Aura suprema con colores intensos y rotantes
+        const supremeColors = ["#FF1493", "#FFD700", "#8A2BE2", "#00FFFF"];
+        const supremeColor = supremeColors[Math.floor(Math.random() * supremeColors.length)];
+        createTitleParticle(centerX, centerY, supremeColor, "supreme");
         break;
     }
   }

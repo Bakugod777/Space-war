@@ -4337,3 +4337,60 @@ body.game-running #playerTitleDisplay {
         filter: hue-rotate(360deg);
     }
 }
+
+/* Aura blanca (título básico) */
+.title-particle-white {
+    animation: titleWhiteGlow 1.5s ease-out forwards;
+}
+
+@keyframes titleWhiteGlow {
+    0% {
+        transform: scale(1);
+        opacity: 0.9;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    }
+    50% {
+        transform: scale(2);
+        opacity: 0.6;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Aura suprema (título mítico x4) */
+.title-particle-supreme {
+    animation: titleSupremePulse 1.5s ease-out forwards;
+}
+
+@keyframes titleSupremePulse {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+        filter: hue-rotate(0deg) brightness(1.5);
+        box-shadow: 0 0 10px rgba(255, 20, 147, 0.8);
+    }
+    25% {
+        filter: hue-rotate(90deg) brightness(1.8);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    }
+    50% {
+        transform: scale(2) rotate(180deg);
+        opacity: 0.7;
+        filter: hue-rotate(180deg) brightness(2);
+        box-shadow: 0 0 30px rgba(138, 43, 226, 0.8);
+    }
+    75% {
+        filter: hue-rotate(270deg) brightness(1.8);
+        box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+    }
+    100% {
+        transform: scale(3.5) rotate(360deg);
+        opacity: 0;
+        filter: hue-rotate(360deg) brightness(1.5);
+        box-shadow: 0 0 40px rgba(255, 20, 147, 0.6);
+    }
+}
