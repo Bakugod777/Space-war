@@ -139,16 +139,8 @@
     },
 
     bindFloatingChrome() {
+      // CSS orbIdle already handles subtle motion — avoid competing transforms
       if (!ready()) return;
-      anime({
-        targets: ".moai-btn, .achievements-btn, .shop-btn",
-        translateY: [0, -5],
-        direction: "alternate",
-        loop: true,
-        easing: "easeInOutSine",
-        duration: 1800,
-        delay: anime.stagger(220),
-      });
     },
 
     openModal(modal) {

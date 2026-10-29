@@ -3,9 +3,9 @@
  */
 (function (global) {
   const ICONS = {
-    moai: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 3h8l1 4v3l-1 1v8l-2 2H10l-2-2v-8L7 10V7l1-4zm2 2-.5 2h5L14 5h-4zm-.5 4v2.5h1.5V11h3v.5H16V9h-6.5zM10 13v5h1.5v-3H14v3H15.5v-5H10z"/></svg>`,
-    trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a5 5 0 0 1-4.1 4.9A5 5 0 0 1 13 16.9V18h2v2H9v-2h2v-1.1A5 5 0 0 1 8.1 12.9 5 5 0 0 1 4 8V5h3V3zm0 4H6v1a3 3 0 0 0 3 3V7H7zm10 0h-3v4a3 3 0 0 0 3-3V7z"/></svg>`,
-    cart: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 3h2l.4 2H21l-2 9H7l-.3 1.5H19v2H5.2L3 3zm5 16.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm9 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>`,
+    moai: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 2.8h8c.7 0 1.2.5 1.2 1.2v4.4c0 .3-.1.5-.2.7l-.8 1.1v8.2c0 .9-.6 1.6-1.4 1.8l-2.5.6c-.8.2-1.6.2-2.4 0l-2.5-.6A1.8 1.8 0 0 1 7.2 18.4V10.2l-.8-1.1c-.1-.2-.2-.4-.2-.7V4c0-.7.5-1.2 1.2-1.2zm1.4 2v2.2h5.2V4.8H9.4zm.9 3.8h1.5v2H10.3v-2zm3.3 0h1.5v2h-1.5v-2zm-3.1 3.6v5.7l1.7.4c.5.1 1 .1 1.5 0l1.7-.4v-5.7h-4.9z"/></svg>`,
+    trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.5 3.5h11v2.2h2.3v2.8a4.8 4.8 0 0 1-3.7 4.7A4.7 4.7 0 0 1 13.2 16v1.3h2.3v2.2H8.5V17.3h2.3V16a4.7 4.7 0 0 1-2.9-2.8 4.8 4.8 0 0 1-3.7-4.7V5.7h2.3V3.5zm0 4.2H6.2v1a2.8 2.8 0 0 0 2.6 2.8V7.7H6.5zm11 0h-2.6v2.8a2.8 2.8 0 0 0 2.6-2.8v-1z"/></svg>`,
+    cart: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4.5h2.1l.5 2.1h12.7l-1.7 7.8H8.1L7.7 16h10.4v2H6.2L4 4.5zm4.8 14a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8zm8.2 0a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8z"/></svg>`,
     volume: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-1.8-3.1v6.2A3.5 3.5 0 0 0 15.5 12zM13.7 5.1v1.7a5.5 5.5 0 0 1 0 10.4v1.7a7.2 7.2 0 0 0 0-13.8z"/></svg>`,
     mute: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm12.6-2.1 1.4 1.4L16.4 10l1.6 1.7-1.4 1.4L15 11.4l-1.6 1.7-1.4-1.4L13.6 10l-1.6-1.7 1.4-1.4L15 8.6l1.6-1.7z"/></svg>`,
     sword: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m14.5 3 6.5 6.5-1.4 1.4-1.8-1.8-5.3 5.3 1.1 1.1-1.4 1.4-1.1-1.1-1.8 1.8L8 19.3 4.7 16 6.4 14.3l1.8-1.8-1.1-1.1 1.4-1.4 1.1 1.1 5.3-5.3-1.8-1.8L14.5 3z"/></svg>`,

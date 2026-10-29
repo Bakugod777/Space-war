@@ -1351,108 +1351,110 @@ button, .touchButton {
 }
 
 /* Estilos para el botón Moai */
-.moai-btn {
+/* HUD orbs — shared chrome for Moai / Logros / Tienda */
+.moai-btn,
+.achievements-btn,
+.shop-btn,
+.title-selector-btn {
+    --orb-size: 52px;
+    --orb-accent: #00eaff;
+    --orb-glow: rgba(0, 234, 255, 0.35);
     position: absolute;
-    top: 20px;
-    left: 20px;
-    background: transparent;
-    border: none;
-    font-size: 2.5em;
-    cursor: pointer;
-    z-index: 1001;
-    transition: transform 0.3s ease, filter 0.3s ease;
-    padding: 5px;
-    border-radius: 50%;
-}
-
-.moai-btn:hover {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
-}
-
-.moai-btn:active {
-    transform: scale(0.95);
-}
-
-/* Estilos para el botón de Logros */
-.achievements-btn {
-    position: absolute;
-    top: 20px;
-    left: 100px;
-    background: linear-gradient(145deg, #ffd700, #ffb300);
-    border: 2px solid #fff;
-    font-size: 2.2em;
-    cursor: pointer;
-    z-index: 1001;
-    transition: all 0.3s ease;
-    padding: 8px;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
+    top: 18px;
+    width: var(--orb-size);
+    height: var(--orb-size);
+    padding: 0;
+    margin: 0;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
-    animation: trophyGlow 2s ease-in-out infinite alternate;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--orb-accent) 70%, #fff 30%);
+    background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.14), transparent 45%),
+        linear-gradient(160deg, rgba(10, 24, 48, 0.95), rgba(4, 10, 22, 0.92));
+    color: var(--orb-accent) !important;
+    font-size: 1.35rem !important;
+    line-height: 0;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 8px 22px rgba(0, 0, 0, 0.45),
+        0 0 18px var(--orb-glow);
+    backdrop-filter: blur(10px);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.22s ease,
+                border-color 0.22s ease,
+                color 0.22s ease;
+    animation: orbIdle 3.2s ease-in-out infinite;
 }
 
-.achievements-btn:hover {
-    transform: scale(1.15) rotate(10deg);
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.5);
-    filter: brightness(1.2);
+.moai-btn { left: 18px; --orb-accent: #7dd3fc; --orb-glow: rgba(125, 211, 252, 0.32); animation-delay: 0s; }
+.achievements-btn { left: 82px; --orb-accent: #ffd54f; --orb-glow: rgba(255, 213, 79, 0.34); animation-delay: 0.35s; }
+.shop-btn { left: 146px; --orb-accent: #ff8a4c; --orb-glow: rgba(255, 138, 76, 0.34); animation-delay: 0.7s; }
+.title-selector-btn { left: 210px; --orb-accent: #e0b3ff; --orb-glow: rgba(224, 179, 255, 0.32); animation-delay: 1s; }
+
+.moai-btn:hover,
+.achievements-btn:hover,
+.shop-btn:hover,
+.title-selector-btn:hover {
+    transform: translateY(-2px) scale(1.06);
+    color: #fff !important;
+    border-color: #fff;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08) inset,
+        0 10px 28px rgba(0, 0, 0, 0.5),
+        0 0 28px var(--orb-glow);
+    filter: none;
 }
 
-.achievements-btn:active {
-    transform: scale(1.05) rotate(5deg);
+.moai-btn:active,
+.achievements-btn:active,
+.shop-btn:active,
+.title-selector-btn:active {
+    transform: scale(0.96);
 }
 
-@keyframes trophyGlow {
-    0% { 
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
-        filter: brightness(1);
-    }
-    100% { 
-        box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), 0 0 50px rgba(255, 215, 0, 0.4);
-        filter: brightness(1.1);
-    }
+@keyframes orbIdle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
 }
 
 /* =================== CONTROLES DE AUDIO =================== */
 .audio-controls {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 18px;
+    right: 18px;
     display: flex;
     align-items: center;
     gap: 10px;
     z-index: 1500;
-    background: rgba(0, 20, 40, 0.8);
+    background: linear-gradient(160deg, rgba(10, 24, 48, 0.92), rgba(4, 10, 22, 0.9));
     backdrop-filter: blur(10px);
     padding: 8px 12px;
-    border-radius: 25px;
-    border: 2px solid rgba(0, 255, 255, 0.4);
-    box-shadow: 
-        0 0 20px rgba(0, 255, 255, 0.3),
-        inset 0 0 10px rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    border: 1.5px solid rgba(0, 234, 255, 0.4);
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 8px 22px rgba(0, 0, 0, 0.45),
+        0 0 18px rgba(0, 234, 255, 0.2);
 }
 
 .audio-btn {
-    background: linear-gradient(135deg, 
-        rgba(0, 100, 200, 0.8) 0%, 
-        rgba(0, 150, 255, 0.8) 100%);
-    border: 2px solid rgba(0, 255, 255, 0.6);
+    background: rgba(0, 40, 70, 0.55);
+    border: 1.5px solid rgba(125, 211, 252, 0.55);
     border-radius: 50%;
-    width: 35px;
-    height: 35px;
-    font-size: 16px;
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+    color: #7dd3fc;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 
-        0 0 15px rgba(0, 255, 255, 0.4),
-        inset 0 0 10px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 12px rgba(0, 234, 255, 0.22);
 }
 
 .audio-btn:hover {
@@ -2318,13 +2320,20 @@ body.game-running #touchControls {
     display: block !important;
 }
 
-/* Responsive para el botón moai */
+/* Responsive HUD orbs */
 @media (max-width: 768px) {
-    .moai-btn {
-        font-size: 2em;
-        top: 15px;
-        left: 15px;
+    .moai-btn,
+    .achievements-btn,
+    .shop-btn,
+    .title-selector-btn {
+        --orb-size: 46px;
+        top: 12px;
+        font-size: 1.15rem !important;
     }
+    .moai-btn { left: 12px; }
+    .achievements-btn { left: 66px; }
+    .shop-btn { left: 120px; }
+    .title-selector-btn { left: 174px; }
     
     .moai-modal-content {
         margin: 20% auto;
@@ -2337,11 +2346,7 @@ body.game-running #touchControls {
     
     /* Responsive para logros */
     .achievements-btn {
-        font-size: 1.8em;
-        width: 50px;
-        height: 50px;
-        top: 15px;
-        left: 85px;
+        /* size/position handled above */
     }
     
     .achievements-modal-content {
@@ -2448,36 +2453,18 @@ body.game-running #touchControls {
 }
 
 @media (max-width: 480px) {
-    .moai-btn {
-        font-size: 1.8em;
+    .moai-btn,
+    .achievements-btn,
+    .shop-btn,
+    .title-selector-btn {
+        --orb-size: 44px;
         top: 10px;
-        left: 10px;
+        font-size: 1.05rem !important;
     }
-    
-    .achievements-btn {
-        font-size: 1.5em;
-        width: 45px;
-        height: 45px;
-        top: 60px;
-        left: 10px;
-        /* Mejorar toque en móviles */
-        min-height: 44px;
-        min-width: 44px;
-        padding: 5px;
-        backdrop-filter: blur(8px);
-        background: rgba(0, 20, 40, 0.85);
-        border: 2px solid rgba(255, 215, 0, 0.6);
-        box-shadow: 
-            0 0 15px rgba(255, 215, 0, 0.4),
-            0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    
-    .achievements-btn:active {
-        transform: scale(0.95);
-        box-shadow: 
-            0 0 10px rgba(255, 215, 0, 0.6),
-            0 1px 4px rgba(0, 0, 0, 0.4);
-    }
+    .moai-btn { left: 10px; }
+    .achievements-btn { left: 60px; }
+    .shop-btn { left: 110px; }
+    .title-selector-btn { left: 160px; }
     
     .achievements-modal-content {
         width: 99%;
@@ -3218,47 +3205,8 @@ body.game-running #touchControls {
 /* =================== ESTILOS DE LA TIENDA CÓSMICA =================== */
 
 /* Botón de Tienda */
-.shop-btn {
-    position: absolute;
-    top: 20px;
-    left: 180px;
-    background: linear-gradient(145deg, #4CAF50, #45a049);
-    border: 2px solid #fff;
-    font-size: 2.2em;
-    cursor: pointer;
-    z-index: 1001;
-    transition: all 0.3s ease;
-    padding: 8px;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5), 0 0 40px rgba(76, 175, 80, 0.3);
-    animation: shopGlow 2s ease-in-out infinite alternate;
-}
+/* shop-btn styles unified in HUD orbs block */
 
-.shop-btn:hover {
-    transform: scale(1.15) rotate(-10deg);
-    box-shadow: 0 0 30px rgba(76, 175, 80, 0.8), 0 0 60px rgba(76, 175, 80, 0.5);
-    filter: brightness(1.2);
-}
-
-.shop-btn:active {
-    transform: scale(1.05) rotate(-5deg);
-}
-
-@keyframes shopGlow {
-    0% { 
-        box-shadow: 0 0 20px rgba(76, 175, 80, 0.5), 0 0 40px rgba(76, 175, 80, 0.3);
-        filter: brightness(1);
-    }
-    100% { 
-        box-shadow: 0 0 25px rgba(76, 175, 80, 0.7), 0 0 50px rgba(76, 175, 80, 0.4);
-        filter: brightness(1.1);
-    }
-}
 
 /* Modal de Tienda */
 .shop-modal {
@@ -3671,11 +3619,7 @@ body.game-running #touchControls {
 /* Responsive para Tienda */
 @media (max-width: 768px) {
     .shop-btn {
-        font-size: 1.8em;
-        width: 50px;
-        height: 50px;
-        top: 130px;
-        left: 15px;
+        /* size/position handled in HUD orbs responsive */
     }
     
     .shop-modal-content {
@@ -3802,20 +3746,7 @@ body.game-running #touchControls {
 
 @media (max-width: 480px) {
     .shop-btn {
-        font-size: 1.5em;
-        width: 45px;
-        height: 45px;
-        top: 115px;
-        left: 10px;
-        min-height: 44px;
-        min-width: 44px;
-        padding: 5px;
-        backdrop-filter: blur(8px);
-        background: rgba(0, 50, 20, 0.85);
-        border: 2px solid rgba(76, 175, 80, 0.6);
-        box-shadow: 
-            0 0 15px rgba(76, 175, 80, 0.4),
-            0 2px 8px rgba(0, 0, 0, 0.3);
+        /* size/position handled in HUD orbs responsive */
     }
     
     .shop-modal-content {
@@ -4158,44 +4089,8 @@ body.game-running .shop-btn {
 /* =================== SISTEMA DE TÍTULOS =================== */
 
 /* Botón selector de títulos */
-.title-selector-btn {
-    position: absolute;
-    top: 20px;
-    left: 260px;
-    width: 60px;
-    height: 60px;
-    font-size: 2em;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    border: 3px solid #FFF;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.6),
-        0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    z-index: 1001;
-    animation: titleButtonFloat 3s ease-in-out infinite;
-}
+/* title-selector-btn unified in HUD orbs block */
 
-@keyframes titleButtonFloat {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-.title-selector-btn:hover {
-    transform: scale(1.1) rotate(15deg);
-    box-shadow: 
-        0 0 40px rgba(255, 215, 0, 0.9),
-        0 6px 12px rgba(0, 0, 0, 0.4);
-}
-
-.title-selector-btn:active {
-    transform: scale(0.95);
-}
 
 /* Display del título del jugador */
 #playerTitleDisplay {
@@ -4499,11 +4394,7 @@ body.game-running .shop-btn {
 /* Responsive para títulos */
 @media (max-width: 768px) {
     .title-selector-btn {
-        top: 165px;
-        left: 10px;
-        width: 50px;
-        height: 50px;
-        font-size: 1.5em;
+        /* size/position handled in HUD orbs responsive */
     }
     
     #playerTitleDisplay {
@@ -4533,10 +4424,7 @@ body.game-running .shop-btn {
 
 @media (max-width: 480px) {
     .title-selector-btn {
-        top: 165px;
-        width: 45px;
-        height: 45px;
-        font-size: 1.3em;
+        /* size/position handled in HUD orbs responsive */
     }
     
     #playerTitleDisplay {
@@ -4863,20 +4751,18 @@ body:not(.game-running) #menu {
     font-size: 1rem;
 }
 
-.moai-btn,
-.achievements-btn,
-.shop-btn,
-.audio-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem !important;
+.moai-btn .sw-icon,
+.achievements-btn .sw-icon,
+.shop-btn .sw-icon,
+.title-selector-btn .sw-icon,
+.audio-btn .sw-icon {
+    font-size: 1.25rem;
+    color: inherit;
 }
 
-.moai-btn { color: #cfd8dc; }
-.achievements-btn { color: #ffd54f; }
-.shop-btn { color: #69f0ae; }
-.audio-btn { color: #4fc3f7; }
+.audio-btn {
+    color: #7dd3fc;
+}
 
 .achievements-header h2,
 .shop-header h2 {
