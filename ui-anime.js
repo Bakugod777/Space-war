@@ -292,12 +292,13 @@
 
     hudIntro() {
       if (!ready()) return;
+      const isTouch = document.body.classList.contains("touch-ui");
       const hud = [
         "#scoreBoard",
         "#levelDisplay",
         "#heartsDisplay",
-        "#shootCooldownBar",
-      ];
+        isTouch ? "#shootCooldownBarMobile" : "#shootCooldownBar",
+      ].filter((sel) => document.querySelector(sel));
       anime.set(hud, { opacity: 0, translateY: -14 });
       anime({
         targets: hud,
@@ -307,6 +308,22 @@
         duration: 480,
         easing: "easeOutExpo",
       });
+      if (isTouch) {
+        const clusters = document.querySelectorAll(
+          "#touchControls .touch-cluster"
+        );
+        if (clusters.length) {
+          anime.set(clusters, { opacity: 0, translateY: 28 });
+          anime({
+            targets: clusters,
+            opacity: 1,
+            translateY: 0,
+            delay: anime.stagger(90, { start: 120 }),
+            duration: 520,
+            easing: "easeOutBack",
+          });
+        }
+      }
     },
 
     scorePulse(el) {

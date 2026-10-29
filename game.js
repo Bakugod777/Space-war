@@ -9,28 +9,41 @@ const heartsDisplay = document.createElement("div");
 const gameOverDisplay = document.createElement("div");
 
 levelDisplay.id = "levelDisplay";
-levelDisplay.style.position = "absolute";
-levelDisplay.style.top = "10px";
-levelDisplay.style.left = "20px";
-levelDisplay.style.fontSize = "20px";
-levelDisplay.style.background = "rgba(0, 0, 0, 0.5)";
-levelDisplay.style.padding = "10px";
-levelDisplay.style.borderRadius = "5px";
-levelDisplay.style.color = "white";
-levelDisplay.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.5)";
+levelDisplay.textContent = "Nivel: 1";
 document.getElementById("game-container").appendChild(levelDisplay);
 
 heartsDisplay.id = "heartsDisplay";
-heartsDisplay.style.position = "absolute";
-heartsDisplay.style.top = "50px";
-heartsDisplay.style.right = "20px";
-heartsDisplay.style.fontSize = "20px";
-heartsDisplay.style.background = "rgba(0, 0, 0, 0.5)";
-heartsDisplay.style.padding = "10px";
-heartsDisplay.style.borderRadius = "5px";
-heartsDisplay.style.color = "white";
-heartsDisplay.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.5)";
 document.getElementById("game-container").appendChild(heartsDisplay);
+
+function refreshTouchUiMode() {
+  // Controles táctiles solo en celular/tablet (o viewport estrecho táctil).
+  // Layout fijo zurdo: disparo izquierda / joystick derecha.
+  const mq = window.matchMedia
+    ? {
+        coarse: window.matchMedia("(pointer: coarse)").matches,
+        noHover: window.matchMedia("(hover: none)").matches,
+        narrow: window.matchMedia("(max-width: 900px)").matches,
+      }
+    : { coarse: false, noHover: false, narrow: window.innerWidth <= 900 };
+  const hasTouch =
+    "ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0;
+  // Celular/tablet: puntero grueso o sin hover. No forzar solo por ancho (evita HUD en desktop).
+  const touchUi = mq.coarse || mq.noHover || (hasTouch && mq.narrow);
+  document.body.classList.toggle("touch-ui", !!touchUi);
+  document.body.classList.toggle("left-handed", true);
+  const touchControls = document.getElementById("touchControls");
+  if (touchControls) {
+    touchControls.setAttribute(
+      "aria-hidden",
+      document.body.classList.contains("game-running") && touchUi
+        ? "false"
+        : "true"
+    );
+  }
+}
+refreshTouchUiMode();
+window.addEventListener("resize", refreshTouchUiMode);
+window.addEventListener("orientationchange", refreshTouchUiMode);
 
 gameOverDisplay.id = "gameOverDisplay";
 gameOverDisplay.style.position = "absolute";
@@ -158,24 +171,30 @@ const deadzone = 7; // Reducir de 10 a 7 para mejor respuesta a movimientos pequ
 
 const shootButton = document.getElementById("shootButton");
 
-shootButton.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  player.shooting = true;
-});
-
-shootButton.addEventListener("touchend", (e) => {
-  e.preventDefault();
-  player.shooting = false;
-});
-
-shootButton.addEventListener("touchcancel", (e) => {
-  e.preventDefault();
-  player.shooting = false;
-});
+function bindShootControl(el) {
+  if (!el) return;
+  const down = (e) => {
+    e.preventDefault();
+    player.shooting = true;
+  };
+  const up = (e) => {
+    e.preventDefault();
+    player.shooting = false;
+  };
+  el.addEventListener("touchstart", down, { passive: false });
+  el.addEventListener("touchend", up, { passive: false });
+  el.addEventListener("touchcancel", up, { passive: false });
+  el.addEventListener("mousedown", down);
+  el.addEventListener("mouseup", up);
+  el.addEventListener("mouseleave", up);
+  el.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+bindShootControl(shootButton);
 
 startGameBtn.addEventListener("click", () => {
   playerName = playerNameInput.value || "Jugador";
   document.body.classList.add("game-running");
+  refreshTouchUiMode();
   gameRunning = true;
 
   const begin = () => startGame();
@@ -217,6 +236,18 @@ function createBulletTrailParticles(x, y) {
 }
 
 const cooldownBar = document.getElementById("shootCooldownFill");
+const cooldownBarMobile = document.getElementById("shootCooldownFillMobile");
+
+function pulseCooldownBars(cooldownMs) {
+  [cooldownBar, cooldownBarMobile].forEach((bar) => {
+    if (!bar) return;
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+    void bar.offsetWidth;
+    bar.style.transition = `width ${cooldownMs}ms linear`;
+    bar.style.width = "100%";
+  });
+}
 
 function shoot() {
   if (player.canShoot) {
@@ -234,13 +265,7 @@ function shoot() {
 
     // Cadencia según si tiene boost o no
     const cooldown = hasFireRateBoost ? boostedFireRate : normalFireRate;
-
-    // Inicia la animación de la barra
-    cooldownBar.style.transition = "none";
-    cooldownBar.style.width = "0%";
-    void cooldownBar.offsetWidth; // Reinicia la transición
-    cooldownBar.style.transition = `width ${cooldown}ms linear`;
-    cooldownBar.style.width = "100%";
+    pulseCooldownBars(cooldown);
 
     setTimeout(() => {
       player.canShoot = true;
@@ -1093,6 +1118,7 @@ function gameOver() {
 
   // Remover clase cuando el juego termina
   document.body.classList.remove("game-running");
+  refreshTouchUiMode();
 
   // Actualizar estadísticas de fin de partida
   updateStatsOnGameEnd();
@@ -1231,9 +1257,11 @@ function startGame() {
   // Actualizar estadísticas de inicio de partida
   updateStatsOnGameStart();
 
+  refreshTouchUiMode();
   spawnEnemies();
   updateGame();
   initJoystick();
+  setTimeout(refreshJoystickCenter, 60);
 }
 
 function handlePlayerDamage() {
@@ -1813,18 +1841,38 @@ function createExplosion(x, y, power) {
 }
 
 // Añade estas funciones para el joystick
-function initJoystick() {
+function refreshJoystickCenter() {
   const joystickArea = document.getElementById("joystickArea");
-  const joystick = document.getElementById("joystick");
-
-  joystickArea.addEventListener("touchstart", handleJoystickStart);
-  joystickArea.addEventListener("touchmove", handleJoystickMove);
-  joystickArea.addEventListener("touchend", handleJoystickEnd);
-
-  // Obtener posición inicial del joystick
+  if (!joystickArea) return;
   const rect = joystickArea.getBoundingClientRect();
   joystickCenter.x = rect.left + rect.width / 2;
   joystickCenter.y = rect.top + rect.height / 2;
+  maxJoystickDistance = Math.max(28, rect.width * 0.32);
+}
+
+function initJoystick() {
+  const joystickArea = document.getElementById("joystickArea");
+  const joystick = document.getElementById("joystick");
+  if (!joystickArea || !joystick) return;
+
+  joystickArea.addEventListener("touchstart", handleJoystickStart, {
+    passive: false,
+  });
+  joystickArea.addEventListener("touchmove", handleJoystickMove, {
+    passive: false,
+  });
+  joystickArea.addEventListener("touchend", handleJoystickEnd, {
+    passive: false,
+  });
+  joystickArea.addEventListener("touchcancel", handleJoystickEnd, {
+    passive: false,
+  });
+
+  refreshJoystickCenter();
+  window.addEventListener("resize", refreshJoystickCenter);
+  window.addEventListener("orientationchange", () => {
+    setTimeout(refreshJoystickCenter, 120);
+  });
 }
 
 function handleJoystickStart(e) {
