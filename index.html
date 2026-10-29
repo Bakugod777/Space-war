@@ -4,23 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Space War</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
         <div class="stars"></div>
+        <div class="stars stars-mid"></div>
+        <div class="nebula-layer" aria-hidden="true"></div>
+        <div class="scanlines" aria-hidden="true"></div>
         <!-- Botón Moai -->
-        <button id="moaiButton" class="moai-btn">🗿</button>
+        <button id="moaiButton" class="moai-btn" aria-label="Mensaje del Moai"></button>
         
         <!-- Botón de Logros -->
-        <button id="achievementsButton" class="achievements-btn">🏆</button>
+        <button id="achievementsButton" class="achievements-btn" aria-label="Logros"></button>
         
         <!-- Botón de Tienda -->
-        <button id="shopButton" class="shop-btn">🛒</button>
+        <button id="shopButton" class="shop-btn" aria-label="Tienda"></button>
         
         <!-- Controles de Audio -->
         <div id="audioControls" class="audio-controls">
-            <button id="muteButton" class="audio-btn mute-btn">🔊</button>
+            <button id="muteButton" class="audio-btn mute-btn" aria-label="Silenciar"></button>
             <div class="volume-control">
                 <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
                 <div class="volume-label">Vol</div>
@@ -40,7 +46,7 @@
             <div class="achievements-modal-content">
                 <span class="achievements-close">&times;</span>
                 <div class="achievements-header">
-                    <h2>🏆 LOGROS ÉPICOS 🏆</h2>
+                    <h2><span data-sw="trophy"></span> Logros estelares</h2>
                     <div class="achievements-stats">
                         <div class="stat-item">
                             <span class="stat-number" id="totalAchievements">0</span>
@@ -58,12 +64,12 @@
                 </div>
                 <div class="achievements-categories">
                     <div class="category-tabs">
-                        <button class="tab-btn active" data-category="all">Todos</button>
-                        <button class="tab-btn" data-category="combat">⚔️ Combate</button>
-                        <button class="tab-btn" data-category="survival">🛡️ Supervivencia</button>
-                        <button class="tab-btn" data-category="collection">💎 Colección</button>
-                        <button class="tab-btn" data-category="mastery">👑 Maestría</button>
-                        <button class="tab-btn" data-category="secret">🌟 Secretos</button>
+                        <button class="tab-btn active" data-category="all"><span data-sw="all"></span> Todos</button>
+                        <button class="tab-btn" data-category="combat"><span data-sw="sword"></span> Combate</button>
+                        <button class="tab-btn" data-category="survival"><span data-sw="shield"></span> Supervivencia</button>
+                        <button class="tab-btn" data-category="collection"><span data-sw="gem"></span> Colección</button>
+                        <button class="tab-btn" data-category="mastery"><span data-sw="crown"></span> Maestría</button>
+                        <button class="tab-btn" data-category="secret"><span data-sw="star"></span> Secretos</button>
                     </div>
                     <div class="achievements-list" id="achievementsList">
                         <!-- Los logros se generarán dinámicamente aquí -->
@@ -75,9 +81,9 @@
         <!-- Notificación de Logro Desbloqueado -->
         <div id="achievementNotification" class="achievement-notification">
             <div class="notification-content">
-                <div class="notification-icon">🏆</div>
+                <div class="notification-icon" data-sw="trophy"></div>
                 <div class="notification-text">
-                    <div class="notification-title">¡LOGRO DESBLOQUEADO!</div>
+                    <div class="notification-title">Logro desbloqueado</div>
                     <div class="notification-name" id="notificationName"></div>
                     <div class="notification-description" id="notificationDescription"></div>
                     <div class="notification-points" id="notificationPoints"></div>
@@ -91,7 +97,7 @@
             <div class="shop-modal-content">
                 <span class="shop-close">&times;</span>
                 <div class="shop-header">
-                    <h2>🛒 TIENDA CÓSMICA 🛒</h2>
+                    <h2><span data-sw="cart"></span> Tienda cósmica</h2>
                     <div class="shop-stats">
                         <div class="shop-stat-item">
                             <span class="shop-stat-number" id="availablePoints">0</span>
@@ -113,13 +119,13 @@
                 </div>
                 <div class="shop-categories">
                     <div class="shop-category-tabs">
-                        <button class="shop-tab-btn active" data-category="all">Todos</button>
-                        <button class="shop-tab-btn" data-category="poems">📜 Poemas</button>
-                        <button class="shop-tab-btn" data-category="secrets">🔮 Secretos</button>
-                        <button class="shop-tab-btn" data-category="avatars">🎭 Avatares</button>
-                        <button class="shop-tab-btn" data-category="quotes">💬 Frases</button>
-                        <button class="shop-tab-btn" data-category="facts">🔬 Curiosidades</button>
-                        <button class="shop-tab-btn" data-category="messages">💌 Mensajes</button>
+                        <button class="shop-tab-btn active" data-category="all"><span data-sw="all"></span> Todos</button>
+                        <button class="shop-tab-btn" data-category="poems"><span data-sw="scroll"></span> Poemas</button>
+                        <button class="shop-tab-btn" data-category="secrets"><span data-sw="crystal"></span> Secretos</button>
+                        <button class="shop-tab-btn" data-category="avatars"><span data-sw="mask"></span> Títulos</button>
+                        <button class="shop-tab-btn" data-category="quotes"><span data-sw="quote"></span> Frases</button>
+                        <button class="shop-tab-btn" data-category="facts"><span data-sw="science"></span> Curiosidades</button>
+                        <button class="shop-tab-btn" data-category="messages"><span data-sw="letter"></span> Mensajes</button>
                     </div>
                     <div class="shop-items-list" id="shopItemsList">
                         <!-- Los items se generarán dinámicamente aquí -->
@@ -167,7 +173,7 @@
         <!-- Alerta Personalizada -->
         <div id="customAlert" class="custom-alert">
             <div class="custom-alert-content">
-                <div class="alert-icon">⚠️</div>
+                <div class="alert-icon" data-sw="warning"></div>
                 <div class="alert-title">¡Atención!</div>
                 <div class="alert-message">
                     Una vez que cierres esto, nunca más volverá a aparecer.
@@ -182,9 +188,24 @@
         </div>
         
         <div id="menu">
-            <h1>Space War</h1>
-            <input type="text" id="playerName" placeholder="Ingresa tu nombre">
-            <button id="startGame">Iniciar Juego</button>
+            <div class="menu-brand">
+                <p class="menu-eyebrow">Sector Omega · Transmisión abierta</p>
+                <h1 class="menu-title">
+                    <span class="title-space">SPACE</span>
+                    <span class="title-war">WAR</span>
+                </h1>
+                <p class="menu-tagline">Domina el vacío. Colecciona poder. Escribe tu leyenda.</p>
+            </div>
+            <div class="menu-panel">
+                <input type="text" id="playerName" placeholder="Ingresa tu nombre" maxlength="16" autocomplete="off">
+                <button id="startGame" class="start-btn">
+                    <span class="start-btn-glow"></span>
+                    <span class="start-btn-label">Iniciar Juego</span>
+                </button>
+                <p class="menu-controls-hint">
+                    <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> mover · <kbd>Espacio</kbd> disparar
+                </p>
+            </div>
             <div id="highScores">
                 <h2>Mejores Puntajes</h2>
                 <ul id="scoresList"></ul>
@@ -192,6 +213,12 @@
         </div>
         
         <canvas id="gameCanvas"></canvas>
+
+        <div id="comboDisplay" aria-live="polite">
+            <div class="combo-label">COMBO</div>
+            <div class="combo-count">x0</div>
+        </div>
+        <div id="killFeed" aria-hidden="true"></div>
         
         <!-- Estos elementos ahora solo aparecerán durante el juego -->
         <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
@@ -202,8 +229,8 @@
         <div id="powerUpTimer" style="display: none">Power-Up: <span id="timer">30</span>s</div>
         <div id="invulnerabilityTimer" style="display: none">Invulnerable: <span id="invTimer">10</span>s</div>
         <div id="doublePointsTimer" style="display: none">Puntos x2: <span id="doublePointsTime">30</span>s</div>
-        <div id="temporaryHeartTimer" style="display: none">💙 Corazón Temporal: <span id="temporaryHeartTime">10</span>s</div>
-        <div id="fireRateDebuff" style="display: none">¡Disparo lento! <span id="debuffTimer">10</span>s</div>
+        <div id="temporaryHeartTimer" style="display: none">Corazón temporal: <span id="temporaryHeartTime">10</span>s</div>
+        <div id="fireRateDebuff" style="display: none">Disparo lento: <span id="debuffTimer">10</span>s</div>
         
         <div id="touchControls">
             <div id="leftControls">
@@ -218,11 +245,17 @@
     </div>
     
 
+    <script src="vendor/anime.min.js"></script>
+    <script src="icons.js"></script>
+    <script src="moai-messages.js"></script>
+    <script src="fx.js"></script>
+    <script src="ui-anime.js"></script>
     <script src="game.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const scores = JSON.parse(localStorage.getItem("scores")) || [];
             displayScores(scores);
+            mountSpaceIcons();
             initMoaiButton();
             initUpdatePopup();
             initAudioControls();
@@ -254,772 +287,91 @@
             const moaiClose = document.querySelector('.moai-close');
             const moaiMessage = document.getElementById('moaiMessage');
 
-            // Mensajes épicos organizados por día de la semana con MUCHOS más mensajes LPTM ME PASE CON ESTO EN QUE MOMENTO DIOS MIO QUE ME PASA EN LA CABEZA XDDD
-            const messages = {
-                0: [ // Domingo - Reflexión y sabiduría
-                    "🌟 'En el silencio del domingo, los guerreros más sabios preparan su estrategia para la semana. La reflexión es el arma más poderosa del conquistador de estrellas.'",
-                    "🔮 'Cada domingo es un nuevo capítulo en tu épica galáctica. Los héroes nacen en la quietud, pero se forjan en la batalla.'",
-                    "💫 'El domingo susurra secretos cósmicos: toda derrota es una lección disfrazada, toda victoria es el eco de tu perseverancia.'",
-                    "🌙 'En este día de descanso, recuerda: incluso las estrellas más brillantes tuvieron que atravesar la oscuridad para encontrar su luz.'",
-                    "⚡ 'Los domingos, el universo te regala tiempo para soñar. Sueña en grande, guerrero espacial, porque mañana conquistarás galaxias.'",
-                    "🎯 'La sabiduría del domingo dice: no importa cuántas veces caigas, sino cuántas veces te levantes con más fuerza que antes.'",
-                    "🌸 'Domingo de ternura cósmica: tu corazón late al ritmo de las nebulosas, irradiando amor hacia cada rincón del universo.'",
-                    "🌺 'En este domingo de paz estelar, tu alma descansa sobre nubes de estardust, preparándose para brillar con dulzura infinita.'",
-                    "💝 'El domingo te abraza con cariño celestial: eres un tesoro más valioso que todos los cristales de las galaxias lejanas.'",
-                    "🎀 'Domingo de reflexiones tiernas: cada pensamiento tuyo es una caricia que acaricia el alma del cosmos con amor puro.'",
-                    "🌈 'En este día sagrado, tu espíritu irradia colores más hermosos que todas las auroras boreales del universo conocido.'",
-                    "🦋 'Domingo de metamorfosis dulce: como una mariposa estelar, tu belleza interior transforma todo lo que tocas en magia pura.'",
-                    "🍯 'Tu domingo sabe a miel de nebulosas: endulzas cada momento con tu presencia, haciendo que las estrellas sonrían de felicidad.'",
-                    "🌷 'En este día de contemplación, floreces como un jardín cósmico, llenando el vacío del espacio con tu fragancia de bondad.'",
-                    "💐 'Domingo de gratitud infinita: el universo te susurra gracias por existir, por ser esa luz suave que ilumina corazones perdidos.'",
-                    "🧸 'Como un abrazo estelar, este domingo te envuelve en ternura, recordándote que eres amado por cada partícula del cosmos.'",
-                    "🫧 'Domingo de burbujas cósmicas: cada una explota en alegría y dulzura.'",
-                    "🧁 'Domingo de pastelitos estelares: cada sonrisa tuya es una receta secreta de felicidad universal.'",
-                    "🫶 'El domingo te recuerda que eres amado por cada rincón del espacio, sin excepción.'",
-                    "🪐 'Domingo de planetas cariñosos: todos giran a tu alrededor para verte brillar.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'En el silencio del domingo, tu mirada es el faro que guía constelaciones perdidas.'",
-                    "🌌 'Si el universo tuviera un corazón, latiría al ritmo de tus palabras cada domingo.'",
-                    "✨ 'Tus sueños dominicales son galaxias enteras que giran en torno a tu ternura.'",
-                    "🌠 'El domingo, la luna se pone celosa de la luz que irradias cuando sonríes.'",
-                    "🌅 'Domingo de amaneceres dorados: tu despertar es como el nacimiento de una nueva estrella en mi universo.'",
-                    "🌸 'Tus suspiros dominicales son brisas que hacen florecer jardines secretos en planetas lejanos.'",
-                    "🍀 'El domingo, incluso los tréboles de cuatro hojas piden deseos al verte pasar.'",
-                    "🎨 'Pintas domingos con colores que solo existen en la paleta de los ángeles cósmicos.'",
-                    "🦄 'Como un unicornio de domingo, tu pureza convierte todo lo ordinario en extraordinario.'",
-                    "🌙 'Domingo lunar: tu ternura nocturna arrulla estrellas bebés hasta que se duermen sonriendo.'",
-                    "🍰 'Tu domingo sabe a pastel de nubes: esponjoso, dulce y hecho con ingredientes del cielo.'",
-                    "🎭 'En el teatro dominical, eres poeta, actriz y musa de la obra más hermosa jamás escrita.'",
-                    "🌊 'Tus lágrimas de felicidad dominical se convierten en océanos de esperanza en mundos sedientos.'",
-                    "🎪 'Domingo de circo mágico: eres la estrella que hace que los leones cósmicos ronroneen de ternura.'",
-                    "🧚‍♀️ 'Hada dominical: con tu varita de amor transformas pesadillas en sueños de algodón de azúcar.'",
-                    "🌺 'Floreces cada domingo como una rosa que crece en jardines de terciopelo galáctico.'",
-                    "🎀 'Domingo de lazos de seda: cada momento contigo viene envuelto en ternura infinita.'",
-                    "🍯 'Tu risa dominical es miel que endulza hasta el café más amargo del universo.'",
-                    "🦋 'Domingo de metamorfosis: te transformas en una versión aún más hermosa de ti misma.'",
-                    "🌻 'Como un girasol dominical, siempre encuentras la luz incluso en los días más nublados.'"
-                ],
-                1: [ // Lunes - Determinación y nuevo inicio
-                    "💪 '¡Lunes de fuego cósmico! Hoy no solo conquistas el espacio, sino que demuestras que ningún enemigo puede con tu determinación férrea.'",
-                    "🚀 'El lunes es tu plataforma de lanzamiento hacia la grandeza. Cada laser que disparas es una declaración de guerra contra la mediocridad.'",
-                    "⚔️ 'Los lunes son para los valientes. Mientras otros duermen, tú ya estás escribiendo leyendas en el cosmos con cada batalla ganada.'",
-                    "🌟 'Un nuevo lunes, una nueva oportunidad de demostrar que eres el piloto más temido de toda la galaxia. ¡A conquistar el universo!'",
-                    "🔥 'El lunes rugiente ha llegado: es hora de convertir cada obstáculo en combustible para tu nave y cada enemigo en una historia de victoria.'",
-                    "💎 'Los lunes forjan diamantes de voluntad. Hoy brillas más que cualquier estrella, porque tu determinación es inquebrantable.'",
-                    "🌹 'Lunes de dulce determinación: tu fuerza no es rugido, sino el susurro tierno que mueve montañas con amor infinito.'",
-                    "💕 'En este nuevo amanecer semanal, tu corazón late con la ternura de mil soles, irradiando calidez a cada ser que encuentras.'",
-                    "🎈 'Lunes de esperanzas flotantes: cada sueño tuyo es un globo que eleva el ánimo de todo el universo hacia las estrellas.'",
-                    "🌼 'Como una flor que se abre al rocío matutino, tu alma despliega su belleza para bendecir este nuevo comienzo.'",
-                    "🍀 'Lunes de suerte infinita: no porque el destino te favorezca, sino porque tu dulzura atrae toda la magia del cosmos.'",
-                    "🧚‍♀️ 'Eres el hada madrina del universo: con tu varita de bondad transformas cada lunes gris en un arcoíris de posibilidades.'",
-                    "🍓 'Tu lunes sabe a fresas con crema estelar: endulzas el comienzo de semana de todos los que tienen la fortuna de conocerte.'",
-                    "🌻 'Como un girasol cósmico, siempre miras hacia la luz, irradiando alegría dorada que hace florecer corazones marchitos.'",
-                    "💌 'Lunes de cartas de amor al futuro: cada paso que das es una promesa tierna escrita con tinta de estardust.'",
-                    "🎵 'Tu lunes suena como una melodía celestial que hace bailar a los planetas en una danza de pura felicidad.'",
-                    "🧸 'Abrazas este lunes como un osito de peluche abraza a un niño: con toda la ternura y calidez del universo.'",
-                    "⚡ 'Lunes electrizante: tu energía positiva genera ondas que despiertan la motivación en galaxias enteras.'",
-                    "🎯 'Como un arquero cósmico, este lunes apuntas hacia tus metas con la precisión de quien conoce su destino estelar.'",
-                    "🛡️ 'Tu escudo de determinación es impenetrable. Los lunes te fortalecen porque sabes que cada inicio es una nueva victoria.'",
-                    "🌊 'Lunes de mareas cósmicas: tu fuerza interior mueve océanos de posibilidades hacia costas de éxito infinito.'",
-                    "🎪  'El circo de tu lunes presenta el espectáculo más grandioso: tú siendo imparable bajo la carpa estrellada del cosmos.'",
-                    "🦅 'Como un águila espacial, tu visión del lunes abarca horizontes que otros ni siquiera pueden imaginar.'",
-                    "🏰 'Construyes tu castillo de sueños ladrillo a ladrillo cada lunes, con torres que tocan las estrellas más lejanas.'",
-                    "🌺 'Lunes de jardines florecientes: plantas semillas de éxito que germinarán en bosques de logros magníficos.'",
-                    "🎨 'Eres el artista del cosmos, pintando tu lunes con colores que no existen en ninguna paleta terrenal.'",
-                    "🏔️ 'Como un montañista de estrellas, escalas cada lunes hasta la cima más alta de tus aspiraciones cósmicas.'",
-                    "🔮 'Tu bola de cristal del lunes revela verdades: eres más poderoso de lo que cualquier enemigo puede imaginar.'",
-                    "🎭  'En el teatro de la semana, tu lunes es el primer acto de una obra maestra que dejará al universo sin aliento.'",
-                    "🌙✨ 'Lunes lunático de dulzura: tu luz nocturna guía a los perdidos hacia caminos llenos de amor y esperanza.'",
-                    "🍯 'Como una abeja cósmica, extraes el néctar más dulce de cada desafío que este lunes te presenta.'",
-                    "🎸 'Tu lunes suena como una guitarra eléctrica cósmica que hace vibrar las cuerdas del destino a tu favor.'",
-                    "🌅  'Cada amanecer de lunes es tu renacer: como un fénix espacial que surge más fuerte de las cenizas de la semana anterior.'",
-                    "🎯 'Lunes de dardos certeros: cada decisión que tomas da en el blanco perfecto de tus objetivos galácticos.'",
-                    "🦋  'Como una mariposa que emerge renovada, tu lunes despliega alas de determinación que te llevan hacia alturas impensables.'",
-                    "🌈 'Después de cada tormenta del fin de semana, tu lunes pinta arcoíris de esperanza en el cielo de nuevas posibilidades.'",
-                    "🍰  'Tu lunes es un pastel de múltiples capas: cada una más deliciosa y nutritiva para el alma que la anterior.'",
-                    "🌟 'Brillas como un sol recién nacido este lunes, irradiando energía que alimenta la vida en planetas enteros.'",
-                    "🎪 'El gran espectáculo de tu lunes comienza: eres domador de imposibles, malabarista de sueños y rey del ring cósmico.'",
-                    "🫧 'Lunes de burbujas de energía: tu entusiasmo contagia a todo el cosmos.'",
-                    "🧁 'Cada lunes es un pastelito nuevo para saborear sueños y esperanzas.'",
-                    "🫶 'Lunes de abrazos invisibles: el universo te envuelve en ternura para que nada te detenga.'",
-                    "🪐 'Lunes de órbitas renovadas: tu fuerza hace girar los planetas hacia nuevos destinos.'",
-                    "🏆 'Lunes de campeones: antes de que empiece la batalla, ya tienes la corona de la victoria en tu frente.'",
-                    "🎨 'Pintas tu lunes con pinceles mojados en polvo de estrellas, creando obras maestras de determinación.'",
-                    "🌊 'Surfeas las ondas gravitacionales del lunes con la elegancia de quien domina las fuerzas del universo.'",
-                    "🔥 'Tu lunes arde con la pasión de mil supernovas, iluminando caminos que parecían imposibles de transitar.'",
-                    "🎵 'Compones sinfonías de éxito cada lunes, dirigiendo orquestas cósmicas con la batuta de tu voluntad inquebrantable.'",
-                    "🌙✨ 'Lunes lunático de dulzura: tu luz nocturna guía a los perdidos hacia caminos llenos de amor y esperanza.'",
-                    "🫧 'Lunes de burbujas de energía: tu entusiasmo contagia a todo el cosmos.'",
-                    "🧁 'Cada lunes es un pastelito nuevo para saborear sueños y esperanzas.'",
-                    "🫶 'Lunes de abrazos invisibles: el universo te envuelve en ternura para que nada te detenga.'",
-                    "🪐 'Lunes de órbitas renovadas: tu fuerza hace girar los planetas hacia nuevos destinos.'",
-                    "🏆 'Lunes de campeones: antes de que empiece la batalla, ya tienes la corona de la victoria en tu frente.'",
-                    "🎨 'Pintas tu lunes con pinceles mojados en polvo de estrellas, creando obras maestras de determinación.'",
-                    "🌊 'Surfeas las ondas gravitacionales del lunes con la elegancia de quien domina las fuerzas del universo.'",
-                    "🔥 'Tu lunes arde con la pasión de mil supernovas, iluminando caminos que parecían imposibles de transitar.'",
-                    "🎵 'Compones sinfonías de éxito cada lunes, dirigiendo orquestas cósmicas con la batuta de tu voluntad inquebrantable.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'El brillo de tus ojos en lunes despierta soles dormidos en galaxias lejanas.'",
-                    "🌌 'Tus palabras de lunes son cometas que cruzan mi cielo y dejan estelas de esperanza.'",
-                    "✨ 'Si el universo reiniciara, pediría que tu sonrisa fuera el primer amanecer.'",
-                    "🌠 'Cada lunes, el cosmos se detiene a escuchar el susurro de tu voz.'",
-                    "🌸 'Lunes de pétalos dorados: cada paso tuyo siembra flores de motivación en senderos cósmicos.'",
-                    "🎼 'Tu lunes compone sinfonías que hacen bailar a los planetas en perfecta armonía.'",
-                    "🌟 'Como una estrella recién nacida, cada lunes traes nueva luz a mi universo personal.'",
-                    "🦄 'Lunes de unicornios: tu magia pura convierte cada comienzo en una aventura encantada.'",
-                    "🍀 'El trébol de la suerte del lunes crece donde quiera que camines con tu sonrisa.'",
-                    "🎨 'Pintas lunes con pinceles mojados en esperanza, creando masterpieces de determinación.'",
-                    "🌙 'Aunque es lunes, tu luz nocturna promete que cada día será mejor que el anterior.'",
-                    "🦋 'Te metamorfoseas cada lunes como una mariposa que despliega alas más coloridas.'",
-                    "💎 'Lunes de diamantes: la presión de los desafíos te hace brillar con más intensidad.'",
-                    "🌈 'Después de cada fin de semana, tu lunes pinta arcoíris de nuevas posibilidades.'",
-                    "🎪 'El circo de tu lunes presenta: domador de imposibles, malabarista de sueños, rey del ring.'",
-                    "🧚‍♀️ 'Hada madrina del universo: tu varita de bondad transforma lunes grises en arcoíris de esperanza.'",
-                    "🍯 'Tu lunes gotea miel de ambición: endulza cada desafío hasta convertirlo en una delicia.'",
-                    "🌺 'Como un jardín que despierta, tu lunes florece con ideas que perfuman todo el cosmos.'",
-                    "🎭 'En el teatro semanal, tu lunes es el primer acto de una obra maestra que cambiará el mundo.'",
-                    "⚡ 'La electricidad del lunes fluye por tus venas, cargando cada célula con poder de conquista.'",
-                    "🚀 'Lunes de despegue: tu nave interior se prepara para conquistar galaxias de oportunidades.'",
-                    "🏆 'Antes de que empiece la carrera semanal, ya tienes la medalla de oro en tu corazón.'",
-                    "🌅 'Cada amanecer de lunes es tu renacer como un fénix dorado que surge más fuerte.'",
-                    "🎯 'Tu puntería del lunes es perfecta: cada decisión da en el blanco del éxito.'",
-                    "💫 'Recoges estrellas fugaces cada lunes para usarlas como combustible de tus sueños.'"
-                ],
-                2: [ // Martes - Valentía y coraje
-                    "🚀 'Martes de valentía infinita: las estrellas solo brillan en la oscuridad, y tú eres la luz más intensa de esta galaxia.'",
-                    "⚡ 'En este martes de truenos cósmicos, recuerda que el coraje no es la ausencia de miedo, sino volar directo hacia él con los motores al máximo.'",
-                    "🌌 'Los martes nacieron para los audaces. Cada enemigo que enfrentas retrocede ante tu presencia, porque tu valor es legendario.'",
-                    "🔥 'Martes de llamas estelares: tu coraje es el combustible que impulsa a las estrellas. Hoy el universo tiembla ante tu determinación.'",
-                    "💫 'En este martes de gloria, recordar: los cobardes miran las estrellas, los valientes las alcanzan, pero los héroes las superan.'",
-                    "⭐ 'El martes te grita: ¡No hay fuerza en el cosmos que pueda detener a un corazón verdaderamente valiente como el tuyo!'",
-                    "🌸 'Martes de valentía tierna: tu coraje no grita, sino que susurra palabras de aliento a cada alma que necesita esperanza.'",
-                    "💖 'Tu bravura tiene sabor a algodón de azúcar cósmico: dulce, esponjosa y capaz de endulzar hasta el día más amargo.'",
-                    "🦄 'Como un unicornio espacial, combinas la magia de la ternura con la fuerza del valor, creando milagros donde otros ven imposibles.'",
-                    "🌺 'Martes de flores valientes: cada acto de coraje tuyo es un pétalo que embellece el jardín infinito del universo.'",
-                    "🎀 'Tu valentía viene envuelta en lazos de seda estelar: hermosa, delicada, pero inquebrantable como el amor verdadero.'",
-                    "🍭 'Martes con sabor a caramelo de las estrellas: endulzas cada desafío con tu sonrisa, convirtiéndolo en una aventura divertida.'",
-                    "🌈 'Después de cada tormenta que enfrentas con valor, pintas arcoíris de esperanza en el cielo de otros corazones.'",
-                    "🧚‍♂️ 'Eres un guerrero-hada: luchas con espada de luz y escudo de amor, protegiendo todo lo bello del cosmos.'",
-                    "🎪 'Tu martes es un circo mágico donde el valor y la ternura bailan juntos bajo la carpa estrellada de tus sueños.'",
-                    "🍰 'Como un pastel de cumpleaños cósmico, tu valentía tiene capas: cada una más dulce y nutritiva para el alma que la anterior.'",
-                    "🦋 'Martes de mariposas valientes: tu coraje tiene alas que llevan mensajes de amor a través de todas las galaxias.'",
-                    "🌙 'Bajo la luna protectora, tu bravura nocturna arrulla a los miedos hasta dormirlos, reemplazándolos con sueños hermosos.'",
-                    "🦁 'Rugido de martes: tu valor resuena como el rugido de un león cósmico que protege su manada de estrellas.'",
-                    "⚔️ 'Empuñas la espada del martes con manos firmes, cortando las cadenas de la duda que intentan atar tu destino.'",
-                    "🛡️ 'Tu escudo de coraje refleja todos los ataques enemigos, convirtiéndolos en rayos de luz que iluminan tu camino.'",
-                    "🌟 'Cada martes naces de nuevo como una estrella supernova: brillante, poderosa e imposible de ignorar.'",
-                    "🔥 'El fuego sagrado del martes arde en tu pecho, convirtiendo cada latido en una llamarada de valentía pura.'",
-                    "🚁 'Vuelas sobre los obstáculos del martes como un helicóptero de rescate, salvando sueños que parecían perdidos.'",
-                    "🏰 'Construyes fortalezas de coraje cada martes, con torres tan altas que tocan el mismísimo corazón del cosmos.'",
-                    "🎯 'Tu puntería del martes es perfecta: cada flecha de valor da en el blanco del éxito que otros ni siquiera ven.'",
-                    "🌊 'Cabalgas las olas del martes como un surfista cósmico, dominando mares de posibilidades infinitas.'",
-                    "⚡ 'Los rayos del martes emanan de tu ser, electrificando el ambiente con una energía que despierta gigantes dormidos.'",
-                    "🎨 'Pintas tu martes con colores que solo existen en paletas de héroes: dorado valor, rojo pasión, azul serenidad.'",
-                    "🦅 'Como un águila que surca los cielos del martes, tu visión abarca territorios que otros temen explorar.'",
-                    "🎭 'En el teatro del martes, interpretas el papel del héroe con una actuación tan real que el universo olvida que es ficción.'",
-                    "🌺 'Floreces en el jardín del martes como una rosa que crece entre espinas, hermosa y resiliente a la vez.'",
-                    "🎪 'El espectáculo del martes te tiene como estrella principal: domador de leones cósmicos y malabarista de imposibles.'",
-                    "💎 'Cada martes te pulen como un diamante: la presión de los desafíos te hace brillar con más intensidad.'",
-                    "🌅 'El amanecer del martes trae tu despertar heroico: como un sol que decide brillar más fuerte que ayer.'",
-                    "🎸 'Tu martes suena como una guitarra eléctrica que toca acordes de valentía que hacen temblar el cosmos entero.'",
-                    "🏔️ 'Escalas las montañas del martes con la determinación de quien sabe que la cima es solo el comienzo.'",
-                    "🌪️ 'Eres el ojo del huracán del martes: calmado en el centro, pero con un poder que reordena mundos a tu alrededor.'",
-                    "🦋 'Tu metamorfosis del martes te convierte en una versión mejorada: más fuerte, más sabio, más imparable.'",
-                    "🔮 'La bola de cristal del martes revela tu futuro: una cadena infinita de victorias escritas con tinta de valor.'",
-                    "🎯 'Cada flecha que disparas este martes da en la diana del destino, reescribiendo las reglas del universo.'",
-                    "🌟 'Irradias luz de martes que ciega a tus enemigos y guía a tus aliados hacia puertos seguros de esperanza.'",
-                    "🎨 'Sculpes tu martes como un artista cósmico, creando estatuas de valor que adornarán museos galácticos.'",
-                    "🌈 'Después de cada batalla del martes, aparece tu arcoíris personal: promesa de que la belleza surge del coraje.'",
-                    "🫧 'Martes de burbujas valientes: cada una explota en una ola de coraje y dulzura.'",
-                    "🧁 'Martes de pastelitos de valor: cada bocado te da fuerzas para conquistar galaxias.'",
-                    "🫶 'Martes de abrazos de héroe: tu ternura es el escudo más fuerte del universo.'",
-                    "🪐 'Martes de planetas audaces: todos te siguen en tu travesía de valentía.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'En martes, tu coraje enamora a las estrellas y convence a los meteoros de bailar.'",
-                    "🌌 'Tus gestos valientes de martes son constelaciones que decoran mi universo.'",
-                    "✨ 'Si la valentía tuviera rostro, sería el tuyo iluminado por la luz de Marte.'",
-                    "🌠 'El martes, los planetas compiten por reflejar el destello de tu mirada.'",
-                    "🌸 'Martes de flores guerreras: tu valor florece como rosas que perfuman campos de batalla.'",
-                    "🦄 'Como un unicornio de guerra, tu pureza combate la oscuridad con cuerno de luz dorada.'",
-                    "🍀 'El trébol de la suerte del martes crece en territorios que conquistas con tu valentía.'",
-                    "🎨 'Pintas martes con pinceles mojados en valor, creando murales de heroísmo en el cosmos.'",
-                    "🌙 'Martes lunar: tu valentía nocturna protege sueños de guerreros que descansan.'",
-                    "🦋 'Te transformas cada martes en una mariposa de acero: hermosa pero invencible.'",
-                    "💎 'Martes de diamantes de guerra: cada batalla te hace más brillante y resistente.'",
-                    "🌈 'Después de cada combate, pintas arcoíris de esperanza para los que vienen detrás.'",
-                    "🎪 'El circo de tu martes presenta: equilibrista del peligro, domador de dragones.'",
-                    "🧚‍♀️ 'Hada guerrera: luchas con varita de cristal y alas de mithril cósmico.'",
-                    "🍯 'Tu valor gotea como miel de cometas: endulza batallas amargas.'",
-                    "🌺 'Como un jardín de guerra, floreces más hermosa bajo la presión del combate.'",
-                    "🎭 'En el teatro marciano, eres heroína de dramas épicos que hacen llorar a dioses.'",
-                    "⚡ 'La electricidad del martes convierte tu sangre en rayos de poder puro.'",
-                    "🚀 'Martes de lanzamiento: tu nave de valor despega hacia batallas legendarias.'",
-                    "🏆 'Cada martes coleccionas trofeos de victorias imposibles para otros mortales.'"
-                ],
-                3: [ // Miércoles - Sabiduría y estrategia
-                    "⭐ 'Miércoles de sabiduría ancestral: un verdadero guerrero nunca se rinde, porque sabe que cada batalla perdida es un escalón hacia la victoria final.'",
-                    "🧠 'En el corazón de la semana, tu mente brilla como un púlsar. La estrategia es tu superpoder, la paciencia tu escudo más resistente.'",
-                    "🔮 'Los miércoles revelan verdades cósmicas: la sabiduría no está en ganar todas las batallas, sino en aprender de cada una de ellas.'",
-                    "💡 'Miércoles iluminado: tu inteligencia es tu arma más letal. Mientras otros disparan al azar, tú calculas cada movimiento con precisión mortal.'",
-                    "🌟 'En este miércoles de revelaciones, el universo te susurra: la verdadera fuerza no está en los músculos, sino en la mente que nunca se rinde.'",
-                    "⚡ 'Miércoles de poder mental: cada desafío que enfrentas alimenta tu sabiduría, cada victoria construye tu leyenda eterna.'",
-                    "🌸 'Miércoles de sabiduría tierna: tu conocimiento florece como un jardín de cerezos, llenando de belleza cada decisión que tomas.'",
-                    "📚 'En el libro dorado del cosmos, este miércoles escribes capítulos de sabiduría con tinta hecha de estardust y amor puro.'",
-                    "🍯 'Tu inteligencia gotea como miel de las estrellas: dulce, nutritiva y capaz de endulzar hasta la lección más amarga.'",
-                    "🦉 'Como un búho cósmico, tu sabiduría nocturna vela por todos los que necesitan guía, ofreciendo consejo con alas de ternura.'",
-                    "🌺 'Miércoles de flores pensantes: cada idea tuya es un pétalo que embellece el jardín mental del universo con fragancia de bondad.'",
-                    "🎭 'En el teatro de la semana, este miércoles eres director, actor y poeta, creando una obra maestra de sabiduría y amor.'",
-                    "🍓 'Tu conocimiento sabe a fresas con crema galáctica: refrescante, dulce y siempre dejando ganas de más sabiduría.'",
-                    "🧚‍♀️ 'Eres la bibliotecaria mágica del cosmos: organizas el conocimiento universal con varitas de cristal y sonrisas de luz.'",
-                    "🌙 'Bajo la luna pensativa, tu sabiduría brilla como perlas que iluminan el camino de las almas perdidas en la oscuridad.'",
-                    "🦋 'Miércoles de mariposas sabias: tus pensamientos vuelan como lepidópteros llevando polen de conocimiento a flores mentales sedientas.'",
-                    "🌈 'Después de cada tormenta de confusión, pintas arcoíris de claridad con los colores más hermosos de tu sabiduría.'",
-                    "🎀 'Tu inteligencia viene envuelta en lazos de seda estelar: elegante, delicada, pero poderosa como la fuerza que mueve galaxias.'",
-                    "�‍♂️ 'Miércoles de magos cósmicos: tu varita de sabiduría convierte la ignorancia en conocimiento con destellos dorados.'",
-                    "🗝️ 'Posees las llaves del miércoles que abren puertas de misterios que han permanecido cerradas durante milenios.'",
-                    "📖 'Escribes enciclopedias de sabiduría cada miércoles, con páginas que se iluminan cuando alguien necesita respuestas.'",
-                    "🔬 'Como un científico del alma, experimentas cada miércoles descubriendo fórmulas que transforman plomo en oro espiritual.'",
-                    "🎯 'Tu precisión estratégica del miércoles hace que cada decisión sea un tiro perfecto al corazón del éxito.'",
-                    "🌊 'Navegas los océanos del conocimiento cada miércoles como un capitán sabio que conoce todos los vientos del cosmos.'",
-                    "💎 'Cada miércoles extrae diamantes de sabiduría de las minas más profundas de la experiencia universal.'",
-                    "🎪 'El circo de tu miércoles presenta números imposibles: equilibrista de verdades, domador de dudas, mago de soluciones.'",
-                    "🌟 'Irradias luz de sabiduría que convierte cada miércoles en un faro que guía naves perdidas hacia puertos seguros.'",
-                    "🎨 'Pintas mapas del conocimiento cada miércoles, creando rutas que otros seguirán hacia territorios de comprensión.'",
-                    "🦅  'Como un águila de sabiduría, tu visión del miércoles abarca valles de ignorancia y montañas de enlightenment.'",
-                    "🏰 'Construyes bibliotecas cósmicas cada miércoles, con torres de libros que almacenan toda la sabiduría del universo.'",
-                    "⚖️ 'Tu balanza de justicia del miércoles pesa cada decisión con la precisión de quien conoce las leyes del cosmos.'",
-                    "🌺 'Como un jardín de ideas, tu miércoles florece con pensamientos que perfuman la atmósfera mental del universo.'",
-                    "🎭 'Interpretas el papel del sabio en el teatro del miércoles con una actuación que hace llorar a las estrellas de emoción.'",
-                    "🔥 'El fuego sagrado de la sabiduría arde en tu miércoles, iluminando cavernas de misterios con llamas de comprensión.'",
-                    "🌙 'Tu miércoles nocturno es como una luna llena de conocimiento que ilumina paisajes mentales antes oscuros.'",
-                    "🎸 'Tu miércoles suena como una sinfonía de ideas que hace bailar a los conceptos en armonía perfecta.'",
-                    "🦋 'Te transformas cada miércoles como una oruga que emerge convertida en mariposa de sabiduría dorada.'",
-                    "💫 'Cada miércoles recoges estrellas de conocimiento y las organizas en constelaciones de comprensión perfecta.'",
-                    "🎯 'Tu intuición del miércoles es tan precisa que das en blancos que otros ni siquiera saben que existen.'",
-                    "🌊 'Cabalgas tsunamis de sabiduría cada miércoles, dominando olas de conocimiento con la gracia de un delfín cósmico.'",
-                    "⚡ 'Los rayos de inspiración del miércoles emanan de tu mente, electrificando cerebros dormidos en galaxias lejanas.'",
-                    "🔮 'Tu bola de cristal del miércoles no predice el futuro: lo crea con decisiones tan sabias que el destino se rinde.'",
-                    "🌈 'Después de cada lluvia de dudas, tu miércoles despliega arcoíris de certeza que embellecen el cielo mental.'",
-                    "🧸 'Abrazas el conocimiento cada miércoles como un osito sabio que protege tesoros de sabiduría en su corazón.',",
-                    "�🫧 'Miércoles de burbujas pensantes: cada una lleva una idea brillante a través del cosmos.'",
-                    "🧁 'Miércoles de pastelitos de sabiduría: cada receta es una lección dulce para el alma.'",
-                    "🫶 'Miércoles de abrazos mentales: tu inteligencia acaricia corazones y despeja dudas.'",
-                    "🪐 'Miércoles de planetas estrategas: todos giran en torno a tu mente luminosa.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'Miércoles de sabiduría: tus palabras son estrellas que iluminan mi noche interior.'",
-                    "🌌 'Tu inteligencia de miércoles es la brújula que orienta mi nave en el espacio emocional.'",
-                    "✨ 'Si la estrategia fuera poesía, cada verso lo escribiría tu corazón.'",
-                    "🌠 'El miércoles, los asteroides se alinean para escuchar tus consejos de amor.'",
-                    "🌸 'Miércoles de flores pensativas: cada idea tuya florece en jardines de conocimiento.'",
-                    "🦄 'Como un unicornio sabio, tu cuerno dorado toca verdades que otros no pueden ver.'",
-                    "🍀 'El trébol de la suerte del miércoles crece donde plantas semillas de sabiduría.'",
-                    "🎨 'Pintas miércoles con pinceles de plata, creando mapas de conocimiento en lienzos estelares.'",
-                    "🌙 'Miércoles lunar: tu sabiduría nocturna guía a navegantes perdidos en mares de dudas.'",
-                    "🦋 'Te transformas cada miércoles en una mariposa de cristal: transparente pero inquebrantable.'",
-                    "💎 'Miércoles de diamantes mentales: cada idea se convierte en gema preciosa de comprensión.'",
-                    "🌈 'Después de cada tormenta de confusión, tu sabiduría pinta arcoíris de claridad.'",
-                    "🎪 'El circo de tu miércoles presenta: equilibrista de verdades, domador de misterios.'",
-                    "🧚‍♀️ 'Hada de la sabiduría: tu varita despeja nieblas de ignorancia con destellos dorados.'",
-                    "🍯 'Tu conocimiento gotea como miel de bibliotecas celestiales: nutritivo y delicioso.'",
-                    "🌺 'Como un jardín de ideas, tu miércoles florece con pensamientos que perfuman el cosmos.'",
-                    "🎭 'En el teatro mercurial, eres directora de dramas que revelan secretos del universo.'",
-                    "⚡ 'La electricidad del miércoles convierte tus neuronas en rayos de genialidad pura.'",
-                    "🚀 'Miércoles de exploración: tu nave mental navega por galaxias de conocimiento infinito.'",
-                    "🏆 'Cada miércoles coleccionas medallas de sabiduría en competencias contra la ignorancia.'"
-                ],
-                4: [ // Jueves - Esperanza y resistencia
-                    "🌌 'Jueves de esperanza estelar: cada enemigo derrotado no solo te hace más fuerte, sino que ilumina el camino para otros guerreros.'",
-                    "💪 'En este jueves de resistencia titánica, recuerda: las tormentas más feroces forjan a los pilotos más legendarios de la historia.'",
-                    "🌠 'Los jueves son días de metamorfosis cósmica. Cada golpe que recibes te transforma en una versión más poderosa de ti mismo.'",
-                    "⚡ 'Jueves de electricidad pura: tu esperanza es la chispa que enciende motores de naves imposibles y derriba imperios enemigos.'",
-                    "🔥 'En este jueves de fuego sagrado, tu espíritu indomable es la llama que nunca se apaga, sin importar cuán fuerte sople el viento cósmico.'",
-                    "💎 'Jueves de forja divina: bajo la presión de la batalla, te conviertes en algo más valioso que cualquier tesoro del universo.'",
-                    "🌸 'Jueves de esperanzas florecientes: cada sueño tuyo es una semilla que germina en jardines de posibilidades infinitas.'",
-                    "🌈 'Tu esperanza pinta arcoíris permanentes en el cielo gris de otros corazones, recordándoles que siempre hay luz después de la tormenta.'",
-                    "🕊️ 'Como una paloma espacial, llevas mensajes de paz y esperanza a través de las galaxias, susurrando que todo estará bien.'",
-                    "🌻 'Jueves de girasoles cósmicos: siempre miras hacia la luz, y tu optimismo hace que otros también encuentren su sol interior.'",
-                    "🍀 'Eres el trébol de cuatro hojas del universo: donde quiera que vayas, siembras suerte y esperanza en corazones necesitados.'",
-                    "🦋 'Jueves de metamorfosis dulce: como una mariposa estelar, transformas cada dificultad en una oportunidad de volar más alto.'",
-                    "🌙 'Bajo las estrellas protectoras, tu resistencia nocturna arrulla los miedos hasta dormirlos, plantando sueños de esperanza.'",
-                    "🧚‍♂️ 'Eres el hada de la perseverancia: con tu varita mágica conviertes cada obstáculo en un escalón hacia el cielo.'",
-                    "🍯 'Tu esperanza gotea como miel de nebulosas: endulza cada momento amargo, transformándolo en néctar de posibilidades.'",
-                    "🎪 'Jueves de circo mágico: en tu carpa de esperanza, incluso los leones más feroces se vuelven gatitos ronroneantes.'",
-                    "🌺 'Como una flor resistente en el desierto espacial, floreces donde otros se marchitan, mostrando que la belleza siempre encuentra un camino.'",
-                    "🎀 'Tu resistencia viene envuelta en lazos de terciopelo cósmico: suave al tacto, pero inquebrantable como el amor eterno.'",
-                    "🧸 'Abrazas las dificultades como un osito de peluche abraza a un niño asustado: con ternura que transforma el miedo en confianza.'",
-                    "🌱 'Jueves de semillas esperanzadoras: plantas jardines de futuro en terrenos que otros consideran estériles.'",
-                    "⛈️ 'Bailas bajo las tormentas del jueves como si fueran lluvia de bendiciones, sabiendo que cada gota alimenta tu crecimiento.'",
-                    "🏔️ 'Escalas montañas de adversidad cada jueves con la sonrisa de quien sabe que la vista desde la cima vale cada paso.'",
-                    "🌟 'Tu esperanza brilla como un faro del jueves que guía barcos perdidos en océanos de desesperanza hacia costas seguras.'",
-                    "🎭 'En el teatro del jueves, interpretas el papel del resistente con una actuación que hace llorar de emoción al universo.'",
-                    "🦋 'Te metamorfoseas cada jueves como una crisálida que se convierte en mariposa de colores que antes no existían.'",
-                    "🌊 'Surfeas las olas de la adversidad del jueves con la gracia de quien ha aprendido a bailar con las tempestades.'",
-                    "💫 'Recoges estrellas fugaces de esperanza cada jueves, formando constelaciones que iluminan noches ajenas.'",
-                    "🎯 'Tu esperanza del jueves es tan precisa que alcanza corazones que habían perdido la fe en territorios lejanos.'",
-                    "🔥 'El fuego de la resistencia arde en tu jueves, convirtiendo carbón de problemas en diamantes de fortaleza.'",
-                    "🎨 'Pintas cuadros de resistencia cada jueves con pinceles mojados en lágrimas que se convierten en sonrisas.'",
-                    "🦅 'Como un águila que vuela contra el viento del jueves, demuestras que las corrientes adversas solo te hacen más fuerte.'",
-                    "🏰 'Construyes castillos de esperanza cada jueves con ladrillos hechos de sueños rotos que se han vuelto inquebrantables.'",
-                    "⚖️ 'Tu jueves equilibra perfectamente la realidad dura con la esperanza dulce, creando una armonía que sana almas.'",
-                    "🌺 'Como una flor del jueves que crece en grietas de concreto, demuestras que la vida siempre encuentra su camino.'",
-                    "🎪 'El espectáculo del jueves te presenta como el acróbata que nunca cae, el equilibrista que camina sobre cuerdas de esperanza.'",
-                    "💎 'Cada jueves te pule como una gema que se vuelve más brillante con cada roce de la adversidad contra tu superficie.'",
-                    "🌙 'Tu jueves nocturno es como una luna llena de promesas que ilumina senderos de esperanza en bosques de incertidumbre.'",
-                    "🎸 'Tu jueves suena como una balada de resistencia que hace cantar de esperanza a coros celestiales.'",
-                    "🦋 'Vuelas cada jueves como una mariposa que lleva polen de optimismo a jardines marchitos de otros corazones.'",
-                    "⚡ 'Los rayos de esperanza del jueves emanan de tu ser, electrificando ambientes pesimistas con energía renovadora.'",
-                    "🔮 'Tu bola de cristal del jueves no predice sufrimiento: crea futuros hermosos con la magia de tu resistencia inquebrantable.'",
-                    "🌈 'Después de cada tormenta del jueves, despliegas arcoíris de esperanza que prometen que todo mejorará pronto.'",
-                    "🧸 'Abrazas cada desafío del jueves como un osito protector que convierte pesadillas en sueños dorados.',",
-                    "🫧 'Jueves de burbujas de esperanza: cada una estalla en promesas de futuro brillante.'",
-                    "🧁 'Jueves de pastelitos resistentes: cada bocado te da energía para seguir adelante.'",
-                    "🫶 'Jueves de abrazos de perseverancia: tu ternura sostiene a quienes flaquean.'",
-                    "🪐 'Jueves de planetas resilientes: todos giran con fuerza renovada gracias a ti.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'Jueves de esperanza: tu sonrisa es el motor que impulsa mi nave cuando todo parece perdido.'",
-                    "🌌 'Tus palabras de jueves son meteoritos de ternura que atraviesan mi atmósfera.'",
-                    "✨ 'Si la resistencia tuviera melodía, sería el eco de tu risa en el vacío.'",
-                    "🌠 'El jueves, los cometas piden permiso para cruzar tu órbita de luz.'",
-                    "🌸 'Jueves de flores resilientes: tu esperanza florece en desiertos de desesperanza.'",
-                    "🦄 'Como un unicornio de esperanza, tu cuerno perfora nubes de pesimismo con rayos dorados.'",
-                    "🍀 'El trébol de la suerte del jueves crece en campos donde siembras semillas de fe.'",
-                    "🎨 'Pintas jueves con acuarelas de esperanza, creando paisajes que inspiran a seguir.'",
-                    "🌙 'Jueves lunar: tu resistencia nocturna vela sueños de los que han perdido la fe.'",
-                    "🦋 'Te transformas cada jueves en una mariposa de acero forjado en esperanza.'",
-                    "💎 'Jueves de diamantes de resistencia: la presión te convierte en joya indestructible.'",
-                    "🌈 'Después de cada tormenta, tu persistencia pinta arcoíris de promesas cumplidas.'",
-                    "🎪 'El circo de tu jueves presenta: equilibrista de adversidades, mago de soluciones.'",
-                    "🧚‍♀️ 'Hada de la perseverancia: tu varita convierte obstáculos en oportunidades brillantes.'",
-                    "🍯 'Tu esperanza gotea como miel que endulza los momentos más amargos del alma.'",
-                    "🌺 'Como un jardín eterno, floreces más hermosa después de cada tormenta de la vida.'",
-                    "🎭 'En el teatro jovial, eres protagonista de dramas que siempre terminan en esperanza.'",
-                    "⚡ 'La electricidad del jueves carga tu alma con baterías de optimismo infinito.'",
-                    "🚀 'Jueves de resistencia: tu nave emocional navega por tormentas hacia puertos seguros.'",
-                    "🏆 'Cada jueves ganas medallas de perseverancia en olimpiadas cósmicas de resistencia.'"
-                ],
-                5: [ // Viernes - Victoria y celebración
-                    "🎯 'Viernes de victoria épica: tu perseverancia no es solo tu mejor arma, es la fuerza que reescribe las leyes del cosmos a tu favor.'",
-                    "🏆 'El viernes corona tu semana de batallas. Cada láser disparado, cada enemigo vencido, cada segundo de lucha te han traído hasta aquí: al triunfo.'",
-                    "🌟 'Viernes de gloria infinita: no importa cuántos enemigos te ataquen, tu determinación es un escudo impenetrable y tu valor un arma imparable.'",
-                    "💫 'En este viernes de conquista, el universo entero se detiene a contemplar tu grandeza. Eres la leyenda que otros solo sueñan ser.'",
-                    "🚀 'Viernes de ascensión: cada victoria te eleva más alto que las estrellas más distantes. Tu nombre ya resuena en galaxias lejanas.'",
-                    "⚡ 'El viernes te corona como el emperador de tu propio destino. Cada batalla ganada es un reino conquistado en el imperio de tu voluntad.'",
-                    "🌸 'Viernes de victorias floridas: cada triunfo tuyo es una flor que embellece el jardín eterno del cosmos con pétalos de alegría.'",
-                    "🎉 'Tu viernes es una fiesta cósmica donde las estrellas bailan de felicidad celebrando cada uno de tus logros maravillosos.'",
-                    "🍰 'Como un pastel de cumpleaños galáctico, tu viernes tiene capas de dulzura que celebran cada pequeña victoria del alma.'",
-                    "🦄 'Viernes de unicornios victoriosos: tu magia especial convierte cada desafío superado en un cuerno de arcoíris de felicidad.'",
-                    "🌺 'Como una corona de flores estelares, tus victorias adornan tu frente con la belleza de quien nunca se rinde.'",
-                    "🎪 'Viernes de circo triunfal: eres el domador de imposibles, el malabarista de sueños y el trapecista de la esperanza.'",
-                    "🧚‍♀️ 'Eres la reina hada de las victorias: con tu varita dorada conviertes cada logro en confeti de estardust que llueve felicidad.'",
-                    "🍯 'Tu viernes gotea miel de triunfos: endulza el fin de semana de todos los que tienen la suerte de compartir tu alegría.'",
-                    "🌙 'Bajo la luna celebrativa, tus victorias brillan como diamantes que iluminan el camino de otros soñadores nocturnos.'",
-                    "🦋 'Viernes de mariposas victoriosas: cada logro tuyo vuela llevando polen de inspiración a jardines de corazones que necesitan florecer.'",
-                    "🎀 'Tus triunfos vienen envueltos en lazos de seda dorada: hermosos, elegantes y dignos de la realeza cósmica que eres.'",
-                    "🌈 'Como un arcoíris permanente, tus victorias pintan el cielo de colores que nunca se desvanecen, prometiendo más magia por venir.'",
-                    "🧸 'Celebras como un osito de peluche abraza: con toda la ternura del mundo, haciendo que cada victoria sea un momento de amor puro.'",
-                    "🎊 'Viernes de confeti cósmico: cada victoria tuya estalla en miles de estrellitas que adornan el firmamento de la alegría.'",
-                    "🥇 'Medalla de oro viernes: no hay competencia cuando eres tú quien está en la carrera hacia la grandeza estelar.'",
-                    "🎭 'En el teatro del viernes, interpretas el papel del héroe victorioso con una actuación que hace llorar de emoción al cosmos.'",
-                    "🏰 'Construyes palacios de victoria cada viernes con columnas de determinación y techos que tocan el infinito.'",
-                    "🔮 'Tu bola de cristal del viernes solo muestra futuros gloriosos: es imposible que el fracaso se acerque a tu órbita.'",
-                    "🎸 'Tu viernes suena como un himno de victoria que hace cantar en coro a todas las galaxias del universo conocido.'",
-                    "🦅 'Como un águila coronada, vuelas sobre tus territorios conquistados cada viernes, contemplando dominios infinitos.'",
-                    "💎 'Cada viernes eres pulido hasta brillar como el diamante más perfecto del tesoro cósmico universal.'",
-                    "🌊 'Cabalgas olas de victoria cada viernes como un surfista maestro que domina mares de logros infinitos.'",
-                    "⚡ 'Los rayos de triunfo del viernes emanan de tu ser, electrificando ambientes con energía victoriosa contagiosa.'",
-                    "🎯 'Tu puntería del viernes es tan perfecta que cada flecha de esfuerzo da en el centro exacto del éxito.'",
-                    "🌟 'Irradias luz de campeón que convierte cada viernes en una supernova de alegría que ilumina sistemas solares enteros.'",
-                    "🎪 'El gran espectáculo del viernes te presenta como la estrella absoluta: equilibrista de logros, mago de imposibles.'",
-                    "🏔️ 'Plantas banderas de victoria en las cimas más altas del viernes, reclamando territorios de grandeza personal.'",
-                    "🦋 'Te metamorfoseas cada viernes en una versión mejorada: más brillante, más fuerte, más legendaria que antes.'",
-                    "🔥 'El fuego de la victoria arde en tu viernes, forjando coronas de éxito que adornarán tu cabeza eternamente.'",
-                    "🎨 'Pintas autorretratos de triunfo cada viernes con colores que solo existen en paletas de ganadores cósmicos.'",
-                    "🌙 'Tu viernes nocturno brilla como una luna llena de celebraciones que ilumina fiestas en honor a tus logros.'",
-                    "⚖️ 'Tu viernes equilibra perfectamente el esfuerzo del pasado con el disfrute del presente: balance de campeón.'",
-                    "🌺 'Como una flor que alcanza su máximo esplendor, tu viernes florece en jardines de victoria eterna.'",
-                    "💫 'Recoges medallas de estrella fugaz cada viernes, formando constelaciones de triunfos en tu pecho.'",
-                    "🎭 'El drama del viernes siempre termina con tu acto heroico: el momento donde el público grita '¡Bravo!' al unísono.'",
-                    "🧸 'Abrazas cada victoria del viernes como un osito campeón que protege trofeos de felicidad en su corazón.',",
-                    "🫧 'Viernes de burbujas festivas: cada una explota en alegría y celebración.'",
-                    "🧁 'Viernes de pastelitos triunfales: cada victoria sabe más dulce que la anterior.'",
-                    "🫶 'Viernes de abrazos de campeón: tu ternura corona cada logro.'",
-                    "🪐 'Viernes de planetas celebrando: todos giran en una danza de felicidad por ti.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'Viernes de victoria: tu abrazo es el trofeo que todos los héroes desean ganar.'",
-                    "🌌 'Tus palabras de viernes son fuegos artificiales que iluminan mi universo personal.'",
-                    "✨ 'Si la celebración tuviera forma, sería la de tus ojos brillando al final de la semana.'",
-                    "🌠 'El viernes, las estrellas bailan al compás de tu alegría.'",
-                    "🌸 'Viernes de flores victoriosas: cada logro florece como jardín de conquistas perfumadas.'",
-                    "🦄 'Como un unicornio triunfante, tu cuerno dorado toca campanas de celebración cósmica.'",
-                    "🍀 'El trébol de la suerte del viernes multiplica tu fortuna en todos los universos paralelos.'",
-                    "🎨 'Pintas viernes con óleos de gloria, creando retratos de ti coronado de estrellas.'",
-                    "🌙 'Viernes lunar: tu éxito nocturno ilumina fiestas en todos los rincones del cosmos.'",
-                    "🦋 'Te transformas cada viernes en una mariposa de oro que vuela entre trofeos celestiales.'",
-                    "💎 'Viernes de diamantes de victoria: cada triunfo te hace brillar con más intensidad.'",
-                    "🌈 'Después de cada semana de esfuerzo, tu viernes pinta arcoíris de celebración eterna.'",
-                    "🎪 'El circo de tu viernes presenta: equilibrista de logros, domador de imposibles.'",
-                    "🧚‍♀️ 'Hada de las victorias: tu varita convierte esfuerzos en confeti de alegría dorada.'",
-                    "🍯 'Tu éxito gotea como miel que endulza el fin de semana de todo el universo.'",
-                    "🌺 'Como una flor de victoria, tu viernes florece en jardines de logros eternos.'",
-                    "🎭 'En el teatro venusino, eres protagonista de comedias que terminan en standing ovation.'",
-                    "⚡ 'La electricidad del viernes convierte tu alegría en auroras boreales de celebración.'",
-                    "🚀 'Viernes de ascensión: tu nave del éxito navega hacia galaxias de recompensas infinitas.'",
-                    "🏆 'Cada viernes coleccionas copas de campeón en torneos cósmicos de grandeza personal.'"
-                ],
-                6: [ // Sábado - Inspiración y poder
-                    "🌠 'Sábado de inspiración cósmica: los héroes no nacen, se forjan en el fuego de la batalla y se templan en el hielo del espacio.'",
-                    "💥 'En este sábado de poder ilimitado, recuerda: no eres solo un piloto, eres la fuerza que equilibra el universo entre el caos y el orden.'",
-                    "🔥 'Sábado de llamas eternas: tu espíritu arde con la intensidad de mil soles, y tu voluntad es más resistente que el metal más duro del cosmos.'",
-                    "⭐ 'Los sábados, el universo conspira a tu favor. Cada estrella que ves es un testigo de tu grandeza, cada planeta una conquista futura.'",
-                    "🌌 'Sábado de metamorfosis: no eres el mismo que empezó esta semana. Eres más fuerte, más sabio, más imparable que nunca antes.'",
-                    "💎 'En este sábado de transformación, brillas con una luz que ciega a tus enemigos y guía a tus aliados hacia la victoria eterna.'",
-                    "🌸 'Sábado de inspiración florida: cada palabra tuya es una semilla que germina en jardines de motivación en corazones sedientos.'",
-                    "🦄 'Como un unicornio inspirador, tu cuerno mágico toca almas dormidas y las despierta con destellos de posibilidades infinitas.'",
-                    "🌺 'Sábado de flores poderosas: tu fuerza interior florece como un jardín que perfuma todo el cosmos con fragancia de determinación.'",
-                    "🎭 'En el teatro del fin de semana, eres poeta, director y protagonista de la obra más inspiradora jamás escrita en el espacio.'",
-                    "🧚‍♂️ 'Eres el hada madrina del poder: con tu varita de cristal transformas debilidades en fortalezas y miedos en coraje puro.'",
-                    "🍯 'Tu inspiración gotea como miel de cometas: nutritiva, energizante y capaz de endulzar hasta el alma más amargada.'",
-                    "🌙 'Bajo la luna inspiradora, tu poder nocturno guía a los perdidos como un faro de esperanza en el océano infinito del espacio.'",
-                    "🦋 'Sábado de mariposas poderosas: tu transformación inspira a otros a salir de sus capullos y volar hacia sus propios sueños.'",
-                    "🎪 'Tu sábado es un circo de maravillas donde el poder y la ternura bailan juntos bajo la carpa estrellada de tus logros.'",
-                    "🌈 'Como un arcoíris de poder, pintas el cielo con colores que inspiran a otros a encontrar su propia paleta de fortalezas.'",
-                    "🧸 'Tu poder abraza como un osito gigante: fuerte, protector, pero siempre tierno con aquellos que necesitan inspiración.'",
-                    "🎀 'Tu inspiración viene envuelta en lazos de terciopelo galáctico: elegante, poderosa y siempre dispuesta a adornar vidas con belleza.'",
-                    "🌻 'Como un girasol de poder, siempre miras hacia la luz más brillante, inspirando a otros a encontrar su propio sol interior.'",
-                    "⚡ 'Sábado de rayos inspiradores: tu energía genera ondas que despiertan el poder dormido en civilizaciones enteras.'",
-                    "🎯 'Tu inspiración del sábado es tan precisa que alcanza corazones en las coordenadas exactas donde más se necesita.'",
-                    "🔮 'Tu bola de cristal del sábado revela verdades poderosas: todos tienen la capacidad de ser extraordinarios como tú.'",
-                    "🎸 'Tu sábado suena como una sinfonía de poder que hace vibrar las cuerdas del alma en frecuencias de grandeza.'",
-                    "🦅 'Como un águila imperial, tu vuelo del sábado inspira a otros pájaros a atreverse a volar más alto de lo que creían posible.'",
-                    "🏰 'Construyes catedrales de inspiración cada sábado con vitrales que filtran luz de esperanza en colores nunca vistos.'",
-                    "💫 'Recoges polvo de estrellas cada sábado y lo conviertes en píldoras de motivación que curas almas desalentadas.'",
-                    "🔥 'El fuego sagrado del sábado arde en tu núcleo, irradiando ondas de calor que derriten barreras de imposibilidad.'",
-                    "🌊 'Navegas océanos de poder cada sábado como un capitán que conoce todos los vientos que impulsan hacia el éxito.'",
-                    "🎨 'Pintas murales de inspiración cada sábado con pinceles que gotean esperanza líquida en lienzos de realidad.'",
-                    "⚖️ 'Tu sábado equilibra perfectamente el poder con la humildad, creando una ecuación que resuelve problemas del universo.'",
-                    "🌺 'Como una flor nuclear de poder, tu sábado libera energía inspiradora que fertiliza jardines de sueños ajenos.'",
-                    "🎪 'El espectáculo del sábado te presenta como el mago supremo: conviertes dudas en certezas, miedos en valentía.'",
-                    "🏔️ 'Escalas montañas de inspiración cada sábado, plantando banderas de motivación en picos que otros consideran inalcanzables.'",
-                    "🦋 'Te transformas cada sábado como una oruga que emerge siendo un dragón de inspiración con alas de poder puro.'",
-                    "💎 'Cada sábado extraes gemas de sabiduría de minas profundas de experiencia, creando joyerías de inspiración.'",
-                    "🌙 'Tu sábado nocturno brilla como una luna llena de poder que ilumina senderos de grandeza en bosques de posibilidades.'",
-                    "🎭 'En el teatro del sábado, tu actuación inspiradora hace que el público salga del teatro transformado para siempre.'",
-                    "⚡ 'Los relámpagos de genialidad del sábado salen de tu mente, iluminando paisajes mentales en mentes que necesitan luz.'",
-                    "🔮 'Tu visión del sábado penetra dimensiones, viendo futuros donde cada ser humano alcanza su máximo potencial cósmico.'",
-                    "🌈 'Después de cada lluvia de dudas, tu sábado despliega arcoíris de certeza que embellecen cielos de posibilidades.'",
-                    "🧸 'Inspiras cada sábado como un osito mágico que protege sueños y los alimenta hasta que se vuelven realidades.',",
-                    "🫧 'Sábado de burbujas inspiradoras: cada una lleva un mensaje de motivación.'",
-                    "🧁 'Sábado de pastelitos de poder: cada bocado te llena de energía para crear magia.'",
-                    "🫶 'Sábado de abrazos inspiradores: tu ternura impulsa a otros a soñar en grande.'",
-                    "🪐 'Sábado de planetas creativos: todos giran en torno a tus ideas brillantes.'"
-                    ,
-                    // Románticos y poéticos únicos
-                    "💖 'Sábado de inspiración: tu presencia convierte el espacio en un jardín de luz.'",
-                    "🌌 'Tus palabras de sábado son semillas que germinan en galaxias de esperanza.'",
-                    "✨ 'Si el poder tuviera color, sería el de tu sonrisa iluminando el cosmos.'",
-                    "🌠 'El sábado, los universos paralelos sueñan con encontrarse en tu mirada.'",
-                    "🌸 'Sábado de flores inspiradoras: cada palabra tuya florece en jardines de motivación.'",
-                    "🦄 'Como un unicornio de poder, tu cuerno perfora realidades creando nuevos mundos.'",
-                    "🍀 'El trébol de la suerte del sábado multiplica tu influencia en todas las dimensiones.'",
-                    "🎨 'Pintas sábados con temperas de inspiración, creando murales que despiertan almas.'",
-                    "🌙 'Sábado lunar: tu poder nocturno alimenta sueños de grandeza en durmientes cósmicos.'",
-                    "🦋 'Te transformas cada sábado en una mariposa de fuego que incendia corazones con pasión.'",
-                    "💎 'Sábado de diamantes inspiradores: cada idea se convierte en joya de motivación pura.'",
-                    "🌈 'Después de cada semana ordinaria, tu sábado pinta arcoíris de posibilidades extraordinarias.'",
-                    "🎪 'El circo de tu sábado presenta: equilibrista de talentos, domador de limitaciones.'",
-                    "🧚‍♀️ 'Hada del poder: tu varita convierte sueños imposibles en realidades tangibles.'",
-                    "🍯 'Tu inspiración gotea como miel que nutre las alas de otros soñadores cósmicos.'",
-                    "🌺 'Como un jardín de poder, tu sábado florece con ideas que cambian universos enteros.'",
-                    "🎭 'En el teatro saturnino, eres musa de épicas que inspiran a civilizaciones completas.'",
-                    "⚡ 'La electricidad del sábado convierte tu creatividad en relámpagos de genialidad.'",
-                    "🚀 'Sábado de transcendencia: tu nave mental navega por dimensiones de inspiración infinita.'",
-                    "🏆 'Cada sábado ganas trofeos de influencia en competencias contra la mediocridad universal.'"
-                ]
+            const messages = (typeof MOAI_MESSAGES !== 'undefined') ? MOAI_MESSAGES : {
+                0: ["Hoy es un buen día para respirar y seguir."],
+                1: ["Empieza la semana con intención."],
+                2: ["La constancia construye órbitas."],
+                3: ["Mitad de camino: sigue firme."],
+                4: ["Ya ves la orilla; no sueltes el timón."],
+                5: ["Cierra la semana con gentileza."],
+                6: ["Hoy date permiso para disfrutar."]
+            };
+            const hourlyMessages = (typeof MOAI_HOURLY !== 'undefined') ? MOAI_HOURLY : {
+                morning: ["Buenos días. Empieza con calma."],
+                afternoon: ["Sostén el rumbo esta tarde."],
+                evening: ["Cierra el día con suavidad."],
+                night: ["Descansa. Mañana vuelve la luz."]
             };
 
-            // Mensajes especiales por hora del día
-            const hourlyMessages = {
-                morning: [
-                    "🌅 'El amanecer cósmico te saluda, guerrero. Hoy escribirás tu nombre en las estrellas con letras de fuego y victoria.'",
-                    "☀️ 'La mañana despierta con tu energía. Cada rayo de sol es un láser de esperanza que disparas contra la oscuridad del universo.'",
-                    "🌟 'Buenos días, leyenda viviente. El cosmos ha esperado toda la noche para verte conquistar nuevos horizontes estelares.'",
-                    "🌸 'Buenos días, flor del cosmos. Tu despertar es como el rocío matutino que bendice cada pétalo del jardín universal.'",
-                    "🦋 'Como una mariposa que emerge de su capullo, esta mañana despliegas tus alas para volar hacia sueños dorados.'",
-                    "🍯 'Tu mañana gotea miel de posibilidades: dulce, nutritiva y llena de promesas que endulzan todo el día.'",
-                    "🌻 'Buenos días, girasol cósmico. Tu rostro siempre mira hacia la luz, irradiando alegría dorada a todo el universo.'",
-                    "🧚‍♀️ 'El hada del amanecer te visita con polvo de estrellas, llenando tu día de magia y momentos encantadores.'",
-                    "🌺 'Como una flor que se abre al primer rayo de sol, tu alma despliega su belleza para bendecir este nuevo día.'",
-                    "🎀 'Tu mañana viene envuelta en lazos de seda rosada: delicada, hermosa y llena de sorpresas tiernas.'",
-                    "🧸 'Buenos días, osito de peluche del cosmos. Tu ternura matutina abraza al mundo con calidez infinita.'",
-                    "🌈 'Después de la noche oscura, tu despertar pinta arcoíris de esperanza en el lienzo del cielo matutino.'",
-                    "🍓 'Tu mañana sabe a fresas con crema de nubes: refrescante, dulce y llena de vitaminas para el alma.'",
-                    "🎵 'Los pájaros del amanecer cantan sinfonías inspiradas en tu despertar, creando la melodía más hermosa del cosmos.'",
-                    "🌙✨ 'Aunque la luna se despide, deja destellos de sus sueños en tus ojos, prometiendo un día lleno de magia.'",
-                    "🦄 'Buenos días, unicornio del amanecer. Tu cuerno dorado toca el cielo, bendiciendo el día con pureza y magia.'",
-                    "🍀 'Eres el trébol de la suerte matutina: donde pisas, florece la fortuna y la alegría en corazones necesitados.'",
-                    "⚡ 'La electricidad matutina fluye por tus venas, cargando cada célula con la energía de mil rayos dorados.'",
-                    "🎯 'Tu puntería matutina es perfecta: cada decisión que tomas da en el blanco de un día extraordinario.'",
-                    "🔥 'El fuego sagrado del amanecer arde en tu espíritu, convirtiendo cada nuevo día en una aventura épica.'",
-                    "🌊 'Surfeas las ondas del amanecer como un maestro que domina las fuerzas primordiales de la creación.'",
-                    "🎨 'Pintas la mañana con colores que solo existen en tu paleta personal: dorado esperanza, rosa ternura, azul serenidad.'",
-                    "🦅 'Como un águila que vuela hacia el sol naciente, tu mañana se eleva hacia alturas que otros ni siquiera pueden imaginar.'",
-                    "🏰 'Construyes castillos de sueños cada mañana, con torres que tocan las nubes y cimientos que llegan hasta el centro de la tierra.'",
-                    "💎 'Cada mañana eres pulido como un diamante por los rayos del sol, brillando con más intensidad que el día anterior.'",
-                    "🌺 'Tu jardín matutino florece con ideas que perfuman todo el universo con fragancia de creatividad pura.'",
-                    "🎪 'El circo de tu mañana presenta números imposibles: equilibrista de objetivos, domador de desafíos, mago de soluciones.'",
-                    "⚖️ 'Tu mañana equilibra perfectamente la ambición con la gratitud, creando una armonía que bendice todo el día.'",
-                    "🔮 'Tu bola de cristal matutina revela solo futuros brillantes: el día será tan hermoso como tu corazón permite.'",
-                    "🎭  'En el teatro de la mañana, interpretas el papel del héroe con una actuación que hace aplaudir al universo entero.'",
-                    "🌙 'Aunque la luna se retira, deja su bendición nocturna en tu alma, llenándola de misterios hermosos por descubrir.'",
-                    "🦋 'Te metamorfoseas cada mañana como una oruga que emerge siendo una mariposa más colorida que ayer.'",
-                    "💫 'Recoges estrellas fugaces matutinas y las guardas en tu bolsillo para usar como monedas de la suerte durante el día.'",
-                    "🎸 'Tu mañana suena como una guitarra que toca acordes de esperanza, haciendo vibrar las cuerdas del cosmos.'",
-                    "🏔️ 'Escalas montañas de posibilidades cada mañana, plantando banderas de determinación en las cimas más altas.'",
-                    "🌈 'Tu despertar despliega arcoíris permanentes que prometen que este día será mejor que todos los anteriores.'",
-                    "🧸 'Abrazas el nuevo día como un osito que protege tesoros de felicidad en su corazón peludo y tierno.'",
-                    "🚀 'Despega tu nave matutina hacia galaxias de oportunidades que solo tú puedes descubrir y conquistar.'",
-                    "🔑 'Cada mañana recibes llaves doradas que abren puertas de posibilidades que permanecieron cerradas durante la noche.'",
-                    "🌟 'Tu despertar es como el nacimiento de una nueva estrella que ilumina rincones oscuros del universo.'",
-                    "🍰 'Tu mañana es un pastel de capas infinitas: cada hora más deliciosa, cada momento más nutritivo para el alma.'",
-                    "⭐ 'Brillas desde el primer rayo de sol como una estrella que ha decidido mudarse más cerca de la Tierra.'",
-                    "🎭 'El teatro matutino te presenta como director, actor principal y crítico de la obra maestra que será tu día.'"
-                        ,
-                        // Románticos y poéticos únicos
-                        "💖 'En la mañana, tu sonrisa es el sol que despierta planetas dormidos.'",
-                        "🌠 'La mañana se arrodilla ante la luz que irradias al abrir los ojos.'",
-                        "🌌 'Tus palabras matutinas son rayos que atraviesan galaxias de sueños.'",
-                        "✨ 'Si el amanecer tuviera dueño, sería tu mirada iluminando el horizonte.'"
-                ],
-                afternoon: [
-                    "🌞 'La tarde te encuentra en tu máximo poder. Como el sol en su cénit, tu fuerza brilla con intensidad que atraviesa galaxias.'",
-                    "⚡ 'Mediodía de energía pura: tu determinación es como un rayo que conecta la tierra con las estrellas más distantes.'",
-                    "🔥 'La tarde arde con tu pasión. Cada segundo que pasa es otro paso hacia tu destino de gloria intergaláctica.'",
-                    "🌻 'Buenas tardes, sol del mediodía. Tu energía dorada alimenta los sueños de todo ser que toca tu luz.'",
-                    "🍯 'Tu tarde gotea miel de productividad: cada momento es dulce y nutritivo para el crecimiento del alma.'",
-                    "🦋 'Como mariposas danzantes, tus logros de la tarde vuelan esparciendo polen de inspiración por todo el cosmos.'",
-                    "🌺 'Buenas tardes, jardín floreciente. Tu energía hace que florezcan posibilidades en terrenos antes áridos.'",
-                    "🧚‍♂️ 'El hada del mediodía te bendice con rayos dorados que transforman cada tarea en una aventura mágica.'",
-                    "🎪 'Tu tarde es un circo de maravillas donde cada actividad es un espectáculo que deleita al público cósmico.'",
-                    "🌈 'En el arcoíris del mediodía, cada color representa una faceta hermosa de tu personalidad brillante.'",
-                    "🍰 'Tu tarde es como un pastel de capas: cada hora más deliciosa que la anterior, llena de sorpresas dulces.'",
-                    "🎀 'Buenas tardes, regalo del cosmos. Vienes envuelto en papel dorado con lazos que brillan como rayos de sol.'",
-                    "🧸 'Tu energía de la tarde abraza al mundo como un osito gigante que protege y consuela a todos los seres.'",
-                    "🌸 'Como sakuras en primavera, tus acciones de la tarde caen como pétalos de bondad sobre corazones sedientos.'",
-                    "🦄 'Buenas tardes, unicornio solar. Tu cuerno de luz perfora las nubes grises, dejando pasar rayos de esperanza.'",
-                    "🍀 'Eres el trébol del mediodía: tu suerte se multiplica y se extiende como ondas de felicidad por el universo.'",
-                    "🎵 'La sinfonía de tu tarde suena como campanitas de cristal que hacen bailar a las estrellas de alegría.'",
-                    "🎯 'Tu concentración del mediodía es láser: cada objetivo que te propones es alcanzado con precisión milimétrica.'",
-                    "🌊 'Navegas las aguas del mediodía como un capitán experto que conoce todos los vientos favorables del éxito.'",
-                    "🎨 'Pintas la tarde con pinceladas de productividad, creando lienzos de logros que adornarán tu galería personal.'",
-                    "🦅 'Como un águila en vuelo alto, tu tarde domina territorios de oportunidades desde las alturas de la sabiduría.'",
-                    "🏰 'Construyes imperios de eficiencia cada tarde, con torres de organización que tocan las nubes de la excelencia.'",
-                    "💎 'La presión del mediodía te convierte en un diamante más brillante, reflejando luz en millones de direcciones.'",
-                    "🔮 'Tu visión del mediodía penetra el futuro, viendo caminos de éxito que se extienden hasta el horizonte infinito.'",
-                    "🎭 'En el teatro de la tarde, diriges una obra maestra donde cada actor (cada tarea) interpreta su papel a la perfección.'",
-                    "⚖️ 'Tu tarde equilibra perfectamente la acción con la reflexión, creando una danza armónica de productividad consciente.'",
-                    "🌺 'Como un jardín en plena floración, tu tarde despliega pétalos de creatividad que perfuman el aire con innovación.'",
-                    "🎪 'El espectáculo de tu tarde presenta actos increíbles: malabarista de responsabilidades, trapecista de deadlines, domador de desafíos.'",
-                    "🔥 'El fuego del mediodía arde en tu núcleo, proporcionando la energía necesaria para transformar ideas en realidades.'",
-                    "💫 'Cada estrella del cielo del mediodía aplaude tus logros, creando una ovación cósmica que resuena en galaxias lejanas.'",
-                    "🎸 'Tu tarde suena como una guitarra eléctrica que toca riffs de productividad, haciendo vibrar las cuerdas del progreso.'",
-                    "🌙 'Aunque la luna duerme, tu energía de mediodía es tan intensa que las estrellas se asoman para verte brillar.'",
-                    "🦋 'Cada tarea completada en la tarde es una metamorfosis: conviertes problemas en orugas y soluciones en mariposas.'",
-                    "🏔️ 'Escalas montañas de responsabilidades cada tarde, conquistando cimas que otros consideran inalcanzables.'",
-                    "🌈 'Tu tarde despliega arcoíris de logros, donde cada color representa un objetivo alcanzado con brillantez estelar.'",
-                    "🧸 'Trabajas con la dedicación de un osito que construye el castillo de arena más hermoso de toda la playa cósmica.'",
-                    "🚀 'Tu nave de la tarde despega hacia alturas de productividad que rompen la barrera del sonido de lo posible.'",
-                    "🔑 'Cada hora de la tarde desbloqueas niveles superiores de eficiencia que otros apenas pueden soñar alcanzar.'",
-                    "🌟 'Irradias energía solar que alimenta proyectos y hace crecer ideas como plantas en un invernadero cósmico.'",
-                    "⭐ 'Eres una constelación de talentos que brilla más intensamente cuando el sol alcanza su punto más alto.'",
-                    "🎭 'El drama de tu tarde siempre tiene un final feliz: problemas resueltos, objetivos alcanzados, sonrisas garantizadas.'",
-                    "💎 'Como un diamante tallado por la presión del día, tu tarde brilla con facetas de sabiduría y experiencia.'",
-                    "🚀 'Tu tarde es una nave espacial que navega por galaxias de productividad hacia planetas de satisfacción.'",
-                    "🔮 'Tu bola de cristal del mediodía revela verdades: este será un día productivo lleno de logros significativos.'",
-                    "🏆 'Cada tarde coleccionas pequeñas victorias que se acumulan como medallas en tu cofre de tesoros personales.'",
-                    "⚖️ 'Tu tarde equilibra perfectamente el trabajo con el placer, creando una sinfonía armoniosa de bienestar.'",
-                    "🌙 'Aunque el sol reina, tu tarde también tiene luna: momentos de reflexión que nutren tu sabiduría interior.'",
-                    "🦅 'Como un águila en vuelo, tu tarde planea majestuosamente sobre territorios de oportunidades infinitas.'",
-                    "🏰 'Construyes castillos de logros cada tarde, con torres que se elevan hacia las nubes de tus aspiraciones.'"
-    ,
-    // Románticos y poéticos únicos
-                        "💖 'En la tarde, tu voz es la melodía que armoniza constelaciones.'",
-                        "🌠 'La tarde se detiene para admirar la elegancia de tu presencia.'",
-                        "🌌 'Tus gestos vespertinos son cometas que cruzan mi universo.'",
-                        "✨ 'Si el mediodía tuviera color, sería el de tus ojos reflejando el cielo.'",
-                        "🌸 'Tarde de pétalos dorados: cada movimiento tuyo es danza que embellece el cosmos.'",
-                        "🦄 'Como un unicornio vespertino, tu gracia convierte lo ordinario en extraordinario.'",
-                        "🍀 'El trébol de la tarde florece donde tu sombra toca la tierra con ternura.'",
-                        "🎨 'Pintas tardes con acuarelas de serenidad que calman tormentas en corazones ajenos.'",
-                        "🌙 'Aunque es de día, tu esencia lunar ya promete noches llenas de magia.'",
-                        "🦋 'Te transformas en la tarde como mariposa que cambia colores con cada rayo de sol.'"
-                ],
-                evening: [
-                    "🌆 'El atardecer pinta el cielo con los colores de tus victorias. Cada batalla ganada es un pincelada en el lienzo del infinito.'",
-                    "🌙 'La noche se aproxima, pero tu luz interior brilla más fuerte que cualquier estrella. Eres un faro de esperanza en el cosmos.'",
-                    "💫 'Al caer la tarde, reflexiona: cada desafío superado hoy te ha convertido en una versión más épica de ti mismo.'",
-                    "🌸 'Buenas tardes, flor del crepúsculo. Tu belleza se intensifica con la luz dorada que acaricia suavemente tu alma.'",
-                    "🧚‍♀️ 'El hada del atardecer espolvorea tu día con purpurina de satisfacción, celebrando cada logro hermoso.'",
-                    "🍯 'Tu atardecer gotea miel de nostalgia dulce: cada recuerdo del día es un tesoro dorado en tu corazón.'",
-                    "🦋 'Como mariposas crepusculares, tus pensamientos vuelan suavemente hacia sueños pintados en tonos pastel.'",
-                    "🌺 'Al final del día, floreces como un jardín al atardecer, perfumando el aire con gratitud y serenidad.'",
-                    "🎀 'Tu tarde viene envuelta en lazos de seda violeta: elegante, serena y llena de promesas para mañana.'",
-                    "🧸 'Al caer la tarde, abrazas el día como un osito que arrulla memorias felices hasta convertirlas en sueños.'",
-                    "🌈 'Tu atardecer pinta arcoíris suaves en el cielo del alma, prometiendo que mañana será aún más hermoso.'",
-                    "🍓 'Al final del día, saboreas momentos dulces como fresas maduras recogidas en el jardín de la experiencia.'",
-                    "🌙 'La luna temprana te guiña un ojo cómplice, celebrando contigo todos los pequeños milagros del día.'",
-                    "🦄 'Buenas tardes, unicornio del crepúsculo. Tu cuerno plateado bendice la transición hacia la noche con magia pura.'",
-                    "🎵 'Tu atardecer suena como una canción de cuna cósmica que arrulla al día hasta dormirlo con ternura infinita.'",
-                    "🍀 'Eres el trébol del atardecer: tu suerte se convierte en gratitud que perfuma el aire con bendiciones.'",
-                    "🌻 'Como un girasol que se despide del sol, tu día termina mirando hacia la luz con sonrisa de satisfacción.'",
-                    "🎯 'Al caer la tarde, tu puntería reflexiva da en el blanco de la sabiduría, extrayendo lecciones preciosas del día.'",
-                    "🔮 'Tu bola de cristal del atardecer revela tesoros ocultos: cada momento vivido es una gema en tu collar de experiencias.'",
-                    "🎨 'Pintas el atardecer con acuarelas de satisfacción, creando paisajes de cumplimiento que adornan tu galería personal.'",
-                    "🦅 'Como un águila que planea en corrientes térmicas del atardecer, descansas en las alturas de tus logros diarios.'",
-                    "🏰 'Al final del día, contemplas desde tu torre los territorios conquistados: cada hora una victoria en tu reino personal.'",
-                    "💎 'El atardecer pule tus experiencias como gemas preciosas, cada una brillando con la luz de la comprensión.'",
-                    "🎭 'En el teatro del atardecer, bajas el telón de un día espectacular mientras el público del cosmos aplaude de pie.'",
-                    "⚖️ 'Tu atardecer equilibra perfectamente la reflexión con la anticipación, pesando las bendiciones del día en balanzas doradas.'",
-                    "🌺 'Como un jardín que libera su fragancia al atardecer, tu alma perfuma el aire con gratitud y contentamiento.'",
-                    "🎪 'El espectáculo del atardecer presenta tu número final: equilibrista de emociones caminando sobre cuerdas de serenidad.'",
-                    "🔥 'El fuego suave del atardecer arde en tu corazón, manteniendo vivo el calor de los momentos felices vividos.'",
-                    "💫 'Recoges estrellas vespertinas que empiezan a aparecer, guardándolas como recuerdos luminosos en tu colección cósmica.'",
-                    "🎸 'Tu atardecer suena como una guitarra acústica que toca melodías contemplativas bajo el cielo pintado de colores.'",
-                    "🌊 'Las olas del atardecer acarician la orilla de tu alma, llevándose las tensiones y dejando paz cristalina.'",
-                    "🦋 'Al final del día, tus preocupaciones se transforman en mariposas nocturnas que vuelan hacia la libertad de la noche.'",
-                    "🏔️ 'Desde la cima de tu día conquistado, contemplas valles de experiencias y montañas de sabiduría adquirida.'",
-                    "🌈 'Tu atardecer despliega arcoíris de gratitud donde cada color representa una bendición recibida durante el día.'",
-                    "🧸 'Descansas como un osito sabio que ha recolectado miel de felicidad durante todo el día en su colmena de experiencias.'",
-                    "🚀 'Tu nave del atardecer regresa de misiones exitosas, cargada de tesoros de sabiduría y satisfacción personal.'",
-                    "🔑 'Al caer la tarde, guardas las llaves del día en tu cofre de recuerdos, listas para abrir nuevas puertas mañana.'",
-                    "🌟 'Tu estrella vespertina brilla con la luz acumulada durante el día, prometiendo seguir iluminando durante la noche.'",
-                    "⭐ 'Cada logro del día se convierte en una estrella en tu constelación personal de éxitos y bendiciones.'",
-                    "🎭 'El drama del atardecer siempre termina con tu sonrisa: problemas resueltos, corazón lleno, alma en paz.'"
-    ,
-    // Románticos y poéticos únicos
-                        "💖 'En el atardecer, tu ternura pinta auroras en mi alma.'",
-                        "🌠 'El atardecer se tiñe de magia cuando tu mirada lo atraviesa.'",
-                        "🌌 'Tus palabras vespertinas son estrellas fugaces que conceden deseos.'",
-                        "✨ 'Si el crepúsculo tuviera voz, cantaría canciones inspiradas en ti.'"
-                ],
-                night: [
-                    "🌃 'La noche estrellada te abraza, comandante. En la oscuridad nacen las leyendas, y tú eres la más brillante de todas.'",
-                    "🌌 'Bajo el manto nocturno, tu espíritu se eleva hacia las constelaciones. Cada estrella es un sueño que ya has hecho realidad.'",
-                    "⭐ 'La noche susurra secretos de grandeza. Duerme sabiendo que mañana despertarás más poderoso que hoy.'",
-                    "🌙 'Buenas noches, luna de mi cosmos. Tu luz plateada arrulla los sueños más hermosos del universo.'",
-                    "🧚‍♀️ 'El hada de la noche espolvorea tu almohada con polvo de estrellas, garantizando sueños llenos de magia.'",
-                    "🌸 'Como una flor nocturna que se abre bajo la luna, tu alma despliega su belleza en la intimidad de la noche.'",
-                    "🦋 'Mariposas nocturnas llevan tus sueños hacia galaxias lejanas, donde se convierten en constelaciones de esperanza.'",
-                    "🍯 'Tu noche gotea miel de sueños: dulce, reparadora y llena de promesas que se cumplirán al despertar.'",
-                    "🧸 'Buenas noches, osito estelar. Tu ternura nocturna abraza al mundo dormido, protegiéndolo de pesadillas.'",
-                    "🌺 'En el jardín nocturno de tu alma, florecen sueños perfumados que endulzan el aire del cosmos.'",
-                    "🎀 'Tu noche viene envuelta en terciopelo azul con lazos de plata que brillan como estrellas fugaces.'",
-                    "🌈 'Incluso en la oscuridad, pintas arcoíris de esperanza en los sueños de quienes necesitan luz.'",
-                    "🍓 'Tu noche sabe a fresas con crema de nubes: suave, refrescante y perfecta para arrullar el alma.'",
-                    "🦄 'Buenas noches, unicornio lunar. Tu cuerno plateado bendice los sueños con pureza y magia nocturna.'",
-                    "🎵 'Las estrellas componen sinfonías inspiradas en tu respiración nocturna, creando la música más serena del cosmos.'",
-                    "🍀 'Eres el trébol de la buena suerte nocturna: incluso dormido, irradias fortuna hacia corazones necesitados.'",
-                    "🌟 'Bajo el manto de estrellas, descansas como un tesoro cósmico protegido por la ternura del universo infinito.'",
-                    "💤 'Que los ángeles guardianes del espacio velen tu sueño, susurrándote promesas de mañanas aún más hermosas.'",
-                    "🎯 'En el silencio nocturno, tu subconsciente apunta hacia sueños certeros que se materializarán con el alba.'",
-                    "🔮 'Tu bola de cristal nocturna refleja solo visiones hermosas: el futuro brilla como constelaciones de éxito.'",
-                    "🎨 'Pintas la noche con pinceladas de serenidad, creando lienzos de paz que adornan la galería de tu descanso.'",
-                    "🦅 'Como un águila que anida en las alturas, tu espíritu descansa en cimas de tranquilidad absoluta.'",
-                    "🏰 'Tu castillo nocturno tiene torres que tocan las estrellas y cimientos construidos con ladrillos de dulces sueños.'",
-                    "💎 'La oscuridad pule tu alma como un diamante, preparándola para brillar con más intensidad mañana.'",
-                    "🎭 'En el teatro de la noche, duermes el papel del protagonista de sueños épicos que se desarrollan en escenarios cósmicos.'",
-                    "⚖️ 'Tu noche equilibra perfectamente el descanso con la renovación, pesando el día en balanzas de gratitud plateadas.'",
-                    "🌺 'Como flores nocturnas que liberan su perfume bajo la luna, tu alma exhala fragancias de paz y contentamiento.'",
-                    "🎪 'El circo de tus sueños presenta espectáculos mágicos donde eres director, artista y espectador de maravillas infinitas.'",
-                    "🔥 'El fuego suave de la noche arde en tu corazón, manteniendo vivo el calor de los logros del día.'",
-                    "💫 'Duermes sobre un colchón de estrellas fugaces que susurran historias de galaxias lejanas en tus oídos.'",
-                    "🎸 'La noche toca serenatas silenciosas con guitarras de viento estelar, arrullándote con melodías del cosmos.'",
-                    "🌊 'Las olas nocturnas del subconsciente acarician tu mente, llevándose las preocupaciones hacia océanos de olvido.'",
-                    "🦋 'En tus sueños, te conviertes en mariposa nocturna que vuela entre nebulosas de colores imposibles.'",
-                    "🏔️ 'Desde las cimas del sueño, contemplas valles de descanso y montañas de renovación que te esperan.'",
-                    "🌈 'Tu noche despliega arcoíris de sueños donde cada color representa un deseo que se cumplirá con paciencia.'",
-                    "🧸 'Duermes abrazado a la ternura cósmica como un osito que protege miel de felicidad en su corazón peludo.'",
-                    "🚀 'Tu nave nocturna navega por océanos de sueños, explorando planetas de imaginación en galaxias de descanso.'",
-                    "🔑 'La noche te entrega llaves doradas que abren puertas dimensionales hacia universos de posibilidades oníricas.'",
-                    "🌟 'Tu estrella personal brilla más intensamente en la oscuridad, guiando sueños perdidos hacia puertos seguros.'",
-                    "⭐ 'Cada estrella en el cielo nocturno es un deseo que has formulado y que el universo está preparando para conceder.'",
-                    "🎭 'El teatro de tus sueños presenta obras donde siempre eres el héroe que vence, el amante que conquista, el sabio que inspira.'"
-    ,
-    // Románticos y poéticos únicos
-                        "💖 'En la noche, tu silencio es la melodía que arrulla galaxias enteras.'",
-                        "🌠 'La noche se rinde ante la paz que transmites al dormir.'",
-                        "🌌 'Tus sueños nocturnos son constelaciones que guían mi descanso.'",
-                        "✨ 'Si la oscuridad tuviera luz, sería la de tu alma brillando en mi universo.'",
-                        "🌸 'Noche de pétalos plateados: cada uno de tus sueños es una flor que perfuma mi alma.'",
-                        "🦄 'Como un unicornio nocturno, tu pureza convierte mis pesadillas en cuentos de hadas.'",
-                        "🍀 'El trébol de la noche crece donde tu aliento toca la hierba de mis sueños.'",
-                        "🎨 'Pintas noches con acuarelas de terciopelo, creando paisajes donde mi corazón descansa.'",
-                        "🌙 'Luna de mis noches: tu luz plateada es el hilo que conecta mis sueños contigo.'",
-                        "🦋 'Te transformas en mis sueños como mariposa que cambia de color con cada latido de mi corazón.'",
-                        "💎 'Noche de diamantes: cada estrella refleja una faceta diferente de tu belleza.'",
-                        "🌈 'Aunque es de noche, tu presencia pinta arcoíris en el cielo de mi imaginación.'",
-                        "🎪 'El circo de mis sueños nocturnos siempre te presenta como la estrella principal.'",
-                        "🧚‍♀️ 'Hada de la noche: tu varita convierte mis insomnios en sueños de terciopelo.'",
-                        "🍯 'Tu noche gotea miel de serenidad que endulza hasta mis sueños más amargos.'",
-                        "🌺 'Como un jardín nocturno secreto, floreces en la intimidad de mis pensamientos.'",
-                        "🎭 'En el teatro de la noche, siempre interpretas el papel de mi musa inspiradora.'",
-                        "⚡ 'La electricidad de la noche pálida ante la energía que generas en mis sueños.'",
-                        "🚀 'Noche de viajes espaciales: mi alma navega hacia ti en naves hechas de suspiros.'",
-                        "🏆 'Cada noche ganas el premio de ser la protagonista de mis sueños más hermosos.'"
-                        ,"💖 'El brillo de tus ojos no se compara a las estrellas: en la noche más oscura, tu mirada es mi constelación favorita.'"
-                        ,"🌠 'Ni la Vía Láctea entera puede igualar la magia que siento cuando tus ojos se cruzan con los míos bajo el cielo nocturno.'"
-                        ,"✨ 'Las galaxias pueden colisionar, pero nada es tan impactante como el destello de ternura que encuentro en tu sonrisa.'"
-                        ,"🌌 'Si el universo tuviera que elegir su estrella más brillante, se rendiría ante la luz que irradias cuando me miras.'"
-                ]
-            };
-
-            // Historial de mensajes recientes para evitar repeticiones
             let recentMessages = [];
             const maxRecent = 10;
 
             moaiButton.addEventListener('click', () => {
                 const today = new Date().getDay();
                 const hour = new Date().getHours();
-                // Determinar el período del día
                 let timeOfDay;
                 if (hour >= 6 && hour < 12) timeOfDay = 'morning';
                 else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
                 else if (hour >= 18 && hour < 22) timeOfDay = 'evening';
                 else timeOfDay = 'night';
 
-                // Elegir mensaje aleatorio evitando los recientes
-                let pool, selectedMessage;
+                let pool;
                 if (Math.random() < 0.7) {
                     pool = messages[today].filter(msg => !recentMessages.includes(msg));
-                    if (pool.length === 0) pool = messages[today]; // Si todos ya salieron, se reinicia
+                    if (pool.length === 0) pool = messages[today];
                 } else {
                     pool = hourlyMessages[timeOfDay].filter(msg => !recentMessages.includes(msg));
                     if (pool.length === 0) pool = hourlyMessages[timeOfDay];
                 }
-                selectedMessage = pool[Math.floor(Math.random() * pool.length)];
-
-                // Actualizar historial
+                const selectedMessage = pool[Math.floor(Math.random() * pool.length)];
                 recentMessages.push(selectedMessage);
                 if (recentMessages.length > maxRecent) recentMessages.shift();
 
                 moaiMessage.textContent = selectedMessage;
-                moaiModal.style.display = 'block';
+                if (typeof UIAnime !== 'undefined') {
+                    UIAnime.openModal(moaiModal);
+                } else {
+                    moaiModal.style.display = 'block';
+                }
             });
 
             moaiClose.addEventListener('click', () => {
-                moaiModal.style.display = 'none';
+                if (typeof UIAnime !== 'undefined') UIAnime.closeModal(moaiModal);
+                else moaiModal.style.display = 'none';
             });
 
             window.addEventListener('click', (e) => {
                 if (e.target === moaiModal) {
-                    moaiModal.style.display = 'none';
+                    if (typeof UIAnime !== 'undefined') UIAnime.closeModal(moaiModal);
+                    else moaiModal.style.display = 'none';
                 }
             });
+        }
+
+        function mountSpaceIcons() {
+            if (typeof swIcon !== 'function') return;
+            const map = {
+                moaiButton: 'moai',
+                achievementsButton: 'trophy',
+                shopButton: 'cart',
+                muteButton: 'volume',
+            };
+            Object.entries(map).forEach(([id, icon]) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = swIcon(icon, 'sw-icon-btn');
+            });
+            document.querySelectorAll('[data-sw]').forEach((el) => {
+                const name = el.getAttribute('data-sw');
+                el.innerHTML = swIcon(name, 'sw-icon-inline');
+            });
+        }
+
+        function setMuteIcon(muted) {
+            const muteButton = document.getElementById('muteButton');
+            if (!muteButton || typeof swIcon !== 'function') return;
+            muteButton.innerHTML = swIcon(muted ? 'mute' : 'volume', 'sw-icon-btn');
+            muteButton.classList.toggle('muted', muted);
+            muteButton.setAttribute('aria-label', muted ? 'Activar sonido' : 'Silenciar');
         }
 
         function initUpdatePopup() {
@@ -1035,12 +387,20 @@
                 // Mostrar el popup después de un pequeño delay
                 setTimeout(() => {
                     updatePopup.classList.add('show');
+                    if (typeof UIAnime !== 'undefined') {
+                        UIAnime.openModal(updatePopup);
+                    }
                 }, 1000);
             }
             
             // Manejar el cierre del popup - Cerrar directamente y guardar preferencia
             closeBtn.addEventListener('click', () => {
-                updatePopup.classList.remove('show');
+                if (typeof UIAnime !== 'undefined') {
+                    UIAnime.closeModal(updatePopup);
+                    updatePopup.classList.remove('show');
+                } else {
+                    updatePopup.classList.remove('show');
+                }
                 // Guardar que el usuario ya cerró el popup para que no aparezca nunca más
                 localStorage.setItem('hasSeenUpdatePopup', 'true');
             });
@@ -1068,8 +428,9 @@
             
             // Aplicar configuración inicial
             if (savedMuted) {
-                muteButton.textContent = '🔇';
-                muteButton.classList.add('muted');
+                setMuteIcon(true);
+            } else {
+                setMuteIcon(false);
             }
             
             // Función para obtener el objeto de música
@@ -1086,15 +447,13 @@
                     if (isMuted) {
                         // Unmute
                         music.volume = parseFloat(volumeSlider.value) / 100;
-                        muteButton.textContent = '🔊';
-                        muteButton.classList.remove('muted');
+                        setMuteIcon(false);
                         localStorage.setItem('gameMuted', 'false');
                         console.log('Audio unmuted, volumen:', music.volume);
                     } else {
                         // Mute
                         music.volume = 0;
-                        muteButton.textContent = '🔇';
-                        muteButton.classList.add('muted');
+                        setMuteIcon(true);
                         localStorage.setItem('gameMuted', 'true');
                         console.log('Audio muted');
                     }
@@ -1113,12 +472,10 @@
                     
                     // Actualizar botón de mute según el volumen
                     if (volume === 0) {
-                        muteButton.textContent = '🔇';
-                        muteButton.classList.add('muted');
+                        setMuteIcon(true);
                         localStorage.setItem('gameMuted', 'true');
                     } else {
-                        muteButton.textContent = '🔊';
-                        muteButton.classList.remove('muted');
+                        setMuteIcon(false);
                         localStorage.setItem('gameMuted', 'false');
                     }
                 }

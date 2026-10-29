@@ -48,10 +48,15 @@ document.getElementById("game-container").appendChild(gameOverDisplay);
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+if (typeof VFX !== "undefined") VFX.resize(canvas.width, canvas.height);
+
+let __lastFrameTs = performance.now();
+let __killStreakAnnounce = 0;
 
 window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  if (typeof VFX !== "undefined") VFX.resize(canvas.width, canvas.height);
   player.x = canvas.width / 2;
   player.y = canvas.height - 80;
 
@@ -170,14 +175,17 @@ shootButton.addEventListener("touchcancel", (e) => {
 
 startGameBtn.addEventListener("click", () => {
   playerName = playerNameInput.value || "Jugador";
-  menu.style.display = "none";
-  canvas.style.display = "block";
-
-  // Añadir clase para indicar que el juego está corriendo
   document.body.classList.add("game-running");
-
   gameRunning = true;
-  startGame();
+
+  const begin = () => startGame();
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.startTransition(menu, canvas, begin);
+  } else {
+    menu.style.display = "none";
+    canvas.style.display = "block";
+    begin();
+  }
 });
 
 document.addEventListener("keydown", (e) => {
@@ -198,59 +206,14 @@ document.addEventListener("keyup", (e) => {
 
 const shootSound = new Audio("assets/shoot.mp3");
 
-// Partículas al disparar (efecto inicial)
+// Partículas al disparar (canvas VFX)
 function createBulletParticles(x, y) {
-  for (let i = 0; i < 8; i++) {
-    const particle = document.createElement("div");
-    particle.className = "bullet-particle";
-    particle.style.left = x + "px";
-    particle.style.top = y + "px";
-    // Dirección aleatoria
-    const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.3;
-    const distance = 18 + Math.random() * 8;
-    const finalX = x + Math.cos(angle) * distance;
-    const finalY = y + Math.sin(angle) * distance;
-    particle.animate(
-      [
-        { transform: "translate(0, 0) scale(1)", opacity: 1 },
-        {
-          transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0.2)`,
-          opacity: 0,
-        },
-      ],
-      {
-        duration: 350,
-        easing: "ease-out",
-        fill: "forwards",
-      }
-    );
-    document.getElementById("game-container").appendChild(particle);
-    setTimeout(() => particle.remove(), 350);
-  }
+  if (typeof VFX !== "undefined") VFX.muzzleFlash(x, y);
 }
 
-// Partículas de estela/trail para balas en movimiento
+// Estela de balas ahora la dibuja el motor VFX en canvas
 function createBulletTrailParticles(x, y) {
-  for (let i = 0; i < 2; i++) {
-    const particle = document.createElement("div");
-    particle.className = "bullet-trail-particle";
-    particle.style.left = x + (Math.random() - 0.5) * 6 + "px";
-    particle.style.top = y + 8 + Math.random() * 6 + "px";
-    particle.style.opacity = 0.7;
-    particle.animate(
-      [
-        { transform: "scale(1)", opacity: 0.7 },
-        { transform: "scale(0.2)", opacity: 0 },
-      ],
-      {
-        duration: 220,
-        easing: "ease-out",
-        fill: "forwards",
-      }
-    );
-    document.getElementById("game-container").appendChild(particle);
-    setTimeout(() => particle.remove(), 220);
-  }
+  /* no-op: trails renderizados por VFX.drawBullet */
 }
 
 const cooldownBar = document.getElementById("shootCooldownFill");
@@ -481,7 +444,16 @@ function spawnRerir() {
 }
 
 function updateGame() {
+  const now = performance.now();
+  const dtMs = now - __lastFrameTs;
+  __lastFrameTs = now;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (typeof VFX !== "undefined") {
+    VFX.beginFrame(ctx, canvas.width, canvas.height, dtMs);
+    VFX.drawBackground(ctx, canvas.width, canvas.height);
+  }
 
   if (player.movingLeft && player.x > 0) player.x -= player.speed;
   if (player.movingRight && player.x < canvas.width - player.width)
@@ -491,26 +463,31 @@ function updateGame() {
     player.y += player.speed;
   if (player.shooting) shoot();
 
+  if (typeof VFX !== "undefined") {
+    VFX.drawPlayerAura(ctx, player, {
+      boost: hasFireRateBoost,
+      invuln: isInvulnerable,
+      double: hasDoublePoints,
+    });
+  }
+
   ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
 
   // Aplicar efectos visuales del título equipado
   applyTitleVisualEffects();
 
-  // Elimina los disparos DOM previos
-  document.querySelectorAll(".bullet").forEach((el) => el.remove());
+  // Limpiar restos DOM de balas (legacy)
+  document.querySelectorAll(".bullet, .boss-bullet").forEach((el) => el.remove());
+
   bullets.forEach((bullet, i) => {
     bullet.y -= bullet.speed;
-    // Renderiza disparo como elemento DOM épico
-    let bulletDiv = document.createElement("div");
-    bulletDiv.className = "bullet";
-    bulletDiv.style.left = bullet.x - 3 + "px";
-    bulletDiv.style.top = bullet.y - 14 + "px";
-    document.getElementById("game-container").appendChild(bulletDiv);
+    if (typeof VFX !== "undefined") {
+      VFX.drawBullet(ctx, bullet);
+    } else {
+      ctx.fillStyle = "#00eaff";
+      ctx.fillRect(bullet.x, bullet.y, 5, 12);
+    }
 
-    // Efecto de partículas en movimiento (trail)
-    createBulletTrailParticles(bullet.x + 2, bullet.y);
-
-    // ...colisiones y lógica original...
     enemies.forEach((enemy, j) => {
       if (
         bullet.x < enemy.x + enemy.width &&
@@ -520,14 +497,15 @@ function updateGame() {
       ) {
         enemy.health--;
         bullets.splice(i, 1);
+        if (typeof VFX !== "undefined") {
+          VFX.hitSpark(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+        }
         if (enemy.health <= 0) {
-          createExplosion(
-            enemy.x + enemy.width / 2,
-            enemy.y + enemy.height / 2
-          );
+          const ex = enemy.x + enemy.width / 2;
+          const ey = enemy.y + enemy.height / 2;
+          createExplosion(ex, ey);
 
-          // Determinar tipo de enemigo para estadísticas
-          let enemyType = "type1"; // Por defecto
+          let enemyType = "type1";
           if (enemy.image.src.includes("enemy2.png")) enemyType = "type2";
           else if (enemy.image.src.includes("enemy3.png")) enemyType = "type3";
           else if (enemy.image.src.includes("enemy4.png")) enemyType = "type4";
@@ -535,19 +513,29 @@ function updateGame() {
           else if (enemy.image.src.includes("xiao_weapon.png"))
             enemyType = "xiao_weapon";
 
-          // Actualizar estadísticas de muertes
           updateStatsOnKill(enemyType);
 
           enemies.splice(j, 1);
-          addPoints(10);
+          const gained = addPoints(10);
+          if (typeof VFX !== "undefined") {
+            VFX.registerKill(ex, ey, gained || 10);
+            pushKillFeed(enemyType);
+          }
 
-          const explosionSound = new Audio("assets/explosion.wav");
-          explosionSound.play();
-          if (score % 100 === 0) {
-            level++;
-            levelDisplay.textContent = `Nivel: ${level}`;
-            if (level % 10 === 0) {
-              enemies = [];
+          try {
+            const explosionSound = new Audio("assets/explosion.wav");
+            explosionSound.play().catch(() => {});
+          } catch (e) {}
+
+          {
+            const prevScore = score - (gained || 10);
+            if (Math.floor(prevScore / 100) < Math.floor(score / 100)) {
+              level++;
+              levelDisplay.textContent = `Nivel: ${level}`;
+              if (typeof VFX !== "undefined") VFX.levelUp(level);
+              if (level % 10 === 0) {
+                enemies = [];
+              }
             }
           }
         }
@@ -563,17 +551,27 @@ function updateGame() {
         meteor.health--;
         bullets.splice(i, 1);
         if (meteor.health <= 0) {
+          const mx = meteor.x + meteor.width / 2;
+          const my = meteor.y + meteor.height / 2;
           meteors.splice(j, 1);
-          addPoints(20);
-          const explosionSound = new Audio("assets/explosion.wav");
-          explosionSound.play();
-          createExplosion(
-            meteor.x + meteor.width / 2,
-            meteor.y + meteor.height / 2
-          );
+          const gained = addPoints(20);
+          if (typeof VFX !== "undefined") VFX.registerKill(mx, my, gained || 20);
+          try {
+            const explosionSound = new Audio("assets/explosion.wav");
+            explosionSound.play().catch(() => {});
+          } catch (e) {}
+          createExplosion(mx, my);
         } else {
-          const impactSound = new Audio("assets/impact.wav");
-          impactSound.play();
+          if (typeof VFX !== "undefined") {
+            VFX.hitSpark(
+              meteor.x + meteor.width / 2,
+              meteor.y + meteor.height / 2
+            );
+          }
+          try {
+            const impactSound = new Audio("assets/impact.wav");
+            impactSound.play().catch(() => {});
+          } catch (e) {}
         }
       }
     });
@@ -581,94 +579,17 @@ function updateGame() {
       bullets.splice(i, 1);
     }
   });
-  // Partículas al disparar (efecto inicial)
-  function createBulletParticles(x, y) {
-    for (let i = 0; i < 8; i++) {
-      const particle = document.createElement("div");
-      particle.className = "bullet-particle";
-      particle.style.left = x + "px";
-      particle.style.top = y + "px";
-      // Dirección aleatoria
-      const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.3;
-      const distance = 18 + Math.random() * 8;
-      const finalX = x + Math.cos(angle) * distance;
-      const finalY = y + Math.sin(angle) * distance;
-      particle.animate(
-        [
-          { transform: "translate(0, 0) scale(1)", opacity: 1 },
-          {
-            transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0.2)`,
-            opacity: 0,
-          },
-        ],
-        {
-          duration: 350,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-      document.getElementById("game-container").appendChild(particle);
-      setTimeout(() => particle.remove(), 350);
-    }
-  }
 
-  // Partículas de estela/trail para balas en movimiento
-  function createBulletTrailParticles(x, y) {
-    for (let i = 0; i < 2; i++) {
-      const particle = document.createElement("div");
-      particle.className = "bullet-trail-particle";
-      particle.style.left = x + (Math.random() - 0.5) * 6 + "px";
-      particle.style.top = y + 8 + Math.random() * 6 + "px";
-      particle.style.opacity = 0.7;
-      particle.animate(
-        [
-          { transform: "scale(1)", opacity: 0.7 },
-          { transform: "scale(0.2)", opacity: 0 },
-        ],
-        {
-          duration: 220,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-      document.getElementById("game-container").appendChild(particle);
-      setTimeout(() => particle.remove(), 220);
-    }
-  }
-
-  // Elimina los disparos del boss previos
-  document.querySelectorAll(".boss-bullet").forEach((el) => el.remove());
+  // Balas enemigas (una sola pasada)
   enemyBullets.forEach((bullet, i) => {
     bullet.y += bullet.speed;
-    // Renderiza disparo del boss como elemento DOM épico
-    let bossBulletDiv = document.createElement("div");
-    bossBulletDiv.className = "boss-bullet";
-    bossBulletDiv.style.left = bullet.x - 4 + "px";
-    bossBulletDiv.style.top = bullet.y - 18 + "px";
-    document.getElementById("game-container").appendChild(bossBulletDiv);
-
-    // Colisión con el jugador
-    if (
-      bullet.x < player.x + player.width &&
-      bullet.x + bullet.width > player.x &&
-      bullet.y < player.y + player.height &&
-      bullet.y + bullet.height > player.y
-    ) {
-      enemyBullets.splice(i, 1);
-      handlePlayerDamage();
+    if (typeof VFX !== "undefined") {
+      VFX.drawEnemyBullet(ctx, bullet);
+    } else {
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
-    if (bullet.y > canvas.height) {
-      enemyBullets.splice(i, 1);
-    }
-  });
 
-  // Actualizar y dibujar balas enemigas
-  enemyBullets.forEach((bullet, i) => {
-    bullet.y += bullet.speed;
-    ctx.fillStyle = "#ff0000";
-    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-
-    // Colisión con el jugador
     if (
       bullet.x < player.x + player.width &&
       bullet.x + bullet.width > player.x &&
@@ -679,18 +600,37 @@ function updateGame() {
       handlePlayerDamage();
     }
 
-    // Eliminar balas que salen de la pantalla
     if (bullet.y > canvas.height) {
       enemyBullets.splice(i, 1);
     }
   });
 
   enemies.forEach((enemy, i) => {
-    enemy.y += enemy.speed;
-    ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+    // Movimiento especial si tiene speedX (es el xiao_weapon)
+    if (enemy.speedX !== undefined) {
+      enemy.x += enemy.speedX;
+      enemy.y += enemy.speedY;
+
+      if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
+        enemy.speedX *= -1;
+      }
+    } else {
+      enemy.y += enemy.speed;
+    }
+
+    // Halo sutil en enemigos peligrosos
+    if (enemy.canShoot || enemy.image.src.includes("enemy3.png")) {
+      ctx.save();
+      ctx.shadowColor = enemy.canShoot ? "#ff1744" : "#ff9100";
+      ctx.shadowBlur = 12;
+      ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+    }
+
     if (enemy.y > canvas.height) enemies.splice(i, 1);
 
-    // Colisión con el jugador
     if (
       enemy.x < player.x + player.width &&
       enemy.x + enemy.width > player.x &&
@@ -704,41 +644,6 @@ function updateGame() {
       handlePlayerDamage();
     }
 
-    // Hacer que el enemigo dispare si puede
-    if (enemy.canShoot) {
-      enemyShoot(enemy);
-    }
-  });
-  enemies.forEach((enemy, i) => {
-    // Movimiento especial si tiene speedX (es el xiao_weapon)
-    if (enemy.speedX !== undefined) {
-      enemy.x += enemy.speedX;
-      enemy.y += enemy.speedY;
-
-      // Rebote horizontal
-      if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
-        enemy.speedX *= -1;
-      }
-    } else {
-      enemy.y += enemy.speed;
-    }
-
-    ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
-
-    if (enemy.y > canvas.height) enemies.splice(i, 1);
-
-    // Colisión con el jugador
-    if (
-      enemy.x < player.x + player.width &&
-      enemy.x + enemy.width > player.x &&
-      enemy.y < player.y + player.height &&
-      enemy.y + enemy.height > player.y
-    ) {
-      enemies.splice(i, 1);
-      handlePlayerDamage();
-    }
-
-    // Hacer que el enemigo dispare si puede
     if (enemy.canShoot) {
       enemyShoot(enemy);
     }
@@ -1114,7 +1019,32 @@ function updateGame() {
     spawnBoss();
   }
 
+  if (typeof VFX !== "undefined") {
+    VFX.updateAndDrawParticles(ctx);
+    VFX.endFrame(ctx, canvas.width, canvas.height);
+  }
+
   if (gameRunning) requestAnimationFrame(updateGame);
+}
+
+function pushKillFeed(enemyType) {
+  const feed = document.getElementById("killFeed");
+  if (!feed) return;
+  const labels = {
+    type1: "Caza destruido",
+    type2: "Tanque abatido",
+    type3: "Interceptor",
+    type4: "Artillero",
+    ifa: "Ifa neutralizado",
+    xiao_weapon: "Arma Xiao",
+  };
+  const row = document.createElement("div");
+  row.className = "kill-feed-item";
+  row.textContent = labels[enemyType] || "Enemigo destruido";
+  feed.prepend(row);
+  if (typeof UIAnime !== "undefined") UIAnime.killFeedItem(row);
+  while (feed.children.length > 4) feed.lastChild.remove();
+  setTimeout(() => row.remove(), 2200);
 }
 
 function updateHeartsDisplay() {
@@ -1147,7 +1077,11 @@ function updateHeartsDisplay() {
 
 function gameOver() {
   gameRunning = false;
-  gameOverDisplay.style.display = "block";
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.gameOver(gameOverDisplay);
+  } else {
+    gameOverDisplay.style.display = "block";
+  }
   canvas.style.filter = "grayscale(100%)";
 
   // Pausar la música cuando el juego termina
@@ -1208,6 +1142,13 @@ function startGame() {
   cynos = [];
   flins = []; // Limpiar los power-ups de puntos dobles
   rerirs = []; // Limpiar los power-ups de corazón temporal
+  if (typeof VFX !== "undefined") {
+    VFX.clear();
+    VFX.resize(canvas.width, canvas.height);
+    VFX.levelUp(1);
+  }
+  const feed = document.getElementById("killFeed");
+  if (feed) feed.innerHTML = "";
   isInvulnerable = false;
   if (invulnerabilityTimer) {
     clearInterval(invulnerabilityTimer);
@@ -1299,7 +1240,12 @@ function handlePlayerDamage() {
   if (isInvulnerable) return; // Si es invulnerable, no recibe daño
 
   player.hearts--;
-  
+
+  if (typeof VFX !== "undefined") {
+    VFX.resetCombo();
+    VFX.damageFlash();
+  }
+
   // Si el jugador tenía un corazón temporal y lo pierde
   if (hasTemporaryHeart && player.hearts === 1) {
     hasTemporaryHeart = false;
@@ -1310,7 +1256,7 @@ function handlePlayerDamage() {
       document.getElementById("temporaryHeartTimer").style.display = "none";
     }
   }
-  
+
   if (player.hearts === maxHearts) {
     hasExtraHeart = false;
   }
@@ -1329,8 +1275,10 @@ function handlePlayerDamage() {
   createDamageEffect(player.x + player.width / 2, player.y + player.height / 2);
 
   // Sonido de daño
-  const damageSound = new Audio("assets/damage.wav");
-  damageSound.play();
+  try {
+    const damageSound = new Audio("assets/damage.wav");
+    damageSound.play().catch(() => {});
+  } catch (e) {}
 
   // Efecto en el contador de corazones
   heartsDisplay.classList.add("pulse");
@@ -1345,43 +1293,31 @@ function handlePlayerDamage() {
 }
 
 function createDamageEffect(x, y) {
-  // Crear partículas de daño
+  if (typeof VFX !== "undefined") {
+    VFX.explosion(x, y, 0.7);
+    VFX.floatText(x, y - 20, "¡HIT!", "#ff5252", 20);
+    return;
+  }
   for (let i = 0; i < 12; i++) {
     const particle = document.createElement("div");
     particle.className = "damage-particle";
-
-    // Posición inicial
     particle.style.left = x + "px";
     particle.style.top = y + "px";
-
-    // Dirección aleatoria
     const angle = (Math.PI * 2 * i) / 12;
     const distance = 50;
     const finalX = x + Math.cos(angle) * distance;
     const finalY = y + Math.sin(angle) * distance;
-
-    // Animación
     particle.animate(
       [
-        {
-          transform: "translate(0, 0) scale(1)",
-          opacity: 1,
-        },
+        { transform: "translate(0, 0) scale(1)", opacity: 1 },
         {
           transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0)`,
           opacity: 0,
         },
       ],
-      {
-        duration: 500,
-        easing: "ease-out",
-        fill: "forwards",
-      }
+      { duration: 500, easing: "ease-out", fill: "forwards" }
     );
-
     document.getElementById("game-container").appendChild(particle);
-
-    // Eliminar la partícula después de la animación
     setTimeout(() => particle.remove(), 500);
   }
 }
@@ -1645,51 +1581,69 @@ function createDoublePointsEffect(x, y) {
 function showPowerUpNotification(type, x, y) {
   const config = {
     kit: {
-      text: "💚 CURACIÓN +1 💚",
+      text: "Curación +1",
       color: "#2ecc71",
-      particles: ["❤️", "💚", "✨", "⭐"],
+      particles: ["+", "+", "+"],
       className: "powerup-notification-green"
     },
     xiao: {
-      text: "💚 CORAZÓN EXTRA 💚",
+      text: "Corazón extra",
       color: "#2ecc71",
-      particles: ["💚", "✨", "⭐", "💎"],
+      particles: ["+", "+", "+"],
       className: "powerup-notification-green"
     },
     arlee: {
-      text: "🔥 DISPARO RÁPIDO 🔥",
+      text: "Disparo rápido",
       color: "#ff5722",
-      particles: ["🔥", "⚡", "✨", "💥"],
+      particles: ["»", "»", "»"],
       className: "powerup-notification-red"
     },
     cyno: {
-      text: "🛡️ INVULNERABILIDAD 🛡️",
+      text: "Invulnerabilidad",
       color: "#00ffff",
-      particles: ["🛡️", "⚡", "✨", "💎"],
+      particles: ["○", "○", "○"],
       className: "powerup-notification-cyan"
     },
     flins: {
-      text: "✨ PUNTOS x2 ✨",
+      text: "Puntos x2",
       color: "#FFD700",
-      particles: ["💰", "💎", "⭐", "✨"],
+      particles: ["×", "×", "×"],
       className: "powerup-notification-gold"
     },
     rerir: {
-      text: "💙 CORAZÓN TEMPORAL 💙",
+      text: "Corazón temporal",
       color: "#00BFFF",
-      particles: ["💙", "💎", "⭐", "✨"],
+      particles: ["+", "+", "+"],
       className: "powerup-notification-blue"
     },
     ifa: {
-      text: "🟣 DISPARO LENTO 🟣",
+      text: "Disparo lento",
       color: "#9b59b6",
-      particles: ["🟣", "💀", "⚠️", "❌"],
+      particles: ["…", "…", "…"],
       className: "powerup-notification-purple"
     }
   };
 
   const settings = config[type];
   if (!settings) return;
+
+  if (typeof VFX !== "undefined") {
+    const palette = {
+      kit: ["#69f0ae", "#00e676", "#fff"],
+      xiao: ["#69f0ae", "#00c853", "#fff"],
+      arlee: ["#ff5722", "#ff9100", "#fff"],
+      cyno: ["#00e5ff", "#18ffff", "#fff"],
+      flins: ["#FFD700", "#fff59d", "#fff"],
+      rerir: ["#00BFFF", "#40c4ff", "#fff"],
+      ifa: ["#9b59b6", "#ce93d8", "#fff"],
+    };
+    if (type === "kit" || type === "xiao" || type === "rerir") {
+      VFX.heal(x, y);
+    } else {
+      VFX.powerUp(x, y, palette[type]);
+    }
+    VFX.shake(type === "ifa" ? 5 : 2.5);
+  }
 
   // Crear efecto principal
   const mainEffect = document.createElement("div");
@@ -1752,40 +1706,49 @@ function addPoints(basePoints, showFloatingText = true) {
 
   score += finalPoints;
   scoreDisplay.textContent = score;
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.scorePulse(scoreDisplay);
+  } else {
+    scoreDisplay.classList.remove("score-pop");
+    void scoreDisplay.offsetWidth;
+    scoreDisplay.classList.add("score-pop");
+  }
 
   // Actualizar estadísticas de puntuación en tiempo real
   updateStatsOnScore(finalPoints);
 
-  // Mostrar texto flotante de puntos si se requiere
-  if (showFloatingText && (hasDoublePoints || titleMultiplier > 0)) {
-    const floatingText = document.createElement("div");
-    floatingText.className = "floating-points";
-    floatingText.style.left = player.x + player.width / 2 + "px";
-    floatingText.style.top = player.y - 20 + "px";
-    floatingText.innerHTML = `+${finalPoints}`;
-    
-    // Agregar multiplicador al texto
-    if (multiplierText) {
-      floatingText.innerHTML += ` <span style="font-size: 0.8em; color: #FFD700;">${multiplierText}</span>`;
-    }
-    
-    // Color según el multiplicador
-    if (titleMultiplier >= 4) {
-      floatingText.style.color = "#FF1493"; // Rosa brillante para x4
-      floatingText.style.textShadow = "0 0 15px rgba(255, 20, 147, 0.8)";
-    } else if (titleMultiplier >= 3) {
-      floatingText.style.color = "#9b59b6"; // Púrpura para x3
-      floatingText.style.textShadow = "0 0 12px rgba(155, 89, 182, 0.8)";
-    } else if (titleMultiplier >= 2) {
-      floatingText.style.color = "#FFD700"; // Dorado para x2
-      floatingText.style.textShadow = "0 0 10px rgba(255, 215, 0, 0.8)";
-    }
-    
-    document.getElementById("game-container").appendChild(floatingText);
+  // Texto flotante de puntos (siempre que haya feedback)
+  if (showFloatingText) {
+    let color = "#ffeb3b";
+    if (titleMultiplier >= 4) color = "#FF1493";
+    else if (titleMultiplier >= 3) color = "#9b59b6";
+    else if (titleMultiplier >= 2 || hasDoublePoints) color = "#FFD700";
 
-    setTimeout(() => {
-      floatingText.remove();
-    }, 1000);
+    const label = multiplierText
+      ? `+${finalPoints} ${multiplierText}`
+      : `+${finalPoints}`;
+
+    if (typeof VFX !== "undefined") {
+      // El combo/kill ya dibuja el texto principal; refuerzo cerca del jugador si hay multiplicador
+      if (hasDoublePoints || titleMultiplier > 0) {
+        VFX.floatText(
+          player.x + player.width / 2,
+          player.y - 28,
+          label,
+          color,
+          18
+        );
+      }
+    } else {
+      const floatingText = document.createElement("div");
+      floatingText.className = "floating-points";
+      floatingText.style.left = player.x + player.width / 2 + "px";
+      floatingText.style.top = player.y - 20 + "px";
+      floatingText.innerHTML = label;
+      floatingText.style.color = color;
+      document.getElementById("game-container").appendChild(floatingText);
+      setTimeout(() => floatingText.remove(), 1000);
+    }
   }
 
   return finalPoints;
@@ -1818,46 +1781,33 @@ function getActiveTitleMultiplierText() {
   return `x${multiplier}`;
 }
 
-// Añade esta nueva función para crear el efecto de explosión
-function createExplosion(x, y) {
-  // Crear múltiples partículas de explosión
+// Explosión: motor canvas VFX (+ fallback DOM ligero)
+function createExplosion(x, y, power) {
+  if (typeof VFX !== "undefined") {
+    VFX.explosion(x, y, power || 1);
+    return;
+  }
   for (let i = 0; i < 8; i++) {
     const particle = document.createElement("div");
     particle.className = "explosion-particle";
-
-    // Tamaño aleatorio para cada partícula
     const size = Math.random() * 20 + 10;
     particle.style.width = size + "px";
     particle.style.height = size + "px";
-
-    // Posición inicial
     particle.style.left = x - size / 2 + "px";
     particle.style.top = y - size / 2 + "px";
-
-    // Animación
     particle.style.animation = "explosion 0.5s ease-out forwards";
-
-    // Dirección aleatoria
     const angle = (Math.PI * 2 * i) / 8;
     const distance = 30;
     const finalX = x + Math.cos(angle) * distance;
     const finalY = y + Math.sin(angle) * distance;
-
     particle.animate(
       [
         { transform: `translate(0, 0)` },
         { transform: `translate(${finalX - x}px, ${finalY - y}px)` },
       ],
-      {
-        duration: 500,
-        easing: "ease-out",
-        fill: "forwards",
-      }
+      { duration: 500, easing: "ease-out", fill: "forwards" }
     );
-
     document.getElementById("game-container").appendChild(particle);
-
-    // Eliminar la partícula después de la animación
     setTimeout(() => particle.remove(), 500);
   }
 }
@@ -2021,6 +1971,11 @@ function spawnBoss() {
   boss.appearing = true;
   boss.appearAnim = 0;
 
+  if (typeof VFX !== "undefined") {
+    VFX.bossWarning();
+    VFX.explosion(boss.x + boss.width / 2, boss.y + boss.height / 2, 2);
+  }
+
   // Bloquear enemigos normales
   enemies = [];
 }
@@ -2125,6 +2080,10 @@ function handleBossHit() {
   bossBar.classList.add("boss-bar-damage");
   setTimeout(() => bossBar.classList.remove("boss-bar-damage"), 300);
   updateBossBar();
+  if (typeof VFX !== "undefined") {
+    VFX.hitSpark(boss.x + boss.width / 2, boss.y + boss.height / 2);
+    VFX.shake(4);
+  }
   if (boss.health <= 0) {
     // Guarda la posición antes de eliminar el boss
     const bossX = boss.x;
@@ -2140,9 +2099,21 @@ function handleBossHit() {
       setTimeout(() => {
         createExplosion(
           bossX + bossWidth / 2 + Math.cos((Math.PI * 2 * i) / 12) * 80,
-          bossY + bossHeight / 2 + Math.sin((Math.PI * 2 * i) / 12) * 60
+          bossY + bossHeight / 2 + Math.sin((Math.PI * 2 * i) / 12) * 60,
+          1.4
         );
       }, i * 80);
+    }
+    if (typeof VFX !== "undefined") {
+      VFX.shake(14);
+      VFX.floatText(
+        bossX + bossWidth / 2,
+        bossY + bossHeight / 2,
+        "BOSS DOWN",
+        "#ff1744",
+        36
+      );
+      VFX.levelUp(level + 1);
     }
     score += 100; // Suficiente para pasar de nivel
     scoreDisplay.textContent = score;
@@ -2151,8 +2122,10 @@ function handleBossHit() {
     updateStatsOnScore(100);
 
     // Sonido de victoria
-    const victorySound = new Audio("assets/explosion.wav");
-    victorySound.play();
+    try {
+      const victorySound = new Audio("assets/explosion.wav");
+      victorySound.play().catch(() => {});
+    } catch (e) {}
     // Eliminar boss inmediatamente
     bossActive = false;
     bossBar.style.display = "none";
@@ -2213,136 +2186,135 @@ let playerStats = {
 
 // Definición de todos los logros épicos
 const achievements = [
-  // COMBATE ⚔️
   {
     id: "first_blood",
-    name: "🗡️ Primera Sangre",
-    description: "Destruye tu primer enemigo",
+    name: "Primera señal",
+    description: "Destruye tu primer enemigo en combate.",
     category: "combat",
     rarity: "common",
     points: 10,
-    icon: "⚔️",
+    icon: "sword",
     condition: () => playerStats.totalKills >= 1,
     unlocked: false,
   },
   {
     id: "newbie_killer",
-    name: "🔪 Asesino Novato",
-    description: "Destruye 5 enemigos",
+    name: "Cadete de combate",
+    description: "Elimina 5 enemigos.",
     category: "combat",
     rarity: "common",
     points: 15,
-    icon: "🔪",
+    icon: "sword",
     condition: () => playerStats.totalKills >= 5,
     unlocked: false,
   },
   {
     id: "marksman",
-    name: "🎯 Tirador Experto",
-    description: "Dispara 100 veces",
+    name: "Puntería firme",
+    description: "Dispara 100 veces.",
     category: "combat",
     rarity: "common",
     points: 15,
-    icon: "🎯",
+    icon: "target",
     condition: () => playerStats.totalShots >= 100,
     unlocked: false,
   },
   {
     id: "trigger_happy",
-    name: "💥 Gatillo Alegre",
-    description: "Dispara 25 veces",
+    name: "Ráfaga inicial",
+    description: "Dispara 25 veces.",
     category: "combat",
     rarity: "common",
     points: 10,
-    icon: "💥",
+    icon: "blast",
     condition: () => playerStats.totalShots >= 25,
     unlocked: false,
   },
   {
     id: "slayer",
-    name: "💀 Exterminador",
-    description: "Destruye 50 enemigos",
+    name: "Cazadora orbital",
+    description: "Destruye 50 enemigos.",
     category: "combat",
     rarity: "rare",
     points: 25,
-    icon: "💀",
+    icon: "skull",
     condition: () => playerStats.totalKills >= 50,
     unlocked: false,
   },
   {
     id: "genocide",
-    name: "☠️ Genocidio Espacial",
-    description: "Destruye 500 enemigos",
+    name: "Tormenta del vacío",
+    description: "Destruye 500 enemigos.",
     category: "combat",
     rarity: "epic",
     points: 50,
-    icon: "☠️",
+    icon: "skull",
     condition: () => playerStats.totalKills >= 500,
     unlocked: false,
   },
   {
     id: "killing_spree",
-    name: "🔥 Masacre Espacial",
-    description: "Mata 10 enemigos consecutivos sin recibir daño",
+    name: "Racha encendida",
+    description: "Elimina 10 enemigos seguidos sin recibir daño.",
     category: "combat",
     rarity: "rare",
     points: 30,
-    icon: "🔥",
+    icon: "fire",
     condition: () => playerStats.maxConsecutiveKills >= 10,
     unlocked: false,
   },
   {
     id: "unstoppable",
-    name: "⚡ Imparable",
-    description: "Mata 25 enemigos consecutivos sin recibir daño",
+    name: "Imparable",
+    description: "Elimina 25 enemigos seguidos sin recibir daño.",
     category: "combat",
     rarity: "epic",
     points: 75,
-    icon: "⚡",
+    icon: "bolt",
     condition: () => playerStats.maxConsecutiveKills >= 25,
     unlocked: false,
   },
   {
     id: "boss_slayer",
-    name: "👑 Matador de Jefes",
-    description: "Derrota tu primer boss",
+    name: "Cazadora de jefes",
+    description: "Derrota a tu primer jefe.",
     category: "combat",
     rarity: "epic",
     points: 100,
-    icon: "👑",
+    icon: "crown",
     condition: () => playerStats.bossesKilled >= 1,
     unlocked: false,
   },
   {
     id: "boss_destroyer",
-    name: "🐉 Destructor de Titanes",
-    description: "Derrota 5 bosses",
+    name: "Rompetitanes",
+    description: "Derrota 5 jefes.",
     category: "combat",
     rarity: "legendary",
     points: 200,
-    icon: "🐉",
+    icon: "dragon",
     condition: () => playerStats.bossesKilled >= 5,
     unlocked: false,
   },
   {
     id: "meteor_master",
-    name: "☄️ Maestro de Meteoritos",
-    description: "Destruye 20 meteoritos",
+    name: "Rompecometas",
+    description: "Destruye 20 meteoritos.",
     category: "combat",
     rarity: "rare",
     points: 40,
-    icon: "☄️",
+    icon: "meteor",
     condition: () => playerStats.meteorsDestroyed >= 20,
     unlocked: false,
   },
   {
     id: "diversified_killer",
-    name: "🎭 Exterminador Diverso",
-    description: "Mata al menos 10 enemigos de cada tipo",
+    name: "Arsenal completo",
+    description: "Elimina al menos 10 enemigos de cada tipo principal.",
     category: "combat",
     rarity: "epic",
     points: 60,
-    icon: "🎭",
+    icon: "mask",
     condition: () => {
       const types = playerStats.enemyTypesKilled;
       return (
@@ -2354,172 +2326,168 @@ const achievements = [
     },
     unlocked: false,
   },
-
-  // SUPERVIVENCIA 🛡️
   {
     id: "survivor",
-    name: "🛡️ Superviviente",
-    description: "Sobrevive 5 minutos en una partida",
+    name: "Superviviente",
+    description: "Acumula 5 minutos de vuelo en total.",
     category: "survival",
     rarity: "common",
     points: 20,
-    icon: "🛡️",
-    condition: () => playerStats.totalGameTime >= 300000, // 5 minutos en ms
+    icon: "shield",
+    condition: () => playerStats.totalGameTime >= 300000,
     unlocked: false,
   },
   {
     id: "marathon_runner",
-    name: "🏃 Corredor de Maratón",
-    description: "Juega por un total de 1 hora",
+    name: "Órbita larga",
+    description: "Juega durante 1 hora en total.",
     category: "survival",
     rarity: "rare",
     points: 50,
-    icon: "🏃",
-    condition: () => playerStats.totalGameTime >= 3600000, // 1 hora en ms
+    icon: "run",
+    condition: () => playerStats.totalGameTime >= 3600000,
     unlocked: false,
   },
   {
     id: "level_master",
-    name: "🌟 Maestro de Niveles",
-    description: "Alcanza el nivel 20",
+    name: "Maestra de niveles",
+    description: "Alcanza el nivel 20.",
     category: "survival",
     rarity: "epic",
     points: 80,
-    icon: "🌟",
+    icon: "star",
     condition: () => playerStats.maxLevel >= 20,
     unlocked: false,
   },
   {
     id: "level_god",
-    name: "⭐ Dios de los Niveles",
-    description: "Alcanza el nivel 50",
+    name: "Cima estelar",
+    description: "Alcanza el nivel 50.",
     category: "survival",
     rarity: "legendary",
     points: 150,
-    icon: "⭐",
+    icon: "spark",
     condition: () => playerStats.maxLevel >= 50,
     unlocked: false,
   },
   {
     id: "untouchable",
-    name: "👻 Intocable",
-    description: "Sobrevive 2 minutos sin recibir daño",
+    name: "Intocable",
+    description: "Mantente 2 minutos sin recibir daño.",
     category: "survival",
     rarity: "epic",
     points: 70,
-    icon: "👻",
-    condition: () => playerStats.maxTimeWithoutDamage >= 120000, // 2 minutos
+    icon: "ghost",
+    condition: () => playerStats.maxTimeWithoutDamage >= 120000,
     unlocked: false,
   },
   {
     id: "iron_will",
-    name: "🔨 Voluntad de Hierro",
-    description: "Completa un nivel sin recibir daño",
+    name: "Voluntad de hierro",
+    description: "Completa un nivel sin recibir daño.",
     category: "survival",
     rarity: "rare",
     points: 35,
-    icon: "🔨",
+    icon: "hammer",
     condition: () => playerStats.perfectLevels >= 1,
     unlocked: false,
   },
   {
     id: "perfectionist",
-    name: "💎 Perfeccionista",
-    description: "Completa 5 niveles sin recibir daño",
+    name: "Perfección orbital",
+    description: "Completa 5 niveles sin recibir daño.",
     category: "survival",
     rarity: "epic",
     points: 100,
-    icon: "💎",
+    icon: "gem",
     condition: () => playerStats.perfectLevels >= 5,
     unlocked: false,
   },
   {
     id: "heart_collector",
-    name: "❤️ Coleccionista de Corazones",
-    description: "Alcanza 6 corazones de vida",
+    name: "Reserva vital",
+    description: "Alcanza 6 corazones de vida.",
     category: "survival",
     rarity: "rare",
     points: 40,
-    icon: "❤️",
+    icon: "heart",
     condition: () => playerStats.maxHearts >= 6,
     unlocked: false,
   },
-
-  // COLECCIÓN 💎
   {
     id: "first_powerup",
-    name: "🎁 Primer Power-Up",
-    description: "Recolecta tu primer power-up",
+    name: "Primera mejora",
+    description: "Recolecta tu primer power-up.",
     category: "collection",
     rarity: "common",
     points: 10,
-    icon: "🎁",
+    icon: "gift",
     condition: () => playerStats.powerUpsCollected >= 1,
     unlocked: false,
   },
   {
     id: "powerup_addict",
-    name: "💊 Adicto a los Power-Ups",
-    description: "Recolecta 50 power-ups",
+    name: "Ingeniera de suministros",
+    description: "Recolecta 50 power-ups.",
     category: "collection",
     rarity: "rare",
     points: 30,
-    icon: "💊",
+    icon: "capsule",
     condition: () => playerStats.powerUpsCollected >= 50,
     unlocked: false,
   },
   {
     id: "xiao_fan",
-    name: "🍃 Fan de Xiao",
-    description: "Recolecta 10 power-ups de Xiao",
+    name: "Aliada de Xiao",
+    description: "Recolecta 10 power-ups de Xiao.",
     category: "collection",
     rarity: "rare",
     points: 25,
-    icon: "🍃",
+    icon: "leaf",
     condition: () => playerStats.xiaosCollected >= 10,
     unlocked: false,
   },
   {
     id: "arlee_enthusiast",
-    name: "🏹 Entusiasta de Arlee",
-    description: "Recolecta 10 power-ups de Arlee",
+    name: "Ritmo de Arlee",
+    description: "Recolecta 10 power-ups de Arlee.",
     category: "collection",
     rarity: "rare",
     points: 25,
-    icon: "🏹",
+    icon: "bow",
     condition: () => playerStats.arleesCollected >= 10,
     unlocked: false,
   },
   {
     id: "cyno_devotee",
-    name: "⚡ Devoto de Cyno",
-    description: "Recolecta 10 power-ups de Cyno",
+    name: "Pacto de Cyno",
+    description: "Recolecta 10 power-ups de Cyno.",
     category: "collection",
     rarity: "rare",
     points: 25,
-    icon: "⚡",
+    icon: "bolt",
     condition: () => playerStats.cynosCollected >= 10,
     unlocked: false,
   },
   {
     id: "flins_fortune",
-    name: "💰 Fortuna de Flins",
-    description: "Recolecta 5 power-ups de Flins para duplicar puntos",
+    name: "Fortuna de Flins",
+    description: "Recolecta 5 power-ups de Flins.",
     category: "collection",
     rarity: "epic",
     points: 40,
-    icon: "💰",
+    icon: "coin",
     condition: () => playerStats.flinsCollected >= 5,
     unlocked: false,
   },
   {
     id: "genshin_collector",
-    name: "🌸 Coleccionista de Genshin",
-    description: "Recolecta al menos 3 de cada power-up especial",
+    name: "Colección especial",
+    description: "Consigue al menos 3 de cada power-up especial.",
     category: "collection",
     rarity: "epic",
     points: 75,
-    icon: "🌸",
+    icon: "blossom",
     condition: () =>
       playerStats.xiaosCollected >= 3 &&
       playerStats.arleesCollected >= 3 &&
@@ -2529,182 +2497,178 @@ const achievements = [
   },
   {
     id: "medic",
-    name: "🏥 Médico Espacial",
-    description: "Recolecta 25 kits de salud",
+    name: "Médica de flota",
+    description: "Recolecta 25 kits de salud.",
     category: "collection",
     rarity: "common",
     points: 20,
-    icon: "🏥",
+    icon: "medkit",
     condition: () => playerStats.kitsCollected >= 25,
     unlocked: false,
   },
-
-  // MAESTRÍA 👑
   {
     id: "first_points",
-    name: "🎯 Primeros Puntos",
-    description: "Acumula 1,000 puntos totales",
+    name: "Primeros puntos",
+    description: "Acumula 1.000 puntos en total.",
     category: "mastery",
     rarity: "common",
     points: 10,
-    icon: "🎯",
+    icon: "target",
     condition: () => playerStats.cumulativeScore >= 1000,
     unlocked: false,
   },
   {
     id: "point_collector",
-    name: "💰 Coleccionista de Puntos",
-    description: "Acumula 5,000 puntos totales",
+    name: "Contadora de estrellas",
+    description: "Acumula 5.000 puntos en total.",
     category: "mastery",
     rarity: "common",
     points: 20,
-    icon: "💰",
+    icon: "coin",
     condition: () => playerStats.cumulativeScore >= 5000,
     unlocked: false,
   },
   {
     id: "high_scorer",
-    name: "📊 Puntuador Alto",
-    description: "Acumula 10,000 puntos totales",
+    name: "Puntuación alta",
+    description: "Acumula 10.000 puntos en total.",
     category: "mastery",
     rarity: "rare",
     points: 40,
-    icon: "📊",
+    icon: "chart",
     condition: () => playerStats.cumulativeScore >= 10000,
     unlocked: false,
   },
   {
     id: "score_enthusiast",
-    name: "🎪 Entusiasta de la Puntuación",
-    description: "Acumula 25,000 puntos totales",
+    name: "Sed de marcas",
+    description: "Acumula 25.000 puntos en total.",
     category: "mastery",
     rarity: "rare",
     points: 60,
-    icon: "🎪",
+    icon: "spark",
     condition: () => playerStats.cumulativeScore >= 25000,
     unlocked: false,
   },
   {
     id: "score_master",
-    name: "🏆 Maestro de Puntuación",
-    description: "Acumula 50,000 puntos totales",
+    name: "Maestra del marcador",
+    description: "Acumula 50.000 puntos en total.",
     category: "mastery",
     rarity: "epic",
     points: 100,
-    icon: "🏆",
+    icon: "trophy",
     condition: () => playerStats.cumulativeScore >= 50000,
     unlocked: false,
   },
   {
     id: "score_legend",
-    name: "🌟 Leyenda de la Puntuación",
-    description: "Acumula 100,000 puntos totales",
+    name: "Leyenda del marcador",
+    description: "Acumula 100.000 puntos en total.",
     category: "mastery",
     rarity: "legendary",
     points: 200,
-    icon: "🌟",
+    icon: "star",
     condition: () => playerStats.cumulativeScore >= 100000,
     unlocked: false,
   },
   {
     id: "score_god",
-    name: "⭐ Dios de la Puntuación",
-    description: "Acumula 500,000 puntos totales",
+    name: "Soberana del marcador",
+    description: "Acumula 500.000 puntos en total.",
     category: "mastery",
     rarity: "mythic",
     points: 500,
-    icon: "⭐",
+    icon: "spark",
     condition: () => playerStats.cumulativeScore >= 500000,
     unlocked: false,
   },
   {
     id: "score_transcendent",
-    name: "🌌 Trascendente de la Puntuación",
-    description: "Acumula 1,000,000 puntos totales",
+    name: "Trascendencia",
+    description: "Acumula 1.000.000 puntos en total.",
     category: "mastery",
     rarity: "mythic",
     points: 1000,
-    icon: "🌌",
+    icon: "galaxy",
     condition: () => playerStats.cumulativeScore >= 1000000,
     unlocked: false,
   },
   {
     id: "veteran",
-    name: "🎖️ Veterano",
-    description: "Juega 50 partidas",
+    name: "Veterana",
+    description: "Juega 50 partidas.",
     category: "mastery",
     rarity: "rare",
     points: 30,
-    icon: "🎖️",
+    icon: "medal",
     condition: () => playerStats.gamesPlayed >= 50,
     unlocked: false,
   },
   {
     id: "dedicated_player",
-    name: "🏅 Jugador Dedicado",
-    description: "Juega 100 partidas",
+    name: "Piloto dedicado",
+    description: "Juega 100 partidas.",
     category: "mastery",
     rarity: "epic",
     points: 60,
-    icon: "🏅",
+    icon: "medal",
     condition: () => playerStats.gamesPlayed >= 100,
     unlocked: false,
   },
-
-  // SECRETOS 🌟
   {
     id: "ifa_victim",
-    name: "🔮 Víctima de Ifa",
-    description: "Sé afectado por el debuff de Ifa",
+    name: "Eco de Ifa",
+    description: "Sufre el efecto de ralentización de Ifa.",
     category: "secret",
     rarity: "rare",
     points: 25,
-    icon: "🔮",
+    icon: "crystal",
     condition: () => playerStats.enemyTypesKilled.ifa >= 1,
     unlocked: false,
   },
   {
     id: "xiao_weapon_hunter",
-    name: "🗡️ Cazador de Armas Xiao",
-    description: "Destruye 5 enemigos tipo Xiao Weapon",
+    name: "Cazadora de armas Xiao",
+    description: "Destruye 5 enemigos tipo Xiao Weapon.",
     category: "secret",
     rarity: "epic",
     points: 50,
-    icon: "🗡️",
+    icon: "sword",
     condition: () => playerStats.enemyTypesKilled.xiao_weapon >= 5,
     unlocked: false,
   },
   {
     id: "moai_friend",
-    name: "🗿 Amigo del Moai",
-    description: "Haz clic en el Moai 10 veces",
+    name: "Confidente del Moai",
+    description: "Consulta al Moai 10 veces.",
     category: "secret",
     rarity: "common",
     points: 15,
-    icon: "🗿",
+    icon: "moai",
     condition: () => parseInt(localStorage.getItem("moaiClicks") || "0") >= 10,
     unlocked: false,
   },
   {
     id: "achievement_hunter",
-    name: "🏆 Cazador de Logros",
-    description: "Abre el panel de logros por primera vez",
+    name: "Archivera de hazañas",
+    description: "Abre el panel de logros por primera vez.",
     category: "secret",
     rarity: "common",
     points: 5,
-    icon: "🏆",
+    icon: "trophy",
     condition: () =>
       parseInt(localStorage.getItem("achievementsOpened") || "0") >= 1,
     unlocked: false,
   },
   {
     id: "completionist",
-    name: "💯 Completista",
-    description: "Desbloquea el 80% de todos los logros",
+    name: "Casi completa",
+    description: "Desbloquea el 80% de todos los logros.",
     category: "secret",
     rarity: "mythic",
     points: 500,
-    icon: "💯",
+    icon: "check",
     condition: () => {
       const unlockedCount = achievements.filter((a) => a.unlocked).length;
       const totalCount = achievements.length;
@@ -2714,17 +2678,17 @@ const achievements = [
   },
   {
     id: "legend",
-    name: "🌟 Leyenda Viviente",
-    description: "Desbloquea TODOS los logros",
+    name: "Leyenda viviente",
+    description: "Desbloquea todos los logros.",
     category: "secret",
     rarity: "mythic",
     points: 1000,
-    icon: "🌟",
+    icon: "star",
     condition: () => {
       const unlockedCount = achievements.filter(
         (a) => a.id !== "legend" && a.unlocked
       ).length;
-      const totalCount = achievements.length - 1; // Excluir este mismo logro
+      const totalCount = achievements.length - 1;
       return unlockedCount === totalCount;
     },
     unlocked: false,
@@ -2798,6 +2762,11 @@ function showAchievementNotification(achievement) {
   descEl.textContent = achievement.description;
   pointsEl.textContent = `+${achievement.points} puntos`;
 
+  const notifIcon = notification.querySelector(".notification-icon");
+  if (notifIcon && typeof swIcon === "function") {
+    notifIcon.innerHTML = swIcon(achievement.icon || "trophy", "sw-icon-lg");
+  }
+
   // Añadir clase específica para móviles
   if (isMobileDevice()) {
     notification.classList.add("mobile-notification");
@@ -2805,7 +2774,11 @@ function showAchievementNotification(achievement) {
     notification.classList.remove("mobile-notification");
   }
 
-  notification.classList.add("show");
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.notifyAchievement(notification);
+  } else {
+    notification.classList.add("show");
+  }
 
   // Reproducir sonido de logro (si existe) - volumen más bajo en móviles
   try {
@@ -2817,7 +2790,11 @@ function showAchievementNotification(achievement) {
   // Tiempo de display más corto en móviles para ser menos intrusivo
   const displayTime = isMobileDevice() ? 3000 : 5000;
   setTimeout(() => {
-    notification.classList.remove("show");
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.hideAchievement(notification);
+    } else {
+      notification.classList.remove("show");
+    }
     setTimeout(() => {
       notification.classList.remove("mobile-notification");
     }, 300); // Limpiar clase después de la animación
@@ -2834,17 +2811,23 @@ function initAchievementSystem() {
 
   // Abrir modal de logros
   achievementsBtn.addEventListener("click", () => {
-    achievementsModal.style.display = "block";
-
-    // Agregar clase móvil si es necesario
     if (isMobileDevice()) {
       achievementsModal.classList.add("mobile-modal");
     } else {
       achievementsModal.classList.remove("mobile-modal");
     }
 
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.openModal(achievementsModal);
+    } else {
+      achievementsModal.style.display = "block";
+    }
+
     renderAchievements();
     updateAchievementStats();
+    if (typeof UIAnime !== "undefined") {
+      setTimeout(() => UIAnime.staggerList(".achievement-item"), 40);
+    }
 
     // Logro secreto por abrir el panel
     let achievementsOpened = parseInt(
@@ -2857,15 +2840,23 @@ function initAchievementSystem() {
 
   // Cerrar modal
   achievementsClose.addEventListener("click", () => {
-    achievementsModal.style.display = "none";
-    achievementsModal.classList.remove("mobile-modal");
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.closeModal(achievementsModal);
+    } else {
+      achievementsModal.style.display = "none";
+      achievementsModal.classList.remove("mobile-modal");
+    }
   });
 
   // Cerrar con clic fuera del modal
   window.addEventListener("click", (e) => {
     if (e.target === achievementsModal) {
-      achievementsModal.style.display = "none";
-      achievementsModal.classList.remove("mobile-modal");
+      if (typeof UIAnime !== "undefined") {
+        UIAnime.closeModal(achievementsModal);
+      } else {
+        achievementsModal.style.display = "none";
+        achievementsModal.classList.remove("mobile-modal");
+      }
     }
   });
 
@@ -2907,8 +2898,12 @@ function renderAchievements(category = "all") {
 
     const progress = getAchievementProgress(achievement);
 
+    const iconHtml =
+      typeof swIcon === "function"
+        ? swIcon(achievement.icon, "sw-icon-lg")
+        : "";
     achievementEl.innerHTML = `
-            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-icon">${iconHtml}</div>
             <div class="achievement-details">
                 <div class="achievement-name">${achievement.name}</div>
                 <div class="achievement-description">${achievement.description}</div>
@@ -2924,7 +2919,7 @@ function renderAchievements(category = "all") {
 
 // Obtener progreso del logro
 function getAchievementProgress(achievement) {
-  if (achievement.unlocked) return "✅ Desbloqueado";
+  if (achievement.unlocked) return "Desbloqueado";
 
   // Progreso específico para cada logro
   switch (achievement.id) {
@@ -3140,307 +3135,237 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Catálogo de items de la tienda
 const shopItems = [
-  // POEMAS 📜
   {
     id: "poem_stars",
-    name: "✨ Poema: Entre Las Estrellas",
-    description: "Un hermoso poema sobre viajes espaciales y sueños",
+    name: "Poema: Entre las estrellas",
+    description: "Un poema íntimo sobre viajes, distancia y esperanza.",
     category: "poems",
     cost: 50,
     rarity: "common",
-    icon: "✨",
-    content: `🎁 ¡FELICIDADES! 🎁
+    icon: "scroll",
+    content: `Canje desbloqueado: Entre las estrellas
 
-            Has desbloqueado un poema especial.
+Toma una captura de esta ventana y envíasela a Manuel (Administrador Estelar).
 
-            📸 TOMA UNA CAPTURA DE PANTALLA DE ESTA VENTANA 📸
-
-            Luego, envíala al Administrador Estelar (Manuel) para reclamar tu poema personalizado "Entre Las Estrellas".
-
-            Este es un regalo único y especial, escrito con el corazón, solo para ti. ✨
-
-            El Administrador Estelar te entregará tu poema cuando presentes esta prueba de desbloqueo. 💫`,
+A cambio recibirás un poema escrito para ti.
+Guarda esta prueba: es tu llave de canje.`,
     purchased: false,
   },
   {
     id: "poem_warrior",
-    name: "⚔️ Poema: Guerrero del Cosmos",
-    description: "Versos épicos sobre la batalla y el valor",
+    name: "Poema: Guerrero del cosmos",
+    description: "Versos sobre coraje, batalla y sostenerse en pie.",
     category: "poems",
     cost: 75,
     rarity: "rare",
-    icon: "⚔️",
-    content: `🎁 ¡FELICIDADES! 🎁
+    icon: "sword",
+    content: `Canje desbloqueado: Guerrero del cosmos
 
-        Has desbloqueado un poema épico.
+Captura esta pantalla y envíasela a Manuel.
 
-        📸 TOMA UNA CAPTURA DE PANTALLA DE ESTA VENTANA 📸
-
-        Luego, envíala al Administrador Estelar (Manuel) para reclamar tu poema personalizado "Guerrero del Cosmos".
-
-        Este es un regalo único y especial, escrito con el corazón, solo para ti. ⚔️
-
-        El Administrador Estelar te entregará tu poema cuando presentes esta prueba de desbloqueo. 💫`,
+Recibirás un poema épico personalizado.
+Esta ventana es tu comprobante de desbloqueo.`,
     purchased: false,
   },
   {
     id: "poem_love",
-    name: "💖 Poema:Cósmico",
-    description: "Palabras de amor que trascienden el espacio y el tiempo",
+    name: "Poema: Amor cósmico",
+    description: "Palabras profundas sobre querer a través de cualquier distancia.",
     category: "poems",
     cost: 100,
     rarity: "epic",
-    icon: "💖",
-    content: `🎁 ¡FELICIDADES! 🎁
+    icon: "heart",
+    content: `Canje desbloqueado: Amor cósmico
 
-        Has desbloqueado el poema más especial de todos.
+Captura esta ventana y compártela con Manuel.
 
-        📸 TOMA UNA CAPTURA DE PANTALLA DE ESTA VENTANA 📸
-
-        Luego, envíala al Administrador Estelar (Manuel) para reclamar tu poema personalizado "Amor Cósmico".
-
-        Este es un regalo único y especial, escrito con el corazón, solo para ti. 💖
-
-        El Administrador Estelar te entregará tu poema cuando presentes esta prueba de desbloqueo. 💫
-
-        (Este poema es particularmente especial y profundo)`,
+Este poema es el más íntimo de la colección.
+Preséntalo para recibir tu pieza escrita a mano del corazón.`,
     purchased: false,
   },
-
-  // SECRETOS 🔮
   {
     id: "secret_dev",
-    name: "🔮 Secreto: Mensaje del Desarrollador",
-    description: "Un mensaje especial del creador del juego",
+    name: "Secreto: Nota del creador",
+    description: "Un mensaje directo de quien construyó este universo.",
     category: "secrets",
     cost: 150,
     rarity: "epic",
-    icon: "🔮",
-    content: `¡Hola! Soy Manuel, el desarrollador de Space War.
-        
-        Este juego fue creado con mucho cariño para alguien muy especial. Cada línea de código, cada efecto visual, cada pequeño detalle fue pensado para hacerte sonreír.
-        
-        Quiero que sepas que eres increíble, única y maravillosa. Los días difíciles pasarán, pero tu luz siempre brillará. Eres más fuerte de lo que crees y más valiosa de lo que imaginas.
-        
-        Gracias por jugar mi pequeña creación. Espero que te traiga alegría y te recuerde lo especial que eres. ❤️
-        
-        Con todo mi cariño,
-        Manuel`,
+    icon: "crystal",
+    content: `Hola. Soy Manuel, quien armó Space War.
+
+Hice este juego con cariño, pensando en alguien concreto: tú.
+Cada efecto, cada detalle y cada línea buscan dejarte un respiro y una sonrisa.
+
+Quiero que sepas que eres valiosa, fuerte y luminosa.
+Los días difíciles pasan; tu luz no.
+
+Gracias por jugar esta pequeña creación.
+Con cariño,
+Manuel`,
     purchased: false,
   },
   {
     id: "secret_easteregg",
-    name: "🥚 Secreto: Easter Egg",
-    description: "Un secreto oculto del juego",
+    name: "Secreto: Archivo oculto",
+    description: "Pistas internas del juego y de sus rincones secretos.",
     category: "secrets",
     cost: 200,
     rarity: "legendary",
-    icon: "🥚",
-    content: `🎮 SECRETOS DEL JUEGO 🎮
-        
-        1. Si disparas exactamente 777 veces en una partida, aparecerá un mensaje especial.
+    icon: "egg",
+    content: `Archivo oculto de Space War
 
-        2. Los power-ups de Genshin Impact (Xiao, Arlee, Cyno, Flins) están colocados para cierta personita especial.
-
-        3. El Moai no solo da mensajes motivacionales, también cuenta cuántas veces lo has clickeado para un logro secreto.
-        
-        4. Hay exactamente ${achievements.length} logros en total, pero algunos son casi imposibles de conseguir...
-        
-        5. Este mensaje es uno de los items más raros de la tienda. ¡Felicidades por desbloquearlo!`,
+1. Disparar exactamente 777 veces en una partida puede revelar un mensaje especial.
+2. Los power-ups especiales (Xiao, Arlee, Cyno, Flins) están pensados como guiños personales.
+3. El Moai también lleva la cuenta de tus visitas para un logro secreto.
+4. Hay ${achievements.length} logros en total; algunos exigen paciencia real.
+5. Si estás leyendo esto, ya desbloqueaste uno de los canjes más raros.`,
     purchased: false,
   },
   {
     id: "secret_truth",
-    name: "💫 Secreto: La Verdad Universal",
-    description: "El secreto más profundo del cosmos",
+    name: "Secreto: Verdad universal",
+    description: "Una reflexión serena sobre existir frente al cosmos.",
     category: "secrets",
     cost: 500,
     rarity: "mythic",
-    icon: "💫",
-    content: `LA VERDAD UNIVERSAL
-        
-        No importa cuán diminutos parezcamos frente a la inmensidad del cosmos, 
-        ni cuántos días nublados intenten apagar nuestra fe.
-        No importa cuántas veces caigamos, porque incluso las estrellas más brillantes 
-        se apagan por un instante antes de volver a encenderse.
+    icon: "galaxy",
+    content: `La verdad universal
 
-        Cada uno de nosotros es una constelación irrepetible: 
-        una mezcla imposible de átomos y sueños, el resultado de miles de millones de años de historia cósmica. 
-        Eres polvo de estrellas que aprendió a sentir, a amar, a imaginar.
+No importa cuán pequeños parezcamos frente al cosmos, ni cuántos días nublados intenten apagar la fe.
+No importa cuántas veces caigamos: incluso las estrellas titilan antes de volver a arder.
 
-        El universo entero —con sus 13.8 mil millones de años de creación— conspiró para que tú existieras, 
-        justo aquí, justo ahora.
+Eres una constelación irrepetible: átomos y sueños tejidos por miles de millones de años.
+Polvo de estrellas que aprendió a sentir, amar e imaginar.
 
-        Y eso, solo eso, te convierte en algo infinitamente especial.
-
-        Así que cuando dudes, recuerda: dentro de ti habita la misma energía 
-        que enciende los soles y guía los cometas.
-
-         ya que estás hecha de la misma materia que las estrellas. ✨`,
+El universo conspiró —en el sentido más literal de la física— para que existieras aquí y ahora.
+Cuando dudes, recuerda: dentro de ti late la misma energía que enciende soles y guía cometas.`,
     purchased: false,
   },
-
-  // AVATARES 🎭
   {
     id: "avatar_novice",
-    name: "🌟 Avatar: Explorador Estelar",
-    description: "🎁 x2 PUNTOS por partida | ✨ Aura blanca brillante",
+    name: "Título: Explorador estelar",
+    description: "Multiplicador x2 de puntos. Aura blanca suave.",
     category: "avatars",
     cost: 50,
     rarity: "common",
-    icon: "🌟",
-    content: "TÍTULO DESBLOQUEADO: 🌟 Explorador Estelar 🌟",
-    bonus: {
-      type: "points",
-      multiplier: 2,
-      effect: "white-aura",
-    },
+    icon: "star",
+    content: "Título activo: Explorador estelar",
+    bonus: { type: "points", multiplier: 2, effect: "white-aura" },
     purchased: false,
   },
   {
     id: "avatar_galaxy",
-    name: "🌌 Avatar: Guardián Galáctico",
-    description: "🎁 x2 PUNTOS por partida | ✨ Aura verde brillante",
+    name: "Título: Guardián galáctico",
+    description: "Multiplicador x2 de puntos. Aura verde.",
     category: "avatars",
     cost: 100,
     rarity: "rare",
-    icon: "🌌",
-    content: "TÍTULO DESBLOQUEADO: 🌌 Guardián Galáctico 🌌",
-    bonus: {
-      type: "points",
-      multiplier: 2,
-      effect: "green-aura",
-    },
+    icon: "galaxy",
+    content: "Título activo: Guardián galáctico",
+    bonus: { type: "points", multiplier: 2, effect: "green-aura" },
     purchased: false,
   },
   {
     id: "avatar_legend",
-    name: "👑 Avatar: Leyenda Estelar",
-    description: "🎁 x3 PUNTOS por partida | ⭐ Estrellas doradas flotantes",
+    name: "Título: Leyenda estelar",
+    description: "Multiplicador x3 de puntos. Estelas doradas.",
     category: "avatars",
     cost: 250,
     rarity: "epic",
-    icon: "👑",
-    content: "TÍTULO DESBLOQUEADO: 👑 Leyenda Estelar 👑",
-    bonus: {
-      type: "points",
-      multiplier: 3,
-      effect: "golden-stars",
-    },
+    icon: "crown",
+    content: "Título activo: Leyenda estelar",
+    bonus: { type: "points", multiplier: 3, effect: "golden-stars" },
     purchased: false,
   },
   {
     id: "avatar_cosmic",
-    name: "⭐ Avatar: Emperador Cósmico",
-    description: "🎁 x3 PUNTOS por partida | 💫 Aura arcoíris épica",
+    name: "Título: Emperador cósmico",
+    description: "Multiplicador x3 de puntos. Aura multicolor.",
     category: "avatars",
     cost: 500,
     rarity: "legendary",
-    icon: "⭐",
-    content: "TÍTULO DESBLOQUEADO: ⭐ Emperador Cósmico ⭐",
-    bonus: {
-      type: "points",
-      multiplier: 3,
-      effect: "rainbow-aura",
-    },
+    icon: "spark",
+    content: "Título activo: Emperador cósmico",
+    bonus: { type: "points", multiplier: 3, effect: "rainbow-aura" },
     purchased: false,
   },
   {
     id: "avatar_supreme",
-    name: "💎 Avatar: Supremo del Cosmos",
-    description: "🎁 x4 PUNTOS por partida | 🌈 Aura suprema radiante",
+    name: "Título: Supremo del cosmos",
+    description: "Multiplicador x4 de puntos. Aura suprema.",
     category: "avatars",
     cost: 1000,
     rarity: "mythic",
-    icon: "💎",
-    content: "TÍTULO DESBLOQUEADO: 💎 Supremo del Cosmos 💎",
-    bonus: {
-      type: "points",
-      multiplier: 4,
-      effect: "supreme-aura",
-    },
+    icon: "gem",
+    content: "Título activo: Supremo del cosmos",
+    bonus: { type: "points", multiplier: 4, effect: "supreme-aura" },
     purchased: false,
   },
-
-  // FRASES ESPECIALES 💬
   {
     id: "quote_motivation",
-    name: "💪 Frase: Motivación Diaria",
-    description: "Una frase para inspirarte cada día",
+    name: "Frase: Coraje diario",
+    description: "Una frase clara para sostenerte cuando el día pesa.",
     category: "quotes",
     cost: 50,
     rarity: "common",
-    icon: "💪",
-    content: `"El éxito no es el final, el fracaso no es fatal: es el coraje de continuar lo que cuenta." - Winston Churchill
-        
-        Cada día es una nueva oportunidad para ser mejor. No importa cuántas veces falles, lo que importa es que sigas intentando. Eres más fuerte de lo que crees. 💪`,
+    icon: "quote",
+    content: `"El éxito no es el final, el fracaso no es fatal: es el coraje de continuar lo que cuenta." — Winston Churchill
+
+Cada día es otra oportunidad de volver a intentarlo.
+No mides tu valor por una caída, sino por la decisión de seguir.`,
     purchased: false,
   },
   {
     id: "quote_dreams",
-    name: "🌟 Frase: Persigue Tus Sueños",
-    description: "Palabras sobre la importancia de soñar en grande",
+    name: "Frase: Apunta alto",
+    description: "Palabras para no achicar tus sueños.",
     category: "quotes",
     cost: 75,
     rarity: "rare",
-    icon: "🌟",
-    content: `"Shoot for the moon. Even if you miss, you'll land among the stars." - Norman Vincent Peale
-        
-        Tus sueños no son demasiado grandes. El universo es infinito, y también lo son tus posibilidades. Nunca dejes que nadie te diga que no puedes lograr algo. Las estrellas están esperando que las alcances. 🌟`,
+    icon: "star",
+    content: `"Apunta a la luna. Aunque falles, aterrizarás entre las estrellas." — Norman Vincent Peale
+
+Tus sueños no son excesivos.
+El universo es amplio; tus posibilidades también.
+No entregues tu horizonte solo porque alguien no puede verlo.`,
     purchased: false,
   },
-
-  // CURIOSIDADES 🔬
   {
     id: "fact_space",
-    name: "🚀 Curiosidad: Datos del Espacio",
-    description: "Hechos fascinantes sobre el cosmos",
+    name: "Curiosidad: Datos del espacio",
+    description: "Cinco hechos del cosmos para maravillarte un momento.",
     category: "facts",
     cost: 100,
     rarity: "rare",
-    icon: "🚀",
-    content: `DATOS FASCINANTES DEL ESPACIO 🚀
-        
-        1. Un día en Venus dura más que un año en Venus.
-        
-        2. Existen más estrellas en el universo que granos de arena en todas las playas de la Tierra.
-        
-        3. Si pudieras viajar a la velocidad de la luz, tardarías 100,000 años en cruzar nuestra galaxia.
-        
-        4. En el espacio, el metal puede soldarse solo sin calor ni electricidad (cold welding).
-        
-        5. ¡Eres literalmente polvo de estrellas! Los átomos en tu cuerpo se formaron en el corazón de estrellas antiguas.`,
+    icon: "rocket",
+    content: `Datos del espacio
+
+1. Un día en Venus dura más que un año en Venus.
+2. Hay más estrellas en el universo observable que granos de arena en todas las playas de la Tierra.
+3. A la velocidad de la luz tardarías unos 100.000 años en cruzar la Vía Láctea.
+4. En el vacío, metales limpios pueden soldarse en frío (cold welding).
+5. Los átomos de tu cuerpo se forjaron en estrellas antiguas: eres, literalmente, polvo estelar.`,
     purchased: false,
   },
-
-  // MENSAJES PERSONALES 💌
   {
     id: "message_special",
-    name: "💌 Mensaje:  Especial",
-    description: "Un mensaje personal solo para ti",
+    name: "Mensaje: Para ti",
+    description: "Una carta personal, directa y sin adornos vacíos.",
     category: "messages",
     cost: 300,
     rarity: "legendary",
-    icon: "💌",
-    content: `PARA TI, QUE ESTÁS LEYENDO ESTO:
-        
-    Eres una persona increíblemente especial, una chispa única en el vasto universo.
-    Tu existencia, por improbable que parezca, es un milagro: una posibilidad entre 400 cuatrillones, 
-    elevada a la potencia de 150 000. Y aun así, aquí estás, respirando, sintiendo, dejando huellas invisibles
-     en cada alma que toca tu presencia.
+    icon: "letter",
+    content: `Para ti, que estás leyendo esto
 
-    Cada día que despiertas es una nueva oportunidad para brillar, 
-    para reconstruirte, para recordar que dentro de ti hay un universo entero de luz esperando ser descubierto. 
-    No dejes que las sombras del mundo te hagan olvidar tu esencia, p
-    orque incluso la estrella más pequeña puede iluminar la noche más oscura.
+Eres una presencia irrepetible.
+Existir ya es improbable y, aun así, aquí estás: respirando, sintiendo, dejando huella.
 
-    Eres más fuerte de lo que imaginas, más valioso de lo que crees y más amado de lo que sospechas. 
-    El simple hecho de existir ya es una prueba del poder infinito de la vida. Así que levanta tu mirada,
-     respira hondo y sigue caminando con el corazón encendido.
+Cada amanecer es permiso para reconstruirte y recordar la luz que cargas.
+No dejes que las sombras ajenas te convenzan de apagarla.
 
-    Nunca dejes que nadie apague tu luz. 
-    Brilla, aunque el mundo no siempre entienda tu resplandor. 
-    Brilla, porque tu luz inspira, sana y da sentido a la oscuridad. 💖`,
+Eres más fuerte de lo que imaginas, más valiosa de lo que crees y más querida de lo que sospechas.
+Sigue. Brilla aunque no todos entiendan tu resplandor.
+Tu luz importa.`,
     purchased: false,
   },
 ];
@@ -3497,29 +3422,44 @@ function initShopSystem() {
 
   // Abrir modal de tienda
   shopBtn.addEventListener("click", () => {
-    shopModal.style.display = "block";
-
     if (isMobileDevice()) {
       shopModal.classList.add("mobile-modal");
     } else {
       shopModal.classList.remove("mobile-modal");
     }
 
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.openModal(shopModal);
+    } else {
+      shopModal.style.display = "block";
+    }
+
     renderShopItems();
     updateShopStats();
+    if (typeof UIAnime !== "undefined") {
+      setTimeout(() => UIAnime.staggerList(".shop-item"), 40);
+    }
   });
 
   // Cerrar modal
   shopClose.addEventListener("click", () => {
-    shopModal.style.display = "none";
-    shopModal.classList.remove("mobile-modal");
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.closeModal(shopModal);
+    } else {
+      shopModal.style.display = "none";
+      shopModal.classList.remove("mobile-modal");
+    }
   });
 
   // Cerrar con clic fuera del modal
   window.addEventListener("click", (e) => {
     if (e.target === shopModal) {
-      shopModal.style.display = "none";
-      shopModal.classList.remove("mobile-modal");
+      if (typeof UIAnime !== "undefined") {
+        UIAnime.closeModal(shopModal);
+      } else {
+        shopModal.style.display = "none";
+        shopModal.classList.remove("mobile-modal");
+      }
     }
   });
 
@@ -3550,12 +3490,12 @@ function renderShopItems(category = "all") {
 
     const canAfford = getAvailablePoints() >= item.cost;
     const buttonText = item.purchased
-      ? "✅ Comprado"
+      ? "Canjeado"
       : `Canjear (${item.cost} pts)`;
     const buttonDisabled = item.purchased || !canAfford ? "disabled" : "";
 
     itemEl.innerHTML = `
-            <div class="shop-item-icon">${item.icon}</div>
+            <div class="shop-item-icon">${typeof swIcon === "function" ? swIcon(item.icon, "sw-icon-lg") : ""}</div>
             <div class="shop-item-details">
                 <div class="shop-item-name">${item.name}</div>
                 <div class="shop-item-description">${item.description}</div>
@@ -3627,15 +3567,17 @@ function createEpicPurchaseAnimation(item) {
   // Crear overlay de animación
   const animationOverlay = document.createElement("div");
   animationOverlay.className = "purchase-animation-overlay";
+  const purchaseIcon =
+    typeof swIcon === "function" ? swIcon(item.icon, "sw-icon-xl") : "";
   animationOverlay.innerHTML = `
         <div class="purchase-burst"></div>
         <div class="purchase-content">
-            <div class="purchase-icon">${item.icon}</div>
+            <div class="purchase-icon">${purchaseIcon}</div>
             <div class="purchase-name">${item.name}</div>
-            <div class="purchase-category">${getCategoryEmoji(
+            <div class="purchase-category">${getCategoryIcon(
               item.category
             )} ${getCategoryName(item.category)}</div>
-            <div class="purchase-success">✨ ¡DESBLOQUEADO! ✨</div>
+            <div class="purchase-success">Desbloqueado</div>
         </div>
     `;
 
@@ -3661,7 +3603,11 @@ function createEpicPurchaseAnimation(item) {
 function createPurchaseParticle(container, icon) {
   const particle = document.createElement("div");
   particle.className = "purchase-particle";
-  particle.textContent = icon;
+  if (typeof swIcon === "function") {
+    particle.innerHTML = swIcon(icon || "spark", "sw-icon-sm");
+  } else {
+    particle.textContent = "•";
+  }
 
   const angle = Math.random() * Math.PI * 2;
   const distance = 200 + Math.random() * 300;
@@ -3687,17 +3633,18 @@ function createEnergyRay(container, index) {
   setTimeout(() => ray.remove(), 1500);
 }
 
-// Obtener emoji de categoría
-function getCategoryEmoji(category) {
-  const emojis = {
-    poems: "📜",
-    secrets: "🔮",
-    avatars: "🎭",
-    quotes: "💬",
-    facts: "🔬",
-    messages: "💌",
+// Icono SVG de categoría
+function getCategoryIcon(category) {
+  const icons = {
+    poems: "scroll",
+    secrets: "crystal",
+    avatars: "mask",
+    quotes: "quote",
+    facts: "science",
+    messages: "letter",
   };
-  return emojis[category] || "✨";
+  const key = icons[category] || "spark";
+  return typeof swIcon === "function" ? swIcon(key, "sw-icon-inline") : "";
 }
 
 // Obtener nombre de categoría
@@ -3705,12 +3652,12 @@ function getCategoryName(category) {
   const names = {
     poems: "Poema",
     secrets: "Secreto",
-    avatars: "Avatar",
+    avatars: "Título",
     quotes: "Frase",
     facts: "Curiosidad",
     messages: "Mensaje",
   };
-  return names[category] || "Item";
+  return names[category] || "Ítem";
 }
 
 // Mostrar contenido del item
@@ -3812,8 +3759,10 @@ function createTitleSelector() {
   const titleButton = document.createElement("button");
   titleButton.id = "titleSelectorButton";
   titleButton.className = "title-selector-btn";
-  titleButton.textContent = "👑";
-  titleButton.title = "Seleccionar Título";
+  titleButton.title = "Seleccionar título";
+  titleButton.setAttribute("aria-label", "Seleccionar título");
+  titleButton.innerHTML =
+    typeof swIcon === "function" ? swIcon("crown", "sw-icon-btn") : "T";
 
   titleButton.addEventListener("click", showTitleSelector);
 
@@ -3824,13 +3773,15 @@ function createTitleSelector() {
 function showTitleSelector() {
   const modal = document.createElement("div");
   modal.className = "title-selector-modal";
+  const crown =
+    typeof swIcon === "function" ? swIcon("crown", "sw-icon-inline") : "";
   modal.innerHTML = `
         <div class="title-selector-content">
             <span class="title-selector-close">&times;</span>
-            <h2>👑 Selecciona Tu Título 👑</h2>
+            <h2>${crown} Selecciona tu título</h2>
             <div class="title-selector-subtitle">Cada título otorga bonificaciones especiales</div>
             <div class="titles-grid" id="titlesGrid"></div>
-            <button class="remove-title-btn" onclick="removeActiveTitle()">❌ Quitar Título</button>
+            <button class="remove-title-btn" onclick="removeActiveTitle()">Quitar título</button>
         </div>
     `;
 
@@ -3860,9 +3811,11 @@ function showTitleSelector() {
     let effectText = "";
     if (item.bonus && item.bonus.effect) {
       const effectNames = {
-        "green-aura": "✨ Aura Verde",
-        "golden-stars": "⭐ Estrellas Doradas",
-        "rainbow-aura": "🌈 Aura Arcoíris",
+        "green-aura": "Aura verde",
+        "golden-stars": "Estelas doradas",
+        "rainbow-aura": "Aura multicolor",
+        "white-aura": "Aura blanca",
+        "supreme-aura": "Aura suprema",
       };
       effectText = `<div class="title-effect">${
         effectNames[item.bonus.effect]
@@ -3870,7 +3823,7 @@ function showTitleSelector() {
     }
 
     titleOption.innerHTML = `
-            <div class="title-option-icon">${item.icon}</div>
+            <div class="title-option-icon">${typeof swIcon === "function" ? swIcon(item.icon, "sw-icon-lg") : ""}</div>
             <div class="title-option-text">${item.content}</div>
             ${bonusText}
             ${effectText}
@@ -4005,9 +3958,13 @@ function createTitleParticle(x, y, color, type) {
   particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
 
   if (type === "star") {
-    particle.textContent = "⭐";
     particle.style.backgroundColor = "transparent";
-    particle.style.fontSize = "20px";
+    particle.style.width = "0";
+    particle.style.height = "0";
+    particle.style.borderLeft = "6px solid transparent";
+    particle.style.borderRight = "6px solid transparent";
+    particle.style.borderBottom = `10px solid ${color}`;
+    particle.style.boxShadow = `0 0 12px ${color}`;
   }
 
   document.getElementById("game-container").appendChild(particle);
