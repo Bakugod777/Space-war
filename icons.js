@@ -3,7 +3,7 @@
  */
 (function (global) {
   const ICONS = {
-    moai: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 2.8h8c.7 0 1.2.5 1.2 1.2v4.4c0 .3-.1.5-.2.7l-.8 1.1v8.2c0 .9-.6 1.6-1.4 1.8l-2.5.6c-.8.2-1.6.2-2.4 0l-2.5-.6A1.8 1.8 0 0 1 7.2 18.4V10.2l-.8-1.1c-.1-.2-.2-.4-.2-.7V4c0-.7.5-1.2 1.2-1.2zm1.4 2v2.2h5.2V4.8H9.4zm.9 3.8h1.5v2H10.3v-2zm3.3 0h1.5v2h-1.5v-2zm-3.1 3.6v5.7l1.7.4c.5.1 1 .1 1.5 0l1.7-.4v-5.7h-4.9z"/></svg>`,
+    moai: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 2.5h6c1.1 0 2 .9 2 2v3.8c0 .4-.1.7-.4 1L15.5 11v7.2c0 1.1-.7 2-1.8 2.3l-1.2.3c-.3.1-.7.1-1 0l-1.2-.3A2.3 2.3 0 0 1 8.5 18.2V11L7.4 9.3c-.3-.3-.4-.6-.4-1V4.5c0-1.1.9-2 2-2zm1.2 2.2v2.4h3.6V4.7h-3.6zm.6 4h1.2v1.8h-1.2V8.7zm2.4 0h1.2v1.8h-1.2V8.7zm-2.8 3.5v5.6c0 .3.2.6.5.7l1.1.3c.1 0 .3 0 .4 0l1.1-.3c.3-.1.5-.4.5-.7v-5.6h-3.6z"/></svg>`,
     trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.5 3.5h11v2.2h2.3v2.8a4.8 4.8 0 0 1-3.7 4.7A4.7 4.7 0 0 1 13.2 16v1.3h2.3v2.2H8.5V17.3h2.3V16a4.7 4.7 0 0 1-2.9-2.8 4.8 4.8 0 0 1-3.7-4.7V5.7h2.3V3.5zm0 4.2H6.2v1a2.8 2.8 0 0 0 2.6 2.8V7.7H6.5zm11 0h-2.6v2.8a2.8 2.8 0 0 0 2.6-2.8v-1z"/></svg>`,
     cart: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4.5h2.1l.5 2.1h12.7l-1.7 7.8H8.1L7.7 16h10.4v2H6.2L4 4.5zm4.8 14a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8zm8.2 0a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8z"/></svg>`,
     volume: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-1.8-3.1v6.2A3.5 3.5 0 0 0 15.5 12zM13.7 5.1v1.7a5.5 5.5 0 0 1 0 10.4v1.7a7.2 7.2 0 0 0 0-13.8z"/></svg>`,
