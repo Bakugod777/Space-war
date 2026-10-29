@@ -1581,45 +1581,45 @@ function createDoublePointsEffect(x, y) {
 function showPowerUpNotification(type, x, y) {
   const config = {
     kit: {
-      text: "💚 CURACIÓN +1 💚",
+      text: "Curación +1",
       color: "#2ecc71",
-      particles: ["❤️", "💚", "✨", "⭐"],
+      particles: ["+", "+", "+"],
       className: "powerup-notification-green"
     },
     xiao: {
-      text: "💚 CORAZÓN EXTRA 💚",
+      text: "Corazón extra",
       color: "#2ecc71",
-      particles: ["💚", "✨", "⭐", "💎"],
+      particles: ["+", "+", "+"],
       className: "powerup-notification-green"
     },
     arlee: {
-      text: "🔥 DISPARO RÁPIDO 🔥",
+      text: "Disparo rápido",
       color: "#ff5722",
-      particles: ["🔥", "⚡", "✨", "💥"],
+      particles: ["»", "»", "»"],
       className: "powerup-notification-red"
     },
     cyno: {
-      text: "🛡️ INVULNERABILIDAD 🛡️",
+      text: "Invulnerabilidad",
       color: "#00ffff",
-      particles: ["🛡️", "⚡", "✨", "💎"],
+      particles: ["○", "○", "○"],
       className: "powerup-notification-cyan"
     },
     flins: {
-      text: "✨ PUNTOS x2 ✨",
+      text: "Puntos x2",
       color: "#FFD700",
-      particles: ["💰", "💎", "⭐", "✨"],
+      particles: ["×", "×", "×"],
       className: "powerup-notification-gold"
     },
     rerir: {
-      text: "💙 CORAZÓN TEMPORAL 💙",
+      text: "Corazón temporal",
       color: "#00BFFF",
-      particles: ["💙", "💎", "⭐", "✨"],
+      particles: ["+", "+", "+"],
       className: "powerup-notification-blue"
     },
     ifa: {
-      text: "🟣 DISPARO LENTO 🟣",
+      text: "Disparo lento",
       color: "#9b59b6",
-      particles: ["🟣", "💀", "⚠️", "❌"],
+      particles: ["…", "…", "…"],
       className: "powerup-notification-purple"
     }
   };
@@ -2186,136 +2186,135 @@ let playerStats = {
 
 // Definición de todos los logros épicos
 const achievements = [
-  // COMBATE ⚔️
   {
     id: "first_blood",
-    name: "🗡️ Primera Sangre",
-    description: "Destruye tu primer enemigo",
+    name: "Primera señal",
+    description: "Destruye tu primer enemigo en combate.",
     category: "combat",
     rarity: "common",
     points: 10,
-    icon: "⚔️",
+    icon: "sword",
     condition: () => playerStats.totalKills >= 1,
     unlocked: false,
   },
   {
     id: "newbie_killer",
-    name: "🔪 Asesino Novato",
-    description: "Destruye 5 enemigos",
+    name: "Cadete de combate",
+    description: "Elimina 5 enemigos.",
     category: "combat",
     rarity: "common",
     points: 15,
-    icon: "🔪",
+    icon: "sword",
     condition: () => playerStats.totalKills >= 5,
     unlocked: false,
   },
   {
     id: "marksman",
-    name: "🎯 Tirador Experto",
-    description: "Dispara 100 veces",
+    name: "Puntería firme",
+    description: "Dispara 100 veces.",
     category: "combat",
     rarity: "common",
     points: 15,
-    icon: "🎯",
+    icon: "target",
     condition: () => playerStats.totalShots >= 100,
     unlocked: false,
   },
   {
     id: "trigger_happy",
-    name: "💥 Gatillo Alegre",
-    description: "Dispara 25 veces",
+    name: "Ráfaga inicial",
+    description: "Dispara 25 veces.",
     category: "combat",
     rarity: "common",
     points: 10,
-    icon: "💥",
+    icon: "blast",
     condition: () => playerStats.totalShots >= 25,
     unlocked: false,
   },
   {
     id: "slayer",
-    name: "💀 Exterminador",
-    description: "Destruye 50 enemigos",
+    name: "Cazadora orbital",
+    description: "Destruye 50 enemigos.",
     category: "combat",
     rarity: "rare",
     points: 25,
-    icon: "💀",
+    icon: "skull",
     condition: () => playerStats.totalKills >= 50,
     unlocked: false,
   },
   {
     id: "genocide",
-    name: "☠️ Genocidio Espacial",
-    description: "Destruye 500 enemigos",
+    name: "Tormenta del vacío",
+    description: "Destruye 500 enemigos.",
     category: "combat",
     rarity: "epic",
     points: 50,
-    icon: "☠️",
+    icon: "skull",
     condition: () => playerStats.totalKills >= 500,
     unlocked: false,
   },
   {
     id: "killing_spree",
-    name: "🔥 Masacre Espacial",
-    description: "Mata 10 enemigos consecutivos sin recibir daño",
+    name: "Racha encendida",
+    description: "Elimina 10 enemigos seguidos sin recibir daño.",
     category: "combat",
     rarity: "rare",
     points: 30,
-    icon: "🔥",
+    icon: "fire",
     condition: () => playerStats.maxConsecutiveKills >= 10,
     unlocked: false,
   },
   {
     id: "unstoppable",
-    name: "⚡ Imparable",
-    description: "Mata 25 enemigos consecutivos sin recibir daño",
+    name: "Imparable",
+    description: "Elimina 25 enemigos seguidos sin recibir daño.",
     category: "combat",
     rarity: "epic",
     points: 75,
-    icon: "⚡",
+    icon: "bolt",
     condition: () => playerStats.maxConsecutiveKills >= 25,
     unlocked: false,
   },
   {
     id: "boss_slayer",
-    name: "👑 Matador de Jefes",
-    description: "Derrota tu primer boss",
+    name: "Cazadora de jefes",
+    description: "Derrota a tu primer jefe.",
     category: "combat",
     rarity: "epic",
     points: 100,
-    icon: "👑",
+    icon: "crown",
     condition: () => playerStats.bossesKilled >= 1,
     unlocked: false,
   },
   {
     id: "boss_destroyer",
-    name: "🐉 Destructor de Titanes",
-    description: "Derrota 5 bosses",
+    name: "Rompetitanes",
+    description: "Derrota 5 jefes.",
     category: "combat",
     rarity: "legendary",
     points: 200,
-    icon: "🐉",
+    icon: "dragon",
     condition: () => playerStats.bossesKilled >= 5,
     unlocked: false,
   },
   {
     id: "meteor_master",
-    name: "☄️ Maestro de Meteoritos",
-    description: "Destruye 20 meteoritos",
+    name: "Rompecometas",
+    description: "Destruye 20 meteoritos.",
     category: "combat",
     rarity: "rare",
     points: 40,
-    icon: "☄️",
+    icon: "meteor",
     condition: () => playerStats.meteorsDestroyed >= 20,
     unlocked: false,
   },
   {
     id: "diversified_killer",
-    name: "🎭 Exterminador Diverso",
-    description: "Mata al menos 10 enemigos de cada tipo",
+    name: "Arsenal completo",
+    description: "Elimina al menos 10 enemigos de cada tipo principal.",
     category: "combat",
     rarity: "epic",
     points: 60,
-    icon: "🎭",
+    icon: "mask",
     condition: () => {
       const types = playerStats.enemyTypesKilled;
       return (
@@ -2327,172 +2326,168 @@ const achievements = [
     },
     unlocked: false,
   },
-
-  // SUPERVIVENCIA 🛡️
   {
     id: "survivor",
-    name: "🛡️ Superviviente",
-    description: "Sobrevive 5 minutos en una partida",
+    name: "Superviviente",
+    description: "Acumula 5 minutos de vuelo en total.",
     category: "survival",
     rarity: "common",
     points: 20,
-    icon: "🛡️",
-    condition: () => playerStats.totalGameTime >= 300000, // 5 minutos en ms
+    icon: "shield",
+    condition: () => playerStats.totalGameTime >= 300000,
     unlocked: false,
   },
   {
     id: "marathon_runner",
-    name: "🏃 Corredor de Maratón",
-    description: "Juega por un total de 1 hora",
+    name: "Órbita larga",
+    description: "Juega durante 1 hora en total.",
     category: "survival",
     rarity: "rare",
     points: 50,
-    icon: "🏃",
-    condition: () => playerStats.totalGameTime >= 3600000, // 1 hora en ms
+    icon: "run",
+    condition: () => playerStats.totalGameTime >= 3600000,
     unlocked: false,
   },
   {
     id: "level_master",
-    name: "🌟 Maestro de Niveles",
-    description: "Alcanza el nivel 20",
+    name: "Maestra de niveles",
+    description: "Alcanza el nivel 20.",
     category: "survival",
     rarity: "epic",
     points: 80,
-    icon: "🌟",
+    icon: "star",
     condition: () => playerStats.maxLevel >= 20,
     unlocked: false,
   },
   {
     id: "level_god",
-    name: "⭐ Dios de los Niveles",
-    description: "Alcanza el nivel 50",
+    name: "Cima estelar",
+    description: "Alcanza el nivel 50.",
     category: "survival",
     rarity: "legendary",
     points: 150,
-    icon: "⭐",
+    icon: "spark",
     condition: () => playerStats.maxLevel >= 50,
     unlocked: false,
   },
   {
     id: "untouchable",
-    name: "👻 Intocable",
-    description: "Sobrevive 2 minutos sin recibir daño",
+    name: "Intocable",
+    description: "Mantente 2 minutos sin recibir daño.",
     category: "survival",
     rarity: "epic",
     points: 70,
-    icon: "👻",
-    condition: () => playerStats.maxTimeWithoutDamage >= 120000, // 2 minutos
+    icon: "ghost",
+    condition: () => playerStats.maxTimeWithoutDamage >= 120000,
     unlocked: false,
   },
   {
     id: "iron_will",
-    name: "🔨 Voluntad de Hierro",
-    description: "Completa un nivel sin recibir daño",
+    name: "Voluntad de hierro",
+    description: "Completa un nivel sin recibir daño.",
     category: "survival",
     rarity: "rare",
     points: 35,
-    icon: "🔨",
+    icon: "hammer",
     condition: () => playerStats.perfectLevels >= 1,
     unlocked: false,
   },
   {
     id: "perfectionist",
-    name: "💎 Perfeccionista",
-    description: "Completa 5 niveles sin recibir daño",
+    name: "Perfección orbital",
+    description: "Completa 5 niveles sin recibir daño.",
     category: "survival",
     rarity: "epic",
     points: 100,
-    icon: "💎",
+    icon: "gem",
     condition: () => playerStats.perfectLevels >= 5,
     unlocked: false,
   },
   {
     id: "heart_collector",
-    name: "❤️ Coleccionista de Corazones",
-    description: "Alcanza 6 corazones de vida",
+    name: "Reserva vital",
+    description: "Alcanza 6 corazones de vida.",
     category: "survival",
     rarity: "rare",
     points: 40,
-    icon: "❤️",
+    icon: "heart",
     condition: () => playerStats.maxHearts >= 6,
     unlocked: false,
   },
-
-  // COLECCIÓN 💎
   {
     id: "first_powerup",
-    name: "🎁 Primer Power-Up",
-    description: "Recolecta tu primer power-up",
+    name: "Primera mejora",
+    description: "Recolecta tu primer power-up.",
     category: "collection",
     rarity: "common",
     points: 10,
-    icon: "🎁",
+    icon: "gift",
     condition: () => playerStats.powerUpsCollected >= 1,
     unlocked: false,
   },
   {
     id: "powerup_addict",
-    name: "💊 Adicto a los Power-Ups",
-    description: "Recolecta 50 power-ups",
+    name: "Ingeniera de suministros",
+    description: "Recolecta 50 power-ups.",
     category: "collection",
     rarity: "rare",
     points: 30,
-    icon: "💊",
+    icon: "capsule",
     condition: () => playerStats.powerUpsCollected >= 50,
     unlocked: false,
   },
   {
     id: "xiao_fan",
-    name: "🍃 Fan de Xiao",
-    description: "Recolecta 10 power-ups de Xiao",
+    name: "Aliada de Xiao",
+    description: "Recolecta 10 power-ups de Xiao.",
     category: "collection",
     rarity: "rare",
     points: 25,
-    icon: "🍃",
+    icon: "leaf",
     condition: () => playerStats.xiaosCollected >= 10,
     unlocked: false,
   },
   {
     id: "arlee_enthusiast",
-    name: "🏹 Entusiasta de Arlee",
-    description: "Recolecta 10 power-ups de Arlee",
+    name: "Ritmo de Arlee",
+    description: "Recolecta 10 power-ups de Arlee.",
     category: "collection",
     rarity: "rare",
     points: 25,
-    icon: "🏹",
+    icon: "bow",
     condition: () => playerStats.arleesCollected >= 10,
     unlocked: false,
   },
   {
     id: "cyno_devotee",
-    name: "⚡ Devoto de Cyno",
-    description: "Recolecta 10 power-ups de Cyno",
+    name: "Pacto de Cyno",
+    description: "Recolecta 10 power-ups de Cyno.",
     category: "collection",
     rarity: "rare",
     points: 25,
-    icon: "⚡",
+    icon: "bolt",
     condition: () => playerStats.cynosCollected >= 10,
     unlocked: false,
   },
   {
     id: "flins_fortune",
-    name: "💰 Fortuna de Flins",
-    description: "Recolecta 5 power-ups de Flins para duplicar puntos",
+    name: "Fortuna de Flins",
+    description: "Recolecta 5 power-ups de Flins.",
     category: "collection",
     rarity: "epic",
     points: 40,
-    icon: "💰",
+    icon: "coin",
     condition: () => playerStats.flinsCollected >= 5,
     unlocked: false,
   },
   {
     id: "genshin_collector",
-    name: "🌸 Coleccionista de Genshin",
-    description: "Recolecta al menos 3 de cada power-up especial",
+    name: "Colección especial",
+    description: "Consigue al menos 3 de cada power-up especial.",
     category: "collection",
     rarity: "epic",
     points: 75,
-    icon: "🌸",
+    icon: "blossom",
     condition: () =>
       playerStats.xiaosCollected >= 3 &&
       playerStats.arleesCollected >= 3 &&
@@ -2502,182 +2497,178 @@ const achievements = [
   },
   {
     id: "medic",
-    name: "🏥 Médico Espacial",
-    description: "Recolecta 25 kits de salud",
+    name: "Médica de flota",
+    description: "Recolecta 25 kits de salud.",
     category: "collection",
     rarity: "common",
     points: 20,
-    icon: "🏥",
+    icon: "medkit",
     condition: () => playerStats.kitsCollected >= 25,
     unlocked: false,
   },
-
-  // MAESTRÍA 👑
   {
     id: "first_points",
-    name: "🎯 Primeros Puntos",
-    description: "Acumula 1,000 puntos totales",
+    name: "Primeros puntos",
+    description: "Acumula 1.000 puntos en total.",
     category: "mastery",
     rarity: "common",
     points: 10,
-    icon: "🎯",
+    icon: "target",
     condition: () => playerStats.cumulativeScore >= 1000,
     unlocked: false,
   },
   {
     id: "point_collector",
-    name: "💰 Coleccionista de Puntos",
-    description: "Acumula 5,000 puntos totales",
+    name: "Contadora de estrellas",
+    description: "Acumula 5.000 puntos en total.",
     category: "mastery",
     rarity: "common",
     points: 20,
-    icon: "💰",
+    icon: "coin",
     condition: () => playerStats.cumulativeScore >= 5000,
     unlocked: false,
   },
   {
     id: "high_scorer",
-    name: "📊 Puntuador Alto",
-    description: "Acumula 10,000 puntos totales",
+    name: "Puntuación alta",
+    description: "Acumula 10.000 puntos en total.",
     category: "mastery",
     rarity: "rare",
     points: 40,
-    icon: "📊",
+    icon: "chart",
     condition: () => playerStats.cumulativeScore >= 10000,
     unlocked: false,
   },
   {
     id: "score_enthusiast",
-    name: "🎪 Entusiasta de la Puntuación",
-    description: "Acumula 25,000 puntos totales",
+    name: "Sed de marcas",
+    description: "Acumula 25.000 puntos en total.",
     category: "mastery",
     rarity: "rare",
     points: 60,
-    icon: "🎪",
+    icon: "spark",
     condition: () => playerStats.cumulativeScore >= 25000,
     unlocked: false,
   },
   {
     id: "score_master",
-    name: "🏆 Maestro de Puntuación",
-    description: "Acumula 50,000 puntos totales",
+    name: "Maestra del marcador",
+    description: "Acumula 50.000 puntos en total.",
     category: "mastery",
     rarity: "epic",
     points: 100,
-    icon: "🏆",
+    icon: "trophy",
     condition: () => playerStats.cumulativeScore >= 50000,
     unlocked: false,
   },
   {
     id: "score_legend",
-    name: "🌟 Leyenda de la Puntuación",
-    description: "Acumula 100,000 puntos totales",
+    name: "Leyenda del marcador",
+    description: "Acumula 100.000 puntos en total.",
     category: "mastery",
     rarity: "legendary",
     points: 200,
-    icon: "🌟",
+    icon: "star",
     condition: () => playerStats.cumulativeScore >= 100000,
     unlocked: false,
   },
   {
     id: "score_god",
-    name: "⭐ Dios de la Puntuación",
-    description: "Acumula 500,000 puntos totales",
+    name: "Soberana del marcador",
+    description: "Acumula 500.000 puntos en total.",
     category: "mastery",
     rarity: "mythic",
     points: 500,
-    icon: "⭐",
+    icon: "spark",
     condition: () => playerStats.cumulativeScore >= 500000,
     unlocked: false,
   },
   {
     id: "score_transcendent",
-    name: "🌌 Trascendente de la Puntuación",
-    description: "Acumula 1,000,000 puntos totales",
+    name: "Trascendencia",
+    description: "Acumula 1.000.000 puntos en total.",
     category: "mastery",
     rarity: "mythic",
     points: 1000,
-    icon: "🌌",
+    icon: "galaxy",
     condition: () => playerStats.cumulativeScore >= 1000000,
     unlocked: false,
   },
   {
     id: "veteran",
-    name: "🎖️ Veterano",
-    description: "Juega 50 partidas",
+    name: "Veterana",
+    description: "Juega 50 partidas.",
     category: "mastery",
     rarity: "rare",
     points: 30,
-    icon: "🎖️",
+    icon: "medal",
     condition: () => playerStats.gamesPlayed >= 50,
     unlocked: false,
   },
   {
     id: "dedicated_player",
-    name: "🏅 Jugador Dedicado",
-    description: "Juega 100 partidas",
+    name: "Piloto dedicado",
+    description: "Juega 100 partidas.",
     category: "mastery",
     rarity: "epic",
     points: 60,
-    icon: "🏅",
+    icon: "medal",
     condition: () => playerStats.gamesPlayed >= 100,
     unlocked: false,
   },
-
-  // SECRETOS 🌟
   {
     id: "ifa_victim",
-    name: "🔮 Víctima de Ifa",
-    description: "Sé afectado por el debuff de Ifa",
+    name: "Eco de Ifa",
+    description: "Sufre el efecto de ralentización de Ifa.",
     category: "secret",
     rarity: "rare",
     points: 25,
-    icon: "🔮",
+    icon: "crystal",
     condition: () => playerStats.enemyTypesKilled.ifa >= 1,
     unlocked: false,
   },
   {
     id: "xiao_weapon_hunter",
-    name: "🗡️ Cazador de Armas Xiao",
-    description: "Destruye 5 enemigos tipo Xiao Weapon",
+    name: "Cazadora de armas Xiao",
+    description: "Destruye 5 enemigos tipo Xiao Weapon.",
     category: "secret",
     rarity: "epic",
     points: 50,
-    icon: "🗡️",
+    icon: "sword",
     condition: () => playerStats.enemyTypesKilled.xiao_weapon >= 5,
     unlocked: false,
   },
   {
     id: "moai_friend",
-    name: "🗿 Amigo del Moai",
-    description: "Haz clic en el Moai 10 veces",
+    name: "Confidente del Moai",
+    description: "Consulta al Moai 10 veces.",
     category: "secret",
     rarity: "common",
     points: 15,
-    icon: "🗿",
+    icon: "moai",
     condition: () => parseInt(localStorage.getItem("moaiClicks") || "0") >= 10,
     unlocked: false,
   },
   {
     id: "achievement_hunter",
-    name: "🏆 Cazador de Logros",
-    description: "Abre el panel de logros por primera vez",
+    name: "Archivera de hazañas",
+    description: "Abre el panel de logros por primera vez.",
     category: "secret",
     rarity: "common",
     points: 5,
-    icon: "🏆",
+    icon: "trophy",
     condition: () =>
       parseInt(localStorage.getItem("achievementsOpened") || "0") >= 1,
     unlocked: false,
   },
   {
     id: "completionist",
-    name: "💯 Completista",
-    description: "Desbloquea el 80% de todos los logros",
+    name: "Casi completa",
+    description: "Desbloquea el 80% de todos los logros.",
     category: "secret",
     rarity: "mythic",
     points: 500,
-    icon: "💯",
+    icon: "check",
     condition: () => {
       const unlockedCount = achievements.filter((a) => a.unlocked).length;
       const totalCount = achievements.length;
@@ -2687,17 +2678,17 @@ const achievements = [
   },
   {
     id: "legend",
-    name: "🌟 Leyenda Viviente",
-    description: "Desbloquea TODOS los logros",
+    name: "Leyenda viviente",
+    description: "Desbloquea todos los logros.",
     category: "secret",
     rarity: "mythic",
     points: 1000,
-    icon: "🌟",
+    icon: "star",
     condition: () => {
       const unlockedCount = achievements.filter(
         (a) => a.id !== "legend" && a.unlocked
       ).length;
-      const totalCount = achievements.length - 1; // Excluir este mismo logro
+      const totalCount = achievements.length - 1;
       return unlockedCount === totalCount;
     },
     unlocked: false,
@@ -2770,6 +2761,11 @@ function showAchievementNotification(achievement) {
   nameEl.textContent = achievement.name;
   descEl.textContent = achievement.description;
   pointsEl.textContent = `+${achievement.points} puntos`;
+
+  const notifIcon = notification.querySelector(".notification-icon");
+  if (notifIcon && typeof swIcon === "function") {
+    notifIcon.innerHTML = swIcon(achievement.icon || "trophy", "sw-icon-lg");
+  }
 
   // Añadir clase específica para móviles
   if (isMobileDevice()) {
@@ -2902,8 +2898,12 @@ function renderAchievements(category = "all") {
 
     const progress = getAchievementProgress(achievement);
 
+    const iconHtml =
+      typeof swIcon === "function"
+        ? swIcon(achievement.icon, "sw-icon-lg")
+        : "";
     achievementEl.innerHTML = `
-            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-icon">${iconHtml}</div>
             <div class="achievement-details">
                 <div class="achievement-name">${achievement.name}</div>
                 <div class="achievement-description">${achievement.description}</div>
@@ -2919,7 +2919,7 @@ function renderAchievements(category = "all") {
 
 // Obtener progreso del logro
 function getAchievementProgress(achievement) {
-  if (achievement.unlocked) return "✅ Desbloqueado";
+  if (achievement.unlocked) return "Desbloqueado";
 
   // Progreso específico para cada logro
   switch (achievement.id) {
@@ -3135,307 +3135,237 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Catálogo de items de la tienda
 const shopItems = [
-  // POEMAS 📜
   {
     id: "poem_stars",
-    name: "✨ Poema: Entre Las Estrellas",
-    description: "Un hermoso poema sobre viajes espaciales y sueños",
+    name: "Poema: Entre las estrellas",
+    description: "Un poema íntimo sobre viajes, distancia y esperanza.",
     category: "poems",
     cost: 50,
     rarity: "common",
-    icon: "✨",
-    content: `🎁 ¡FELICIDADES! 🎁
+    icon: "scroll",
+    content: `Canje desbloqueado: Entre las estrellas
 
-            Has desbloqueado un poema especial.
+Toma una captura de esta ventana y envíasela a Manuel (Administrador Estelar).
 
-            📸 TOMA UNA CAPTURA DE PANTALLA DE ESTA VENTANA 📸
-
-            Luego, envíala al Administrador Estelar (Manuel) para reclamar tu poema personalizado "Entre Las Estrellas".
-
-            Este es un regalo único y especial, escrito con el corazón, solo para ti. ✨
-
-            El Administrador Estelar te entregará tu poema cuando presentes esta prueba de desbloqueo. 💫`,
+A cambio recibirás un poema escrito para ti.
+Guarda esta prueba: es tu llave de canje.`,
     purchased: false,
   },
   {
     id: "poem_warrior",
-    name: "⚔️ Poema: Guerrero del Cosmos",
-    description: "Versos épicos sobre la batalla y el valor",
+    name: "Poema: Guerrero del cosmos",
+    description: "Versos sobre coraje, batalla y sostenerse en pie.",
     category: "poems",
     cost: 75,
     rarity: "rare",
-    icon: "⚔️",
-    content: `🎁 ¡FELICIDADES! 🎁
+    icon: "sword",
+    content: `Canje desbloqueado: Guerrero del cosmos
 
-        Has desbloqueado un poema épico.
+Captura esta pantalla y envíasela a Manuel.
 
-        📸 TOMA UNA CAPTURA DE PANTALLA DE ESTA VENTANA 📸
-
-        Luego, envíala al Administrador Estelar (Manuel) para reclamar tu poema personalizado "Guerrero del Cosmos".
-
-        Este es un regalo único y especial, escrito con el corazón, solo para ti. ⚔️
-
-        El Administrador Estelar te entregará tu poema cuando presentes esta prueba de desbloqueo. 💫`,
+Recibirás un poema épico personalizado.
+Esta ventana es tu comprobante de desbloqueo.`,
     purchased: false,
   },
   {
     id: "poem_love",
-    name: "💖 Poema:Cósmico",
-    description: "Palabras de amor que trascienden el espacio y el tiempo",
+    name: "Poema: Amor cósmico",
+    description: "Palabras profundas sobre querer a través de cualquier distancia.",
     category: "poems",
     cost: 100,
     rarity: "epic",
-    icon: "💖",
-    content: `🎁 ¡FELICIDADES! 🎁
+    icon: "heart",
+    content: `Canje desbloqueado: Amor cósmico
 
-        Has desbloqueado el poema más especial de todos.
+Captura esta ventana y compártela con Manuel.
 
-        📸 TOMA UNA CAPTURA DE PANTALLA DE ESTA VENTANA 📸
-
-        Luego, envíala al Administrador Estelar (Manuel) para reclamar tu poema personalizado "Amor Cósmico".
-
-        Este es un regalo único y especial, escrito con el corazón, solo para ti. 💖
-
-        El Administrador Estelar te entregará tu poema cuando presentes esta prueba de desbloqueo. 💫
-
-        (Este poema es particularmente especial y profundo)`,
+Este poema es el más íntimo de la colección.
+Preséntalo para recibir tu pieza escrita a mano del corazón.`,
     purchased: false,
   },
-
-  // SECRETOS 🔮
   {
     id: "secret_dev",
-    name: "🔮 Secreto: Mensaje del Desarrollador",
-    description: "Un mensaje especial del creador del juego",
+    name: "Secreto: Nota del creador",
+    description: "Un mensaje directo de quien construyó este universo.",
     category: "secrets",
     cost: 150,
     rarity: "epic",
-    icon: "🔮",
-    content: `¡Hola! Soy Manuel, el desarrollador de Space War.
-        
-        Este juego fue creado con mucho cariño para alguien muy especial. Cada línea de código, cada efecto visual, cada pequeño detalle fue pensado para hacerte sonreír.
-        
-        Quiero que sepas que eres increíble, única y maravillosa. Los días difíciles pasarán, pero tu luz siempre brillará. Eres más fuerte de lo que crees y más valiosa de lo que imaginas.
-        
-        Gracias por jugar mi pequeña creación. Espero que te traiga alegría y te recuerde lo especial que eres. ❤️
-        
-        Con todo mi cariño,
-        Manuel`,
+    icon: "crystal",
+    content: `Hola. Soy Manuel, quien armó Space War.
+
+Hice este juego con cariño, pensando en alguien concreto: tú.
+Cada efecto, cada detalle y cada línea buscan dejarte un respiro y una sonrisa.
+
+Quiero que sepas que eres valiosa, fuerte y luminosa.
+Los días difíciles pasan; tu luz no.
+
+Gracias por jugar esta pequeña creación.
+Con cariño,
+Manuel`,
     purchased: false,
   },
   {
     id: "secret_easteregg",
-    name: "🥚 Secreto: Easter Egg",
-    description: "Un secreto oculto del juego",
+    name: "Secreto: Archivo oculto",
+    description: "Pistas internas del juego y de sus rincones secretos.",
     category: "secrets",
     cost: 200,
     rarity: "legendary",
-    icon: "🥚",
-    content: `🎮 SECRETOS DEL JUEGO 🎮
-        
-        1. Si disparas exactamente 777 veces en una partida, aparecerá un mensaje especial.
+    icon: "egg",
+    content: `Archivo oculto de Space War
 
-        2. Los power-ups de Genshin Impact (Xiao, Arlee, Cyno, Flins) están colocados para cierta personita especial.
-
-        3. El Moai no solo da mensajes motivacionales, también cuenta cuántas veces lo has clickeado para un logro secreto.
-        
-        4. Hay exactamente ${achievements.length} logros en total, pero algunos son casi imposibles de conseguir...
-        
-        5. Este mensaje es uno de los items más raros de la tienda. ¡Felicidades por desbloquearlo!`,
+1. Disparar exactamente 777 veces en una partida puede revelar un mensaje especial.
+2. Los power-ups especiales (Xiao, Arlee, Cyno, Flins) están pensados como guiños personales.
+3. El Moai también lleva la cuenta de tus visitas para un logro secreto.
+4. Hay ${achievements.length} logros en total; algunos exigen paciencia real.
+5. Si estás leyendo esto, ya desbloqueaste uno de los canjes más raros.`,
     purchased: false,
   },
   {
     id: "secret_truth",
-    name: "💫 Secreto: La Verdad Universal",
-    description: "El secreto más profundo del cosmos",
+    name: "Secreto: Verdad universal",
+    description: "Una reflexión serena sobre existir frente al cosmos.",
     category: "secrets",
     cost: 500,
     rarity: "mythic",
-    icon: "💫",
-    content: `LA VERDAD UNIVERSAL
-        
-        No importa cuán diminutos parezcamos frente a la inmensidad del cosmos, 
-        ni cuántos días nublados intenten apagar nuestra fe.
-        No importa cuántas veces caigamos, porque incluso las estrellas más brillantes 
-        se apagan por un instante antes de volver a encenderse.
+    icon: "galaxy",
+    content: `La verdad universal
 
-        Cada uno de nosotros es una constelación irrepetible: 
-        una mezcla imposible de átomos y sueños, el resultado de miles de millones de años de historia cósmica. 
-        Eres polvo de estrellas que aprendió a sentir, a amar, a imaginar.
+No importa cuán pequeños parezcamos frente al cosmos, ni cuántos días nublados intenten apagar la fe.
+No importa cuántas veces caigamos: incluso las estrellas titilan antes de volver a arder.
 
-        El universo entero —con sus 13.8 mil millones de años de creación— conspiró para que tú existieras, 
-        justo aquí, justo ahora.
+Eres una constelación irrepetible: átomos y sueños tejidos por miles de millones de años.
+Polvo de estrellas que aprendió a sentir, amar e imaginar.
 
-        Y eso, solo eso, te convierte en algo infinitamente especial.
-
-        Así que cuando dudes, recuerda: dentro de ti habita la misma energía 
-        que enciende los soles y guía los cometas.
-
-         ya que estás hecha de la misma materia que las estrellas. ✨`,
+El universo conspiró —en el sentido más literal de la física— para que existieras aquí y ahora.
+Cuando dudes, recuerda: dentro de ti late la misma energía que enciende soles y guía cometas.`,
     purchased: false,
   },
-
-  // AVATARES 🎭
   {
     id: "avatar_novice",
-    name: "🌟 Avatar: Explorador Estelar",
-    description: "🎁 x2 PUNTOS por partida | ✨ Aura blanca brillante",
+    name: "Título: Explorador estelar",
+    description: "Multiplicador x2 de puntos. Aura blanca suave.",
     category: "avatars",
     cost: 50,
     rarity: "common",
-    icon: "🌟",
-    content: "TÍTULO DESBLOQUEADO: 🌟 Explorador Estelar 🌟",
-    bonus: {
-      type: "points",
-      multiplier: 2,
-      effect: "white-aura",
-    },
+    icon: "star",
+    content: "Título activo: Explorador estelar",
+    bonus: { type: "points", multiplier: 2, effect: "white-aura" },
     purchased: false,
   },
   {
     id: "avatar_galaxy",
-    name: "🌌 Avatar: Guardián Galáctico",
-    description: "🎁 x2 PUNTOS por partida | ✨ Aura verde brillante",
+    name: "Título: Guardián galáctico",
+    description: "Multiplicador x2 de puntos. Aura verde.",
     category: "avatars",
     cost: 100,
     rarity: "rare",
-    icon: "🌌",
-    content: "TÍTULO DESBLOQUEADO: 🌌 Guardián Galáctico 🌌",
-    bonus: {
-      type: "points",
-      multiplier: 2,
-      effect: "green-aura",
-    },
+    icon: "galaxy",
+    content: "Título activo: Guardián galáctico",
+    bonus: { type: "points", multiplier: 2, effect: "green-aura" },
     purchased: false,
   },
   {
     id: "avatar_legend",
-    name: "👑 Avatar: Leyenda Estelar",
-    description: "🎁 x3 PUNTOS por partida | ⭐ Estrellas doradas flotantes",
+    name: "Título: Leyenda estelar",
+    description: "Multiplicador x3 de puntos. Estelas doradas.",
     category: "avatars",
     cost: 250,
     rarity: "epic",
-    icon: "👑",
-    content: "TÍTULO DESBLOQUEADO: 👑 Leyenda Estelar 👑",
-    bonus: {
-      type: "points",
-      multiplier: 3,
-      effect: "golden-stars",
-    },
+    icon: "crown",
+    content: "Título activo: Leyenda estelar",
+    bonus: { type: "points", multiplier: 3, effect: "golden-stars" },
     purchased: false,
   },
   {
     id: "avatar_cosmic",
-    name: "⭐ Avatar: Emperador Cósmico",
-    description: "🎁 x3 PUNTOS por partida | 💫 Aura arcoíris épica",
+    name: "Título: Emperador cósmico",
+    description: "Multiplicador x3 de puntos. Aura multicolor.",
     category: "avatars",
     cost: 500,
     rarity: "legendary",
-    icon: "⭐",
-    content: "TÍTULO DESBLOQUEADO: ⭐ Emperador Cósmico ⭐",
-    bonus: {
-      type: "points",
-      multiplier: 3,
-      effect: "rainbow-aura",
-    },
+    icon: "spark",
+    content: "Título activo: Emperador cósmico",
+    bonus: { type: "points", multiplier: 3, effect: "rainbow-aura" },
     purchased: false,
   },
   {
     id: "avatar_supreme",
-    name: "💎 Avatar: Supremo del Cosmos",
-    description: "🎁 x4 PUNTOS por partida | 🌈 Aura suprema radiante",
+    name: "Título: Supremo del cosmos",
+    description: "Multiplicador x4 de puntos. Aura suprema.",
     category: "avatars",
     cost: 1000,
     rarity: "mythic",
-    icon: "💎",
-    content: "TÍTULO DESBLOQUEADO: 💎 Supremo del Cosmos 💎",
-    bonus: {
-      type: "points",
-      multiplier: 4,
-      effect: "supreme-aura",
-    },
+    icon: "gem",
+    content: "Título activo: Supremo del cosmos",
+    bonus: { type: "points", multiplier: 4, effect: "supreme-aura" },
     purchased: false,
   },
-
-  // FRASES ESPECIALES 💬
   {
     id: "quote_motivation",
-    name: "💪 Frase: Motivación Diaria",
-    description: "Una frase para inspirarte cada día",
+    name: "Frase: Coraje diario",
+    description: "Una frase clara para sostenerte cuando el día pesa.",
     category: "quotes",
     cost: 50,
     rarity: "common",
-    icon: "💪",
-    content: `"El éxito no es el final, el fracaso no es fatal: es el coraje de continuar lo que cuenta." - Winston Churchill
-        
-        Cada día es una nueva oportunidad para ser mejor. No importa cuántas veces falles, lo que importa es que sigas intentando. Eres más fuerte de lo que crees. 💪`,
+    icon: "quote",
+    content: `"El éxito no es el final, el fracaso no es fatal: es el coraje de continuar lo que cuenta." — Winston Churchill
+
+Cada día es otra oportunidad de volver a intentarlo.
+No mides tu valor por una caída, sino por la decisión de seguir.`,
     purchased: false,
   },
   {
     id: "quote_dreams",
-    name: "🌟 Frase: Persigue Tus Sueños",
-    description: "Palabras sobre la importancia de soñar en grande",
+    name: "Frase: Apunta alto",
+    description: "Palabras para no achicar tus sueños.",
     category: "quotes",
     cost: 75,
     rarity: "rare",
-    icon: "🌟",
-    content: `"Shoot for the moon. Even if you miss, you'll land among the stars." - Norman Vincent Peale
-        
-        Tus sueños no son demasiado grandes. El universo es infinito, y también lo son tus posibilidades. Nunca dejes que nadie te diga que no puedes lograr algo. Las estrellas están esperando que las alcances. 🌟`,
+    icon: "star",
+    content: `"Apunta a la luna. Aunque falles, aterrizarás entre las estrellas." — Norman Vincent Peale
+
+Tus sueños no son excesivos.
+El universo es amplio; tus posibilidades también.
+No entregues tu horizonte solo porque alguien no puede verlo.`,
     purchased: false,
   },
-
-  // CURIOSIDADES 🔬
   {
     id: "fact_space",
-    name: "🚀 Curiosidad: Datos del Espacio",
-    description: "Hechos fascinantes sobre el cosmos",
+    name: "Curiosidad: Datos del espacio",
+    description: "Cinco hechos del cosmos para maravillarte un momento.",
     category: "facts",
     cost: 100,
     rarity: "rare",
-    icon: "🚀",
-    content: `DATOS FASCINANTES DEL ESPACIO 🚀
-        
-        1. Un día en Venus dura más que un año en Venus.
-        
-        2. Existen más estrellas en el universo que granos de arena en todas las playas de la Tierra.
-        
-        3. Si pudieras viajar a la velocidad de la luz, tardarías 100,000 años en cruzar nuestra galaxia.
-        
-        4. En el espacio, el metal puede soldarse solo sin calor ni electricidad (cold welding).
-        
-        5. ¡Eres literalmente polvo de estrellas! Los átomos en tu cuerpo se formaron en el corazón de estrellas antiguas.`,
+    icon: "rocket",
+    content: `Datos del espacio
+
+1. Un día en Venus dura más que un año en Venus.
+2. Hay más estrellas en el universo observable que granos de arena en todas las playas de la Tierra.
+3. A la velocidad de la luz tardarías unos 100.000 años en cruzar la Vía Láctea.
+4. En el vacío, metales limpios pueden soldarse en frío (cold welding).
+5. Los átomos de tu cuerpo se forjaron en estrellas antiguas: eres, literalmente, polvo estelar.`,
     purchased: false,
   },
-
-  // MENSAJES PERSONALES 💌
   {
     id: "message_special",
-    name: "💌 Mensaje:  Especial",
-    description: "Un mensaje personal solo para ti",
+    name: "Mensaje: Para ti",
+    description: "Una carta personal, directa y sin adornos vacíos.",
     category: "messages",
     cost: 300,
     rarity: "legendary",
-    icon: "💌",
-    content: `PARA TI, QUE ESTÁS LEYENDO ESTO:
-        
-    Eres una persona increíblemente especial, una chispa única en el vasto universo.
-    Tu existencia, por improbable que parezca, es un milagro: una posibilidad entre 400 cuatrillones, 
-    elevada a la potencia de 150 000. Y aun así, aquí estás, respirando, sintiendo, dejando huellas invisibles
-     en cada alma que toca tu presencia.
+    icon: "letter",
+    content: `Para ti, que estás leyendo esto
 
-    Cada día que despiertas es una nueva oportunidad para brillar, 
-    para reconstruirte, para recordar que dentro de ti hay un universo entero de luz esperando ser descubierto. 
-    No dejes que las sombras del mundo te hagan olvidar tu esencia, p
-    orque incluso la estrella más pequeña puede iluminar la noche más oscura.
+Eres una presencia irrepetible.
+Existir ya es improbable y, aun así, aquí estás: respirando, sintiendo, dejando huella.
 
-    Eres más fuerte de lo que imaginas, más valioso de lo que crees y más amado de lo que sospechas. 
-    El simple hecho de existir ya es una prueba del poder infinito de la vida. Así que levanta tu mirada,
-     respira hondo y sigue caminando con el corazón encendido.
+Cada amanecer es permiso para reconstruirte y recordar la luz que cargas.
+No dejes que las sombras ajenas te convenzan de apagarla.
 
-    Nunca dejes que nadie apague tu luz. 
-    Brilla, aunque el mundo no siempre entienda tu resplandor. 
-    Brilla, porque tu luz inspira, sana y da sentido a la oscuridad. 💖`,
+Eres más fuerte de lo que imaginas, más valiosa de lo que crees y más querida de lo que sospechas.
+Sigue. Brilla aunque no todos entiendan tu resplandor.
+Tu luz importa.`,
     purchased: false,
   },
 ];
@@ -3560,12 +3490,12 @@ function renderShopItems(category = "all") {
 
     const canAfford = getAvailablePoints() >= item.cost;
     const buttonText = item.purchased
-      ? "✅ Comprado"
+      ? "Canjeado"
       : `Canjear (${item.cost} pts)`;
     const buttonDisabled = item.purchased || !canAfford ? "disabled" : "";
 
     itemEl.innerHTML = `
-            <div class="shop-item-icon">${item.icon}</div>
+            <div class="shop-item-icon">${typeof swIcon === "function" ? swIcon(item.icon, "sw-icon-lg") : ""}</div>
             <div class="shop-item-details">
                 <div class="shop-item-name">${item.name}</div>
                 <div class="shop-item-description">${item.description}</div>
@@ -3637,15 +3567,17 @@ function createEpicPurchaseAnimation(item) {
   // Crear overlay de animación
   const animationOverlay = document.createElement("div");
   animationOverlay.className = "purchase-animation-overlay";
+  const purchaseIcon =
+    typeof swIcon === "function" ? swIcon(item.icon, "sw-icon-xl") : "";
   animationOverlay.innerHTML = `
         <div class="purchase-burst"></div>
         <div class="purchase-content">
-            <div class="purchase-icon">${item.icon}</div>
+            <div class="purchase-icon">${purchaseIcon}</div>
             <div class="purchase-name">${item.name}</div>
-            <div class="purchase-category">${getCategoryEmoji(
+            <div class="purchase-category">${getCategoryIcon(
               item.category
             )} ${getCategoryName(item.category)}</div>
-            <div class="purchase-success">✨ ¡DESBLOQUEADO! ✨</div>
+            <div class="purchase-success">Desbloqueado</div>
         </div>
     `;
 
@@ -3671,7 +3603,11 @@ function createEpicPurchaseAnimation(item) {
 function createPurchaseParticle(container, icon) {
   const particle = document.createElement("div");
   particle.className = "purchase-particle";
-  particle.textContent = icon;
+  if (typeof swIcon === "function") {
+    particle.innerHTML = swIcon(icon || "spark", "sw-icon-sm");
+  } else {
+    particle.textContent = "•";
+  }
 
   const angle = Math.random() * Math.PI * 2;
   const distance = 200 + Math.random() * 300;
@@ -3697,17 +3633,18 @@ function createEnergyRay(container, index) {
   setTimeout(() => ray.remove(), 1500);
 }
 
-// Obtener emoji de categoría
-function getCategoryEmoji(category) {
-  const emojis = {
-    poems: "📜",
-    secrets: "🔮",
-    avatars: "🎭",
-    quotes: "💬",
-    facts: "🔬",
-    messages: "💌",
+// Icono SVG de categoría
+function getCategoryIcon(category) {
+  const icons = {
+    poems: "scroll",
+    secrets: "crystal",
+    avatars: "mask",
+    quotes: "quote",
+    facts: "science",
+    messages: "letter",
   };
-  return emojis[category] || "✨";
+  const key = icons[category] || "spark";
+  return typeof swIcon === "function" ? swIcon(key, "sw-icon-inline") : "";
 }
 
 // Obtener nombre de categoría
@@ -3715,12 +3652,12 @@ function getCategoryName(category) {
   const names = {
     poems: "Poema",
     secrets: "Secreto",
-    avatars: "Avatar",
+    avatars: "Título",
     quotes: "Frase",
     facts: "Curiosidad",
     messages: "Mensaje",
   };
-  return names[category] || "Item";
+  return names[category] || "Ítem";
 }
 
 // Mostrar contenido del item
@@ -3822,8 +3759,10 @@ function createTitleSelector() {
   const titleButton = document.createElement("button");
   titleButton.id = "titleSelectorButton";
   titleButton.className = "title-selector-btn";
-  titleButton.textContent = "👑";
-  titleButton.title = "Seleccionar Título";
+  titleButton.title = "Seleccionar título";
+  titleButton.setAttribute("aria-label", "Seleccionar título");
+  titleButton.innerHTML =
+    typeof swIcon === "function" ? swIcon("crown", "sw-icon-btn") : "T";
 
   titleButton.addEventListener("click", showTitleSelector);
 
@@ -3834,13 +3773,15 @@ function createTitleSelector() {
 function showTitleSelector() {
   const modal = document.createElement("div");
   modal.className = "title-selector-modal";
+  const crown =
+    typeof swIcon === "function" ? swIcon("crown", "sw-icon-inline") : "";
   modal.innerHTML = `
         <div class="title-selector-content">
             <span class="title-selector-close">&times;</span>
-            <h2>👑 Selecciona Tu Título 👑</h2>
+            <h2>${crown} Selecciona tu título</h2>
             <div class="title-selector-subtitle">Cada título otorga bonificaciones especiales</div>
             <div class="titles-grid" id="titlesGrid"></div>
-            <button class="remove-title-btn" onclick="removeActiveTitle()">❌ Quitar Título</button>
+            <button class="remove-title-btn" onclick="removeActiveTitle()">Quitar título</button>
         </div>
     `;
 
@@ -3870,9 +3811,11 @@ function showTitleSelector() {
     let effectText = "";
     if (item.bonus && item.bonus.effect) {
       const effectNames = {
-        "green-aura": "✨ Aura Verde",
-        "golden-stars": "⭐ Estrellas Doradas",
-        "rainbow-aura": "🌈 Aura Arcoíris",
+        "green-aura": "Aura verde",
+        "golden-stars": "Estelas doradas",
+        "rainbow-aura": "Aura multicolor",
+        "white-aura": "Aura blanca",
+        "supreme-aura": "Aura suprema",
       };
       effectText = `<div class="title-effect">${
         effectNames[item.bonus.effect]
@@ -3880,7 +3823,7 @@ function showTitleSelector() {
     }
 
     titleOption.innerHTML = `
-            <div class="title-option-icon">${item.icon}</div>
+            <div class="title-option-icon">${typeof swIcon === "function" ? swIcon(item.icon, "sw-icon-lg") : ""}</div>
             <div class="title-option-text">${item.content}</div>
             ${bonusText}
             ${effectText}
@@ -4015,9 +3958,13 @@ function createTitleParticle(x, y, color, type) {
   particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
 
   if (type === "star") {
-    particle.textContent = "⭐";
     particle.style.backgroundColor = "transparent";
-    particle.style.fontSize = "20px";
+    particle.style.width = "0";
+    particle.style.height = "0";
+    particle.style.borderLeft = "6px solid transparent";
+    particle.style.borderRight = "6px solid transparent";
+    particle.style.borderBottom = `10px solid ${color}`;
+    particle.style.boxShadow = `0 0 12px ${color}`;
   }
 
   document.getElementById("game-container").appendChild(particle);

@@ -4830,3 +4830,89 @@ body:not(.game-running) .nebula-layer {
 body:not(.game-running) #menu {
     z-index: 30;
 }
+
+/* ——— SVG icon system ——— */
+.sw-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    vertical-align: middle;
+    color: currentColor;
+}
+.sw-icon svg {
+    width: 1em;
+    height: 1em;
+    display: block;
+    fill: currentColor;
+}
+.sw-icon-btn {
+    font-size: 1.55em;
+}
+.sw-icon-inline {
+    font-size: 1em;
+    margin-right: 0.28em;
+}
+.sw-icon-lg {
+    font-size: 1.75em;
+}
+.sw-icon-xl {
+    font-size: 3rem;
+}
+.sw-icon-sm {
+    font-size: 1rem;
+}
+
+.moai-btn,
+.achievements-btn,
+.shop-btn,
+.audio-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem !important;
+}
+
+.moai-btn { color: #cfd8dc; }
+.achievements-btn { color: #ffd54f; }
+.shop-btn { color: #69f0ae; }
+.audio-btn { color: #4fc3f7; }
+
+.achievements-header h2,
+.shop-header h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    justify-content: center;
+}
+
+.tab-btn,
+.shop-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.achievement-icon,
+.shop-item-icon,
+.purchase-icon,
+.title-option-icon,
+.notification-icon,
+.alert-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #ffe082;
+}
+
+.purchase-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.notification-title {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
