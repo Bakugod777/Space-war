@@ -232,12 +232,19 @@
         <div id="temporaryHeartTimer" style="display: none">Corazón temporal: <span id="temporaryHeartTime">10</span>s</div>
         <div id="fireRateDebuff" style="display: none">Disparo lento: <span id="debuffTimer">10</span>s</div>
         
-        <div id="touchControls">
-            <div id="leftControls">
-                <div class="touchButton" id="shootButton">shoot</div>
+        <!-- Controles táctiles: layout zurdo (disparo izq / movimiento der) -->
+        <div id="touchControls" aria-hidden="true">
+            <div id="leftControls" class="touch-cluster touch-cluster-action">
+                <div id="shootCooldownBarMobile" class="shoot-cooldown-mobile" aria-hidden="true">
+                    <div id="shootCooldownFillMobile" class="shoot-cooldown-mobile-fill"></div>
+                </div>
+                <button type="button" class="touchButton shoot-btn" id="shootButton" aria-label="Disparar">
+                    <span class="shoot-btn-icon" data-sw="blast"></span>
+                    <span class="shoot-btn-label">Disparar</span>
+                </button>
             </div>
-            <div id="rightControls">
-                <div id="joystickArea">
+            <div id="rightControls" class="touch-cluster touch-cluster-move">
+                <div id="joystickArea" aria-label="Mover">
                     <div id="joystick"></div>
                 </div>
             </div>

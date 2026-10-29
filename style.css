@@ -388,19 +388,42 @@ canvas {
     background: transparent;
 }
 
-#scoreBoard {
+#scoreBoard,
+#levelDisplay,
+#heartsDisplay {
     position: absolute;
-    top: 10px;
-    right: 20px;
     z-index: 30;
-    font-size: var(--font-size-base);
-    background: linear-gradient(135deg, rgba(4, 16, 36, 0.75), rgba(0, 0, 0, 0.55));
-    padding: min(10px, 2vw) min(14px, 3vw);
+    font-family: var(--font-display), Orbitron, sans-serif;
+    font-size: clamp(12px, 3.2vw, 15px);
+    background: linear-gradient(135deg, rgba(4, 16, 36, 0.82), rgba(0, 0, 0, 0.55));
+    padding: 8px 12px;
     border-radius: 10px;
     border: 1px solid rgba(0, 234, 255, 0.28);
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0 18px rgba(0, 180, 255, 0.18);
+    color: #fff;
+    box-shadow: 0 0 18px rgba(0, 180, 255, 0.16);
     backdrop-filter: blur(8px);
+    pointer-events: none;
+}
+
+#levelDisplay {
+    top: max(10px, env(safe-area-inset-top, 0px));
+    left: max(12px, env(safe-area-inset-left, 0px));
+}
+
+#scoreBoard {
+    top: max(10px, env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    border-color: rgba(255, 213, 79, 0.45);
+    box-shadow: 0 0 18px rgba(255, 180, 40, 0.18);
+}
+
+#heartsDisplay {
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 44px);
+    right: max(12px, env(safe-area-inset-right, 0px));
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-color: rgba(255, 100, 100, 0.4);
 }
 
 #scoreBoard span {
@@ -639,71 +662,129 @@ canvas {
 }
 
 /* Controles de pantalla */
+/* Touch HUD — solo móvil/táctil, layout zurdo (acción izq / mover der) */
 #touchControls {
     position: fixed;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
+    inset: auto 0 0 0;
+    display: none;
     justify-content: space-between;
-    padding: min(20px, 3vw);
-    gap: min(20px, 4vw);
+    align-items: flex-end;
+    padding: max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    gap: 16px;
     z-index: 999;
     touch-action: none;
+    pointer-events: none;
 }
 
-#shootButton {
+.touch-cluster {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.touch-cluster-action {
+    align-items: flex-start;
+}
+
+.touch-cluster-move {
+    align-items: flex-end;
+}
+
+#shootButton,
+.shoot-btn {
+    --button-size: clamp(76px, 22vw, 96px);
     width: var(--button-size);
     height: var(--button-size);
-    font-size: min(24px, 5vw);
-    background: rgba(255, 0, 0, 0.3);
-    border: 2px solid rgba(255, 0, 0, 0.5);
-    color: white;
+    position: relative;
+    border: 1.5px solid rgba(255, 138, 76, 0.7);
     border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.16), transparent 42%),
+        linear-gradient(160deg, rgba(60, 18, 8, 0.88), rgba(20, 8, 4, 0.92));
+    color: #ffb38a;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    text-transform: uppercase;
-    font-weight: bold;
-    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    gap: 2px;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05) inset,
+        0 10px 24px rgba(0,0,0,0.45),
+        0 0 22px rgba(255, 87, 34, 0.28);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     z-index: 1000;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    user-select: none;
 }
 
-#shootButton:active {
-    transform: scale(0.9);
-    background: rgba(255, 0, 0, 0.5);
-    box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+.shoot-btn-icon,
+.shoot-btn-icon .sw-icon {
+    font-size: 1.55rem;
+    line-height: 0;
+    color: inherit;
+    display: inline-flex;
+    width: 1.35em;
+    height: 1.35em;
+}
+
+.shoot-btn-icon .sw-icon svg,
+.shoot-btn-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Layout zurdo: disparo a la izquierda, stick a la derecha */
+body.left-handed #touchControls {
+    flex-direction: row;
+}
+
+.shoot-btn-label {
+    font-family: var(--font-display), Orbitron, sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+#shootButton:active,
+.shoot-btn:active {
+    transform: scale(0.92);
+    color: #fff;
+    background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.22), transparent 42%),
+        linear-gradient(160deg, rgba(120, 40, 12, 0.95), rgba(40, 12, 4, 0.95));
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08) inset,
+        0 6px 18px rgba(0,0,0,0.5),
+        0 0 28px rgba(255, 87, 34, 0.45);
+}
+
+.shoot-cooldown-mobile {
+    width: clamp(76px, 22vw, 96px);
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(0, 20, 40, 0.55);
+    border: 1px solid rgba(0, 234, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 180, 255, 0.18);
+}
+
+.shoot-cooldown-mobile-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00eaff, #ff9100, #ff3d00);
 }
 
 .touchButton {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    color: white;
-    font-size: 28px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
-    transition: all 0.2s ease;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
-}
-
-.touchButton:active {
-    transform: scale(0.9);
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
 }
 
 #powerUpTimer {
@@ -1249,35 +1330,39 @@ canvas {
     }
 }
 
-/* Añade estos estilos para el joystick */
+/* Joystick — mano no dominante (derecha en layout zurdo) */
 #joystickArea {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 150px;
-    height: 150px;
+    position: relative;
+    width: clamp(120px, 34vw, 150px);
+    height: clamp(120px, 34vw, 150px);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background:
+        radial-gradient(circle at 50% 50%, rgba(0, 40, 70, 0.35), rgba(4, 10, 22, 0.55));
+    border: 1.5px solid rgba(125, 211, 252, 0.4);
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 10px 24px rgba(0,0,0,0.4),
+        0 0 18px rgba(0, 234, 255, 0.18);
     touch-action: none;
 }
 
 #joystick {
     position: absolute;
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    width: 42%;
+    height: 42%;
+    background: linear-gradient(160deg, rgba(125, 211, 252, 0.35), rgba(0, 80, 120, 0.55));
+    border: 1.5px solid rgba(125, 211, 252, 0.65);
     border-radius: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    transition: background 0.2s;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 14px rgba(0, 234, 255, 0.25);
 }
 
 #joystick.active {
-    background: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    background: linear-gradient(160deg, rgba(180, 235, 255, 0.55), rgba(0, 140, 200, 0.7));
+    box-shadow: 0 0 22px rgba(0, 234, 255, 0.45);
 }
 
 /* Estilos base responsivos */
@@ -2302,22 +2387,56 @@ body:not(.game-running) #invulnerabilityTimer,
 body:not(.game-running) #doublePointsTimer,
 body:not(.game-running) #temporaryHeartTimer,
 body:not(.game-running) #fireRateDebuff,
-body:not(.game-running) #touchControls {
+body:not(.game-running) #touchControls,
+body:not(.game-running) #levelDisplay,
+body:not(.game-running) #heartsDisplay,
+body:not(.game-running) #comboDisplay,
+body:not(.game-running) #killFeed {
     display: none !important;
 }
 
 /* Ocultar botones y controles de audio cuando el juego está corriendo */
 body.game-running .moai-btn,
 body.game-running .achievements-btn,
+body.game-running .shop-btn,
+body.game-running .title-selector-btn,
 body.game-running .audio-controls {
     display: none !important;
 }
 
-/* Mostrar controles solo cuando el juego está activo */
+/* HUD de partida */
 body.game-running #scoreBoard,
-body.game-running #shootCooldownBar,
-body.game-running #touchControls {
+body.game-running #levelDisplay {
     display: block !important;
+}
+body.game-running #heartsDisplay {
+    display: flex !important;
+}
+
+/* Barra de cooldown central: desktop; en móvil se usa la de al lado del disparo */
+body.game-running #shootCooldownBar {
+    display: block !important;
+}
+body.game-running.touch-ui #shootCooldownBar {
+    display: none !important;
+}
+
+/* Controles táctiles: SOLO en dispositivos táctiles/móvil durante la partida */
+body.game-running.touch-ui #touchControls {
+    display: flex !important;
+}
+body:not(.touch-ui) #touchControls {
+    display: none !important;
+}
+
+/* Respaldo: en viewports estrechos con coarse pointer, asegurar touch HUD en partida */
+@media (max-width: 900px) and (pointer: coarse) {
+    body.game-running #touchControls {
+        display: flex !important;
+    }
+    body.game-running #shootCooldownBar {
+        display: none !important;
+    }
 }
 
 /* Responsive HUD orbs */
@@ -2572,16 +2691,17 @@ body.game-running #touchControls {
 
 /* Media queries mejoradas */
 @media screen and (max-height: 600px) {
-    #touchControls {
-        bottom: 10px;
+    body.touch-ui #touchControls {
+        padding-bottom: 10px;
     }
     
-    #joystickArea {
-        transform: scale(0.8);
+    body.touch-ui #joystickArea {
+        width: 110px;
+        height: 110px;
     }
     
-    #shootButton {
-        transform: scale(0.8);
+    body.touch-ui #shootButton {
+        --button-size: 70px;
     }
 }
 
@@ -2605,23 +2725,6 @@ body.game-running #touchControls {
         padding: 6px;
     }
 
-    #joystickArea {
-        width: var(--joystick-size);
-        height: var(--joystick-size);
-    }
-
-    #joystick {
-        width: 50px;
-        height: 50px;
-    }
-
-    #shootButton {
-        font-size: 20px;
-        width: var(--button-size);
-        height: var(--button-size);
-        left: 20px;
-        bottom: 20px;
-    }
 }
 @media screen and (min-aspect-ratio: 21/9) {
     #menu {
@@ -2643,19 +2746,13 @@ body.game-running #touchControls {
         font-size: 1.2em;
     }
 
-    #touchControls {
-        flex-direction: column;
-        align-items: center;
-        bottom: 5px;
+    body.touch-ui #touchControls {
+        padding-bottom: 8px;
     }
 
-    #shootButton {
-        margin-top: 10px;
-    }
-
-    #joystickArea {
-        width: 120px;
-        height: 120px;
+    body.touch-ui #joystickArea {
+        width: 100px;
+        height: 100px;
     }
 }
 
@@ -4596,12 +4693,40 @@ body.game-running #playerTitleDisplay {
 }
 
 /* ——— Visual overhaul extras ——— */
-#levelDisplay, #heartsDisplay {
-    z-index: 30 !important;
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(0, 234, 255, 0.22) !important;
-    background: linear-gradient(135deg, rgba(4, 16, 36, 0.75), rgba(0, 0, 0, 0.5)) !important;
+body.touch-ui.game-running #levelDisplay,
+body.touch-ui.game-running #scoreBoard,
+body.touch-ui.game-running #heartsDisplay {
+    font-size: 12px;
+    padding: 6px 10px;
 }
+
+body.touch-ui.game-running #comboDisplay {
+    top: 12%;
+}
+
+body.touch-ui.game-running #killFeed {
+    bottom: 34%;
+    right: 10px;
+    max-width: min(160px, 36vw);
+}
+
+body.touch-ui.game-running #powerUpTimer,
+body.touch-ui.game-running #invulnerabilityTimer,
+body.touch-ui.game-running #doublePointsTimer,
+body.touch-ui.game-running #temporaryHeartTimer,
+body.touch-ui.game-running #fireRateDebuff {
+    left: 12px;
+    right: auto;
+    font-size: 11px;
+    padding: 6px 8px;
+    max-width: 46vw;
+}
+
+body.touch-ui.game-running #powerUpTimer { top: 58px; }
+body.touch-ui.game-running #invulnerabilityTimer { top: 92px; }
+body.touch-ui.game-running #doublePointsTimer { top: 126px; }
+body.touch-ui.game-running #temporaryHeartTimer { top: 160px; }
+body.touch-ui.game-running #fireRateDebuff { top: 194px; }
 
 body.game-running #menu,
 body.game-running .nebula-layer,
