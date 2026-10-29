@@ -1065,12 +1065,20 @@
                 // Mostrar el popup después de un pequeño delay
                 setTimeout(() => {
                     updatePopup.classList.add('show');
+                    if (typeof UIAnime !== 'undefined') {
+                        UIAnime.openModal(updatePopup);
+                    }
                 }, 1000);
             }
             
             // Manejar el cierre del popup - Cerrar directamente y guardar preferencia
             closeBtn.addEventListener('click', () => {
-                updatePopup.classList.remove('show');
+                if (typeof UIAnime !== 'undefined') {
+                    UIAnime.closeModal(updatePopup);
+                    updatePopup.classList.remove('show');
+                } else {
+                    updatePopup.classList.remove('show');
+                }
                 // Guardar que el usuario ya cerró el popup para que no aparezca nunca más
                 localStorage.setItem('hasSeenUpdatePopup', 'true');
             });
