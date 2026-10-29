@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Space War</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
         <div class="stars"></div>
+        <div class="stars stars-mid"></div>
+        <div class="nebula-layer" aria-hidden="true"></div>
+        <div class="scanlines" aria-hidden="true"></div>
         <!-- Botón Moai -->
         <button id="moaiButton" class="moai-btn">🗿</button>
         
@@ -182,9 +188,24 @@
         </div>
         
         <div id="menu">
-            <h1>Space War</h1>
-            <input type="text" id="playerName" placeholder="Ingresa tu nombre">
-            <button id="startGame">Iniciar Juego</button>
+            <div class="menu-brand">
+                <p class="menu-eyebrow">Sector Omega · Transmisión abierta</p>
+                <h1 class="menu-title">
+                    <span class="title-space">SPACE</span>
+                    <span class="title-war">WAR</span>
+                </h1>
+                <p class="menu-tagline">Domina el vacío. Colecciona poder. Escribe tu leyenda.</p>
+            </div>
+            <div class="menu-panel">
+                <input type="text" id="playerName" placeholder="Ingresa tu nombre" maxlength="16" autocomplete="off">
+                <button id="startGame" class="start-btn">
+                    <span class="start-btn-glow"></span>
+                    <span class="start-btn-label">Iniciar Juego</span>
+                </button>
+                <p class="menu-controls-hint">
+                    <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> mover · <kbd>Espacio</kbd> disparar
+                </p>
+            </div>
             <div id="highScores">
                 <h2>Mejores Puntajes</h2>
                 <ul id="scoresList"></ul>
@@ -192,6 +213,12 @@
         </div>
         
         <canvas id="gameCanvas"></canvas>
+
+        <div id="comboDisplay" aria-live="polite">
+            <div class="combo-label">COMBO</div>
+            <div class="combo-count">x0</div>
+        </div>
+        <div id="killFeed" aria-hidden="true"></div>
         
         <!-- Estos elementos ahora solo aparecerán durante el juego -->
         <div id="scoreBoard">Puntaje: <span id="score">0</span></div>
@@ -218,6 +245,9 @@
     </div>
     
 
+    <script src="vendor/anime.min.js"></script>
+    <script src="fx.js"></script>
+    <script src="ui-anime.js"></script>
     <script src="game.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {

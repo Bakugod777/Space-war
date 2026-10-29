@@ -48,10 +48,15 @@ document.getElementById("game-container").appendChild(gameOverDisplay);
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+if (typeof VFX !== "undefined") VFX.resize(canvas.width, canvas.height);
+
+let __lastFrameTs = performance.now();
+let __killStreakAnnounce = 0;
 
 window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  if (typeof VFX !== "undefined") VFX.resize(canvas.width, canvas.height);
   player.x = canvas.width / 2;
   player.y = canvas.height - 80;
 
@@ -170,14 +175,17 @@ shootButton.addEventListener("touchcancel", (e) => {
 
 startGameBtn.addEventListener("click", () => {
   playerName = playerNameInput.value || "Jugador";
-  menu.style.display = "none";
-  canvas.style.display = "block";
-
-  // Añadir clase para indicar que el juego está corriendo
   document.body.classList.add("game-running");
-
   gameRunning = true;
-  startGame();
+
+  const begin = () => startGame();
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.startTransition(menu, canvas, begin);
+  } else {
+    menu.style.display = "none";
+    canvas.style.display = "block";
+    begin();
+  }
 });
 
 document.addEventListener("keydown", (e) => {
@@ -198,59 +206,14 @@ document.addEventListener("keyup", (e) => {
 
 const shootSound = new Audio("assets/shoot.mp3");
 
-// Partículas al disparar (efecto inicial)
+// Partículas al disparar (canvas VFX)
 function createBulletParticles(x, y) {
-  for (let i = 0; i < 8; i++) {
-    const particle = document.createElement("div");
-    particle.className = "bullet-particle";
-    particle.style.left = x + "px";
-    particle.style.top = y + "px";
-    // Dirección aleatoria
-    const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.3;
-    const distance = 18 + Math.random() * 8;
-    const finalX = x + Math.cos(angle) * distance;
-    const finalY = y + Math.sin(angle) * distance;
-    particle.animate(
-      [
-        { transform: "translate(0, 0) scale(1)", opacity: 1 },
-        {
-          transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0.2)`,
-          opacity: 0,
-        },
-      ],
-      {
-        duration: 350,
-        easing: "ease-out",
-        fill: "forwards",
-      }
-    );
-    document.getElementById("game-container").appendChild(particle);
-    setTimeout(() => particle.remove(), 350);
-  }
+  if (typeof VFX !== "undefined") VFX.muzzleFlash(x, y);
 }
 
-// Partículas de estela/trail para balas en movimiento
+// Estela de balas ahora la dibuja el motor VFX en canvas
 function createBulletTrailParticles(x, y) {
-  for (let i = 0; i < 2; i++) {
-    const particle = document.createElement("div");
-    particle.className = "bullet-trail-particle";
-    particle.style.left = x + (Math.random() - 0.5) * 6 + "px";
-    particle.style.top = y + 8 + Math.random() * 6 + "px";
-    particle.style.opacity = 0.7;
-    particle.animate(
-      [
-        { transform: "scale(1)", opacity: 0.7 },
-        { transform: "scale(0.2)", opacity: 0 },
-      ],
-      {
-        duration: 220,
-        easing: "ease-out",
-        fill: "forwards",
-      }
-    );
-    document.getElementById("game-container").appendChild(particle);
-    setTimeout(() => particle.remove(), 220);
-  }
+  /* no-op: trails renderizados por VFX.drawBullet */
 }
 
 const cooldownBar = document.getElementById("shootCooldownFill");
@@ -481,7 +444,16 @@ function spawnRerir() {
 }
 
 function updateGame() {
+  const now = performance.now();
+  const dtMs = now - __lastFrameTs;
+  __lastFrameTs = now;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (typeof VFX !== "undefined") {
+    VFX.beginFrame(ctx, canvas.width, canvas.height, dtMs);
+    VFX.drawBackground(ctx, canvas.width, canvas.height);
+  }
 
   if (player.movingLeft && player.x > 0) player.x -= player.speed;
   if (player.movingRight && player.x < canvas.width - player.width)
@@ -491,26 +463,31 @@ function updateGame() {
     player.y += player.speed;
   if (player.shooting) shoot();
 
+  if (typeof VFX !== "undefined") {
+    VFX.drawPlayerAura(ctx, player, {
+      boost: hasFireRateBoost,
+      invuln: isInvulnerable,
+      double: hasDoublePoints,
+    });
+  }
+
   ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
 
   // Aplicar efectos visuales del título equipado
   applyTitleVisualEffects();
 
-  // Elimina los disparos DOM previos
-  document.querySelectorAll(".bullet").forEach((el) => el.remove());
+  // Limpiar restos DOM de balas (legacy)
+  document.querySelectorAll(".bullet, .boss-bullet").forEach((el) => el.remove());
+
   bullets.forEach((bullet, i) => {
     bullet.y -= bullet.speed;
-    // Renderiza disparo como elemento DOM épico
-    let bulletDiv = document.createElement("div");
-    bulletDiv.className = "bullet";
-    bulletDiv.style.left = bullet.x - 3 + "px";
-    bulletDiv.style.top = bullet.y - 14 + "px";
-    document.getElementById("game-container").appendChild(bulletDiv);
+    if (typeof VFX !== "undefined") {
+      VFX.drawBullet(ctx, bullet);
+    } else {
+      ctx.fillStyle = "#00eaff";
+      ctx.fillRect(bullet.x, bullet.y, 5, 12);
+    }
 
-    // Efecto de partículas en movimiento (trail)
-    createBulletTrailParticles(bullet.x + 2, bullet.y);
-
-    // ...colisiones y lógica original...
     enemies.forEach((enemy, j) => {
       if (
         bullet.x < enemy.x + enemy.width &&
@@ -520,14 +497,15 @@ function updateGame() {
       ) {
         enemy.health--;
         bullets.splice(i, 1);
+        if (typeof VFX !== "undefined") {
+          VFX.hitSpark(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+        }
         if (enemy.health <= 0) {
-          createExplosion(
-            enemy.x + enemy.width / 2,
-            enemy.y + enemy.height / 2
-          );
+          const ex = enemy.x + enemy.width / 2;
+          const ey = enemy.y + enemy.height / 2;
+          createExplosion(ex, ey);
 
-          // Determinar tipo de enemigo para estadísticas
-          let enemyType = "type1"; // Por defecto
+          let enemyType = "type1";
           if (enemy.image.src.includes("enemy2.png")) enemyType = "type2";
           else if (enemy.image.src.includes("enemy3.png")) enemyType = "type3";
           else if (enemy.image.src.includes("enemy4.png")) enemyType = "type4";
@@ -535,19 +513,29 @@ function updateGame() {
           else if (enemy.image.src.includes("xiao_weapon.png"))
             enemyType = "xiao_weapon";
 
-          // Actualizar estadísticas de muertes
           updateStatsOnKill(enemyType);
 
           enemies.splice(j, 1);
-          addPoints(10);
+          const gained = addPoints(10);
+          if (typeof VFX !== "undefined") {
+            VFX.registerKill(ex, ey, gained || 10);
+            pushKillFeed(enemyType);
+          }
 
-          const explosionSound = new Audio("assets/explosion.wav");
-          explosionSound.play();
-          if (score % 100 === 0) {
-            level++;
-            levelDisplay.textContent = `Nivel: ${level}`;
-            if (level % 10 === 0) {
-              enemies = [];
+          try {
+            const explosionSound = new Audio("assets/explosion.wav");
+            explosionSound.play().catch(() => {});
+          } catch (e) {}
+
+          {
+            const prevScore = score - (gained || 10);
+            if (Math.floor(prevScore / 100) < Math.floor(score / 100)) {
+              level++;
+              levelDisplay.textContent = `Nivel: ${level}`;
+              if (typeof VFX !== "undefined") VFX.levelUp(level);
+              if (level % 10 === 0) {
+                enemies = [];
+              }
             }
           }
         }
@@ -563,17 +551,27 @@ function updateGame() {
         meteor.health--;
         bullets.splice(i, 1);
         if (meteor.health <= 0) {
+          const mx = meteor.x + meteor.width / 2;
+          const my = meteor.y + meteor.height / 2;
           meteors.splice(j, 1);
-          addPoints(20);
-          const explosionSound = new Audio("assets/explosion.wav");
-          explosionSound.play();
-          createExplosion(
-            meteor.x + meteor.width / 2,
-            meteor.y + meteor.height / 2
-          );
+          const gained = addPoints(20);
+          if (typeof VFX !== "undefined") VFX.registerKill(mx, my, gained || 20);
+          try {
+            const explosionSound = new Audio("assets/explosion.wav");
+            explosionSound.play().catch(() => {});
+          } catch (e) {}
+          createExplosion(mx, my);
         } else {
-          const impactSound = new Audio("assets/impact.wav");
-          impactSound.play();
+          if (typeof VFX !== "undefined") {
+            VFX.hitSpark(
+              meteor.x + meteor.width / 2,
+              meteor.y + meteor.height / 2
+            );
+          }
+          try {
+            const impactSound = new Audio("assets/impact.wav");
+            impactSound.play().catch(() => {});
+          } catch (e) {}
         }
       }
     });
@@ -581,94 +579,17 @@ function updateGame() {
       bullets.splice(i, 1);
     }
   });
-  // Partículas al disparar (efecto inicial)
-  function createBulletParticles(x, y) {
-    for (let i = 0; i < 8; i++) {
-      const particle = document.createElement("div");
-      particle.className = "bullet-particle";
-      particle.style.left = x + "px";
-      particle.style.top = y + "px";
-      // Dirección aleatoria
-      const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.3;
-      const distance = 18 + Math.random() * 8;
-      const finalX = x + Math.cos(angle) * distance;
-      const finalY = y + Math.sin(angle) * distance;
-      particle.animate(
-        [
-          { transform: "translate(0, 0) scale(1)", opacity: 1 },
-          {
-            transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0.2)`,
-            opacity: 0,
-          },
-        ],
-        {
-          duration: 350,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-      document.getElementById("game-container").appendChild(particle);
-      setTimeout(() => particle.remove(), 350);
-    }
-  }
 
-  // Partículas de estela/trail para balas en movimiento
-  function createBulletTrailParticles(x, y) {
-    for (let i = 0; i < 2; i++) {
-      const particle = document.createElement("div");
-      particle.className = "bullet-trail-particle";
-      particle.style.left = x + (Math.random() - 0.5) * 6 + "px";
-      particle.style.top = y + 8 + Math.random() * 6 + "px";
-      particle.style.opacity = 0.7;
-      particle.animate(
-        [
-          { transform: "scale(1)", opacity: 0.7 },
-          { transform: "scale(0.2)", opacity: 0 },
-        ],
-        {
-          duration: 220,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-      document.getElementById("game-container").appendChild(particle);
-      setTimeout(() => particle.remove(), 220);
-    }
-  }
-
-  // Elimina los disparos del boss previos
-  document.querySelectorAll(".boss-bullet").forEach((el) => el.remove());
+  // Balas enemigas (una sola pasada)
   enemyBullets.forEach((bullet, i) => {
     bullet.y += bullet.speed;
-    // Renderiza disparo del boss como elemento DOM épico
-    let bossBulletDiv = document.createElement("div");
-    bossBulletDiv.className = "boss-bullet";
-    bossBulletDiv.style.left = bullet.x - 4 + "px";
-    bossBulletDiv.style.top = bullet.y - 18 + "px";
-    document.getElementById("game-container").appendChild(bossBulletDiv);
-
-    // Colisión con el jugador
-    if (
-      bullet.x < player.x + player.width &&
-      bullet.x + bullet.width > player.x &&
-      bullet.y < player.y + player.height &&
-      bullet.y + bullet.height > player.y
-    ) {
-      enemyBullets.splice(i, 1);
-      handlePlayerDamage();
+    if (typeof VFX !== "undefined") {
+      VFX.drawEnemyBullet(ctx, bullet);
+    } else {
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
-    if (bullet.y > canvas.height) {
-      enemyBullets.splice(i, 1);
-    }
-  });
 
-  // Actualizar y dibujar balas enemigas
-  enemyBullets.forEach((bullet, i) => {
-    bullet.y += bullet.speed;
-    ctx.fillStyle = "#ff0000";
-    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-
-    // Colisión con el jugador
     if (
       bullet.x < player.x + player.width &&
       bullet.x + bullet.width > player.x &&
@@ -679,18 +600,37 @@ function updateGame() {
       handlePlayerDamage();
     }
 
-    // Eliminar balas que salen de la pantalla
     if (bullet.y > canvas.height) {
       enemyBullets.splice(i, 1);
     }
   });
 
   enemies.forEach((enemy, i) => {
-    enemy.y += enemy.speed;
-    ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+    // Movimiento especial si tiene speedX (es el xiao_weapon)
+    if (enemy.speedX !== undefined) {
+      enemy.x += enemy.speedX;
+      enemy.y += enemy.speedY;
+
+      if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
+        enemy.speedX *= -1;
+      }
+    } else {
+      enemy.y += enemy.speed;
+    }
+
+    // Halo sutil en enemigos peligrosos
+    if (enemy.canShoot || enemy.image.src.includes("enemy3.png")) {
+      ctx.save();
+      ctx.shadowColor = enemy.canShoot ? "#ff1744" : "#ff9100";
+      ctx.shadowBlur = 12;
+      ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+    }
+
     if (enemy.y > canvas.height) enemies.splice(i, 1);
 
-    // Colisión con el jugador
     if (
       enemy.x < player.x + player.width &&
       enemy.x + enemy.width > player.x &&
@@ -704,41 +644,6 @@ function updateGame() {
       handlePlayerDamage();
     }
 
-    // Hacer que el enemigo dispare si puede
-    if (enemy.canShoot) {
-      enemyShoot(enemy);
-    }
-  });
-  enemies.forEach((enemy, i) => {
-    // Movimiento especial si tiene speedX (es el xiao_weapon)
-    if (enemy.speedX !== undefined) {
-      enemy.x += enemy.speedX;
-      enemy.y += enemy.speedY;
-
-      // Rebote horizontal
-      if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
-        enemy.speedX *= -1;
-      }
-    } else {
-      enemy.y += enemy.speed;
-    }
-
-    ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
-
-    if (enemy.y > canvas.height) enemies.splice(i, 1);
-
-    // Colisión con el jugador
-    if (
-      enemy.x < player.x + player.width &&
-      enemy.x + enemy.width > player.x &&
-      enemy.y < player.y + player.height &&
-      enemy.y + enemy.height > player.y
-    ) {
-      enemies.splice(i, 1);
-      handlePlayerDamage();
-    }
-
-    // Hacer que el enemigo dispare si puede
     if (enemy.canShoot) {
       enemyShoot(enemy);
     }
@@ -1114,7 +1019,32 @@ function updateGame() {
     spawnBoss();
   }
 
+  if (typeof VFX !== "undefined") {
+    VFX.updateAndDrawParticles(ctx);
+    VFX.endFrame(ctx, canvas.width, canvas.height);
+  }
+
   if (gameRunning) requestAnimationFrame(updateGame);
+}
+
+function pushKillFeed(enemyType) {
+  const feed = document.getElementById("killFeed");
+  if (!feed) return;
+  const labels = {
+    type1: "Caza destruido",
+    type2: "Tanque abatido",
+    type3: "Interceptor",
+    type4: "Artillero",
+    ifa: "Ifa neutralizado",
+    xiao_weapon: "Arma Xiao",
+  };
+  const row = document.createElement("div");
+  row.className = "kill-feed-item";
+  row.textContent = labels[enemyType] || "Enemigo destruido";
+  feed.prepend(row);
+  if (typeof UIAnime !== "undefined") UIAnime.killFeedItem(row);
+  while (feed.children.length > 4) feed.lastChild.remove();
+  setTimeout(() => row.remove(), 2200);
 }
 
 function updateHeartsDisplay() {
@@ -1147,7 +1077,11 @@ function updateHeartsDisplay() {
 
 function gameOver() {
   gameRunning = false;
-  gameOverDisplay.style.display = "block";
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.gameOver(gameOverDisplay);
+  } else {
+    gameOverDisplay.style.display = "block";
+  }
   canvas.style.filter = "grayscale(100%)";
 
   // Pausar la música cuando el juego termina
@@ -1208,6 +1142,13 @@ function startGame() {
   cynos = [];
   flins = []; // Limpiar los power-ups de puntos dobles
   rerirs = []; // Limpiar los power-ups de corazón temporal
+  if (typeof VFX !== "undefined") {
+    VFX.clear();
+    VFX.resize(canvas.width, canvas.height);
+    VFX.levelUp(1);
+  }
+  const feed = document.getElementById("killFeed");
+  if (feed) feed.innerHTML = "";
   isInvulnerable = false;
   if (invulnerabilityTimer) {
     clearInterval(invulnerabilityTimer);
@@ -1299,7 +1240,12 @@ function handlePlayerDamage() {
   if (isInvulnerable) return; // Si es invulnerable, no recibe daño
 
   player.hearts--;
-  
+
+  if (typeof VFX !== "undefined") {
+    VFX.resetCombo();
+    VFX.damageFlash();
+  }
+
   // Si el jugador tenía un corazón temporal y lo pierde
   if (hasTemporaryHeart && player.hearts === 1) {
     hasTemporaryHeart = false;
@@ -1310,7 +1256,7 @@ function handlePlayerDamage() {
       document.getElementById("temporaryHeartTimer").style.display = "none";
     }
   }
-  
+
   if (player.hearts === maxHearts) {
     hasExtraHeart = false;
   }
@@ -1329,8 +1275,10 @@ function handlePlayerDamage() {
   createDamageEffect(player.x + player.width / 2, player.y + player.height / 2);
 
   // Sonido de daño
-  const damageSound = new Audio("assets/damage.wav");
-  damageSound.play();
+  try {
+    const damageSound = new Audio("assets/damage.wav");
+    damageSound.play().catch(() => {});
+  } catch (e) {}
 
   // Efecto en el contador de corazones
   heartsDisplay.classList.add("pulse");
@@ -1345,43 +1293,31 @@ function handlePlayerDamage() {
 }
 
 function createDamageEffect(x, y) {
-  // Crear partículas de daño
+  if (typeof VFX !== "undefined") {
+    VFX.explosion(x, y, 0.7);
+    VFX.floatText(x, y - 20, "¡HIT!", "#ff5252", 20);
+    return;
+  }
   for (let i = 0; i < 12; i++) {
     const particle = document.createElement("div");
     particle.className = "damage-particle";
-
-    // Posición inicial
     particle.style.left = x + "px";
     particle.style.top = y + "px";
-
-    // Dirección aleatoria
     const angle = (Math.PI * 2 * i) / 12;
     const distance = 50;
     const finalX = x + Math.cos(angle) * distance;
     const finalY = y + Math.sin(angle) * distance;
-
-    // Animación
     particle.animate(
       [
-        {
-          transform: "translate(0, 0) scale(1)",
-          opacity: 1,
-        },
+        { transform: "translate(0, 0) scale(1)", opacity: 1 },
         {
           transform: `translate(${finalX - x}px, ${finalY - y}px) scale(0)`,
           opacity: 0,
         },
       ],
-      {
-        duration: 500,
-        easing: "ease-out",
-        fill: "forwards",
-      }
+      { duration: 500, easing: "ease-out", fill: "forwards" }
     );
-
     document.getElementById("game-container").appendChild(particle);
-
-    // Eliminar la partícula después de la animación
     setTimeout(() => particle.remove(), 500);
   }
 }
@@ -1691,6 +1627,24 @@ function showPowerUpNotification(type, x, y) {
   const settings = config[type];
   if (!settings) return;
 
+  if (typeof VFX !== "undefined") {
+    const palette = {
+      kit: ["#69f0ae", "#00e676", "#fff"],
+      xiao: ["#69f0ae", "#00c853", "#fff"],
+      arlee: ["#ff5722", "#ff9100", "#fff"],
+      cyno: ["#00e5ff", "#18ffff", "#fff"],
+      flins: ["#FFD700", "#fff59d", "#fff"],
+      rerir: ["#00BFFF", "#40c4ff", "#fff"],
+      ifa: ["#9b59b6", "#ce93d8", "#fff"],
+    };
+    if (type === "kit" || type === "xiao" || type === "rerir") {
+      VFX.heal(x, y);
+    } else {
+      VFX.powerUp(x, y, palette[type]);
+    }
+    VFX.shake(type === "ifa" ? 5 : 2.5);
+  }
+
   // Crear efecto principal
   const mainEffect = document.createElement("div");
   mainEffect.className = settings.className;
@@ -1752,40 +1706,49 @@ function addPoints(basePoints, showFloatingText = true) {
 
   score += finalPoints;
   scoreDisplay.textContent = score;
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.scorePulse(scoreDisplay);
+  } else {
+    scoreDisplay.classList.remove("score-pop");
+    void scoreDisplay.offsetWidth;
+    scoreDisplay.classList.add("score-pop");
+  }
 
   // Actualizar estadísticas de puntuación en tiempo real
   updateStatsOnScore(finalPoints);
 
-  // Mostrar texto flotante de puntos si se requiere
-  if (showFloatingText && (hasDoublePoints || titleMultiplier > 0)) {
-    const floatingText = document.createElement("div");
-    floatingText.className = "floating-points";
-    floatingText.style.left = player.x + player.width / 2 + "px";
-    floatingText.style.top = player.y - 20 + "px";
-    floatingText.innerHTML = `+${finalPoints}`;
-    
-    // Agregar multiplicador al texto
-    if (multiplierText) {
-      floatingText.innerHTML += ` <span style="font-size: 0.8em; color: #FFD700;">${multiplierText}</span>`;
-    }
-    
-    // Color según el multiplicador
-    if (titleMultiplier >= 4) {
-      floatingText.style.color = "#FF1493"; // Rosa brillante para x4
-      floatingText.style.textShadow = "0 0 15px rgba(255, 20, 147, 0.8)";
-    } else if (titleMultiplier >= 3) {
-      floatingText.style.color = "#9b59b6"; // Púrpura para x3
-      floatingText.style.textShadow = "0 0 12px rgba(155, 89, 182, 0.8)";
-    } else if (titleMultiplier >= 2) {
-      floatingText.style.color = "#FFD700"; // Dorado para x2
-      floatingText.style.textShadow = "0 0 10px rgba(255, 215, 0, 0.8)";
-    }
-    
-    document.getElementById("game-container").appendChild(floatingText);
+  // Texto flotante de puntos (siempre que haya feedback)
+  if (showFloatingText) {
+    let color = "#ffeb3b";
+    if (titleMultiplier >= 4) color = "#FF1493";
+    else if (titleMultiplier >= 3) color = "#9b59b6";
+    else if (titleMultiplier >= 2 || hasDoublePoints) color = "#FFD700";
 
-    setTimeout(() => {
-      floatingText.remove();
-    }, 1000);
+    const label = multiplierText
+      ? `+${finalPoints} ${multiplierText}`
+      : `+${finalPoints}`;
+
+    if (typeof VFX !== "undefined") {
+      // El combo/kill ya dibuja el texto principal; refuerzo cerca del jugador si hay multiplicador
+      if (hasDoublePoints || titleMultiplier > 0) {
+        VFX.floatText(
+          player.x + player.width / 2,
+          player.y - 28,
+          label,
+          color,
+          18
+        );
+      }
+    } else {
+      const floatingText = document.createElement("div");
+      floatingText.className = "floating-points";
+      floatingText.style.left = player.x + player.width / 2 + "px";
+      floatingText.style.top = player.y - 20 + "px";
+      floatingText.innerHTML = label;
+      floatingText.style.color = color;
+      document.getElementById("game-container").appendChild(floatingText);
+      setTimeout(() => floatingText.remove(), 1000);
+    }
   }
 
   return finalPoints;
@@ -1818,46 +1781,33 @@ function getActiveTitleMultiplierText() {
   return `x${multiplier}`;
 }
 
-// Añade esta nueva función para crear el efecto de explosión
-function createExplosion(x, y) {
-  // Crear múltiples partículas de explosión
+// Explosión: motor canvas VFX (+ fallback DOM ligero)
+function createExplosion(x, y, power) {
+  if (typeof VFX !== "undefined") {
+    VFX.explosion(x, y, power || 1);
+    return;
+  }
   for (let i = 0; i < 8; i++) {
     const particle = document.createElement("div");
     particle.className = "explosion-particle";
-
-    // Tamaño aleatorio para cada partícula
     const size = Math.random() * 20 + 10;
     particle.style.width = size + "px";
     particle.style.height = size + "px";
-
-    // Posición inicial
     particle.style.left = x - size / 2 + "px";
     particle.style.top = y - size / 2 + "px";
-
-    // Animación
     particle.style.animation = "explosion 0.5s ease-out forwards";
-
-    // Dirección aleatoria
     const angle = (Math.PI * 2 * i) / 8;
     const distance = 30;
     const finalX = x + Math.cos(angle) * distance;
     const finalY = y + Math.sin(angle) * distance;
-
     particle.animate(
       [
         { transform: `translate(0, 0)` },
         { transform: `translate(${finalX - x}px, ${finalY - y}px)` },
       ],
-      {
-        duration: 500,
-        easing: "ease-out",
-        fill: "forwards",
-      }
+      { duration: 500, easing: "ease-out", fill: "forwards" }
     );
-
     document.getElementById("game-container").appendChild(particle);
-
-    // Eliminar la partícula después de la animación
     setTimeout(() => particle.remove(), 500);
   }
 }
@@ -2021,6 +1971,11 @@ function spawnBoss() {
   boss.appearing = true;
   boss.appearAnim = 0;
 
+  if (typeof VFX !== "undefined") {
+    VFX.bossWarning();
+    VFX.explosion(boss.x + boss.width / 2, boss.y + boss.height / 2, 2);
+  }
+
   // Bloquear enemigos normales
   enemies = [];
 }
@@ -2125,6 +2080,10 @@ function handleBossHit() {
   bossBar.classList.add("boss-bar-damage");
   setTimeout(() => bossBar.classList.remove("boss-bar-damage"), 300);
   updateBossBar();
+  if (typeof VFX !== "undefined") {
+    VFX.hitSpark(boss.x + boss.width / 2, boss.y + boss.height / 2);
+    VFX.shake(4);
+  }
   if (boss.health <= 0) {
     // Guarda la posición antes de eliminar el boss
     const bossX = boss.x;
@@ -2140,9 +2099,21 @@ function handleBossHit() {
       setTimeout(() => {
         createExplosion(
           bossX + bossWidth / 2 + Math.cos((Math.PI * 2 * i) / 12) * 80,
-          bossY + bossHeight / 2 + Math.sin((Math.PI * 2 * i) / 12) * 60
+          bossY + bossHeight / 2 + Math.sin((Math.PI * 2 * i) / 12) * 60,
+          1.4
         );
       }, i * 80);
+    }
+    if (typeof VFX !== "undefined") {
+      VFX.shake(14);
+      VFX.floatText(
+        bossX + bossWidth / 2,
+        bossY + bossHeight / 2,
+        "BOSS DOWN",
+        "#ff1744",
+        36
+      );
+      VFX.levelUp(level + 1);
     }
     score += 100; // Suficiente para pasar de nivel
     scoreDisplay.textContent = score;
@@ -2151,8 +2122,10 @@ function handleBossHit() {
     updateStatsOnScore(100);
 
     // Sonido de victoria
-    const victorySound = new Audio("assets/explosion.wav");
-    victorySound.play();
+    try {
+      const victorySound = new Audio("assets/explosion.wav");
+      victorySound.play().catch(() => {});
+    } catch (e) {}
     // Eliminar boss inmediatamente
     bossActive = false;
     bossBar.style.display = "none";
@@ -2805,7 +2778,11 @@ function showAchievementNotification(achievement) {
     notification.classList.remove("mobile-notification");
   }
 
-  notification.classList.add("show");
+  if (typeof UIAnime !== "undefined") {
+    UIAnime.notifyAchievement(notification);
+  } else {
+    notification.classList.add("show");
+  }
 
   // Reproducir sonido de logro (si existe) - volumen más bajo en móviles
   try {
@@ -2817,7 +2794,11 @@ function showAchievementNotification(achievement) {
   // Tiempo de display más corto en móviles para ser menos intrusivo
   const displayTime = isMobileDevice() ? 3000 : 5000;
   setTimeout(() => {
-    notification.classList.remove("show");
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.hideAchievement(notification);
+    } else {
+      notification.classList.remove("show");
+    }
     setTimeout(() => {
       notification.classList.remove("mobile-notification");
     }, 300); // Limpiar clase después de la animación
@@ -2834,17 +2815,23 @@ function initAchievementSystem() {
 
   // Abrir modal de logros
   achievementsBtn.addEventListener("click", () => {
-    achievementsModal.style.display = "block";
-
-    // Agregar clase móvil si es necesario
     if (isMobileDevice()) {
       achievementsModal.classList.add("mobile-modal");
     } else {
       achievementsModal.classList.remove("mobile-modal");
     }
 
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.openModal(achievementsModal);
+    } else {
+      achievementsModal.style.display = "block";
+    }
+
     renderAchievements();
     updateAchievementStats();
+    if (typeof UIAnime !== "undefined") {
+      setTimeout(() => UIAnime.staggerList(".achievement-item"), 40);
+    }
 
     // Logro secreto por abrir el panel
     let achievementsOpened = parseInt(
@@ -2857,15 +2844,23 @@ function initAchievementSystem() {
 
   // Cerrar modal
   achievementsClose.addEventListener("click", () => {
-    achievementsModal.style.display = "none";
-    achievementsModal.classList.remove("mobile-modal");
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.closeModal(achievementsModal);
+    } else {
+      achievementsModal.style.display = "none";
+      achievementsModal.classList.remove("mobile-modal");
+    }
   });
 
   // Cerrar con clic fuera del modal
   window.addEventListener("click", (e) => {
     if (e.target === achievementsModal) {
-      achievementsModal.style.display = "none";
-      achievementsModal.classList.remove("mobile-modal");
+      if (typeof UIAnime !== "undefined") {
+        UIAnime.closeModal(achievementsModal);
+      } else {
+        achievementsModal.style.display = "none";
+        achievementsModal.classList.remove("mobile-modal");
+      }
     }
   });
 
@@ -3497,29 +3492,44 @@ function initShopSystem() {
 
   // Abrir modal de tienda
   shopBtn.addEventListener("click", () => {
-    shopModal.style.display = "block";
-
     if (isMobileDevice()) {
       shopModal.classList.add("mobile-modal");
     } else {
       shopModal.classList.remove("mobile-modal");
     }
 
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.openModal(shopModal);
+    } else {
+      shopModal.style.display = "block";
+    }
+
     renderShopItems();
     updateShopStats();
+    if (typeof UIAnime !== "undefined") {
+      setTimeout(() => UIAnime.staggerList(".shop-item"), 40);
+    }
   });
 
   // Cerrar modal
   shopClose.addEventListener("click", () => {
-    shopModal.style.display = "none";
-    shopModal.classList.remove("mobile-modal");
+    if (typeof UIAnime !== "undefined") {
+      UIAnime.closeModal(shopModal);
+    } else {
+      shopModal.style.display = "none";
+      shopModal.classList.remove("mobile-modal");
+    }
   });
 
   // Cerrar con clic fuera del modal
   window.addEventListener("click", (e) => {
     if (e.target === shopModal) {
-      shopModal.style.display = "none";
-      shopModal.classList.remove("mobile-modal");
+      if (typeof UIAnime !== "undefined") {
+        UIAnime.closeModal(shopModal);
+      } else {
+        shopModal.style.display = "none";
+        shopModal.classList.remove("mobile-modal");
+      }
     }
   });
 
