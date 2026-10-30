@@ -727,6 +727,29 @@ function updateGame() {
   // Balas enemigas (una sola pasada)
   const __bk = bossActive ? 1 : 1 + 0.15 * Math.max(0, level - 10); // post-jefe: balas más rápidas
   enemyBullets.forEach((bullet, i) => {
+    // Bombas retardadas: caen lento y estallan en abanico
+    if (bullet.bomb) {
+      bullet.fuse = (bullet.fuse || 700) - dtMs;
+      bullet.y += bullet.speed * FK * __bk;
+      if (typeof VFX !== "undefined") VFX.drawEnemyBullet(ctx, bullet);
+      else { ctx.fillStyle = "#ff9100"; ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height); }
+      if (bullet.fuse <= 0) {
+        const bx = bullet.x + bullet.width / 2, by = bullet.y + bullet.height / 2;
+        const mul = typeof Diff !== "undefined" ? Diff.bulletMul() : 1;
+        for (let k = 0; k < 6; k++) {
+          const a = (Math.PI * 2 * k) / 6;
+          enemyBullets.push({
+            x: bx - 3, y: by,
+            vx: Math.cos(a) * 3.2 * mul, speed: Math.sin(a) * 3.2 * mul,
+            width: 5, height: 5, witch: true, src: "estallido bomba",
+          });
+        }
+        if (typeof VFX !== "undefined") VFX.explosion(bx, by, 0.9);
+        if (typeof SFX !== "undefined") SFX.play("explosion", 0.45);
+        enemyBullets.splice(i, 1);
+      } else if (bullet.y > GH) enemyBullets.splice(i, 1);
+      return;
+    }
     bullet.y += bullet.speed * FK * __bk;
     bullet.x += (bullet.vx || 0) * FK * __bk;
     if (typeof VFX !== "undefined") {
@@ -746,7 +769,7 @@ function updateGame() {
       handlePlayerDamage((bullet.src || (bullet.witch ? 'jefe:patrón' : 'bala enemiga')));
     }
 
-    if (bullet.y > GH) {
+    if (bullet.y > GH || bullet.x < -40 || bullet.x > GW + 40) {
       enemyBullets.splice(i, 1);
     }
   });
@@ -1108,10 +1131,19 @@ function updateGame() {
     }
   });
 
+  // Mini-jefes
+  if (typeof Bosses !== "undefined" && Bosses.isMini()) {
+    Bosses.updateMini(ctx, frozen || gamePaused ? 0 : dtMs, FK);
+  }
+
   // Boss logic
   if (bossActive && boss) {
-    animateBoss(ctx); // animación y dibujo del boss
+    // sprite del roster si aplica; si no, el clásico
+    if (!(typeof Bosses !== "undefined" && Bosses.drawBossSprite(ctx))) {
+      animateBoss(ctx);
+    }
     bossAttack();
+    if (typeof Bosses !== "undefined") Bosses.enhanceBossAttack();
 
     // Colisión con balas del jugador
     bullets.forEach((bullet, i) => {
@@ -1141,8 +1173,10 @@ function updateGame() {
     }
   }
 
-  // Boss aparece en nivel 10
-  if (level === 10 && !bossActive && !boss) {
+  // Jefes / mini-jefes por hitos de nivel
+  if (typeof Bosses !== "undefined") {
+    Bosses.trySpawnForLevel(level);
+  } else if (level === 10 && !bossActive && !boss) {
     spawnBoss();
   }
 
@@ -1271,6 +1305,7 @@ function startGame() {
   player.y = GH - 80;
   if (typeof Rogue !== "undefined") Rogue.newRun();
   if (typeof Foes !== "undefined") Foes.clear();
+  if (typeof Bosses !== "undefined") Bosses.reset();
   if (typeof Magia !== "undefined") Magia.reset();
   GameClock.reset();
   __lastFrameTs = performance.now();
@@ -1496,6 +1531,7 @@ function rescheduleSpawner() {
 }
 function spawnTick() {
   if (bossActive) return;
+  if (typeof Bosses !== "undefined" && Bosses.isBlocking()) return;
   const __pb = window.__postBossAt != null ? gameNow() - window.__postBossAt : Infinity;
   if (__pb < 10000) return;
 
@@ -2195,6 +2231,7 @@ function spawnBoss() {
 
   // Bloquear enemigos normales
   enemies = [];
+  if (typeof Foes !== "undefined") Foes.clear();
 }
 
 function animateBoss(ctx) {
@@ -2314,6 +2351,8 @@ function handleBossHit() {
       VFX.floatText(
         bossX + bossWidth / 2,
         bossY + bossHeight / 2,
+        (boss && boss.rosterId === "walpurgia") ? "el carnaval calla" :
+        (boss && boss.rosterId === "labyrinth") ? "el laberinto se rompe" :
         "la bruja cayó",
         "#ff1744",
         36
@@ -2399,9 +2438,18 @@ let playerStats = {
     witch: 0,
     sniper: 0,
     orbiter: 0,
+    shield: 0,
+    bomber: 0,
+    phantom: 0,
+    crystal: 0,
+    huntress: 0,
+    weaver: 0,
+    drone: 0,
+    hex: 0,
     ifa: 0,
     xiao_weapon: 0,
   },
+  miniBossesKilled: 0,
   sessionStartTime: 0,
 };
 
@@ -2890,6 +2938,50 @@ const achievements = [
     points: 30,
     icon: "target",
     condition: () => playerStats.enemyTypesKilled.sniper >= 5,
+    unlocked: false,
+  },
+  {
+    id: "mini_hunter",
+    name: "Cazadora de umbrales",
+    description: "Derrota 3 mini-jefes en total.",
+    category: "combat",
+    rarity: "rare",
+    points: 40,
+    icon: "skull",
+    condition: () => (playerStats.miniBossesKilled || 0) >= 3,
+    unlocked: false,
+  },
+  {
+    id: "phantom_bane",
+    name: "Exorcista",
+    description: "Elimina 5 fantasmas del laberinto.",
+    category: "combat",
+    rarity: "rare",
+    points: 30,
+    icon: "skull",
+    condition: () => (playerStats.enemyTypesKilled.phantom || 0) >= 5,
+    unlocked: false,
+  },
+  {
+    id: "hex_breaker",
+    name: "Rompehexágonos",
+    description: "Destruye 3 torretas hex.",
+    category: "combat",
+    rarity: "epic",
+    points: 45,
+    icon: "gem",
+    condition: () => (playerStats.enemyTypesKilled.hex || 0) >= 3,
+    unlocked: false,
+  },
+  {
+    id: "walpurgia_fall",
+    name: "Fin del carnaval",
+    description: "Derrota al jefe del nivel 20.",
+    category: "mastery",
+    rarity: "epic",
+    points: 80,
+    icon: "crown",
+    condition: () => playerStats.bossesKilled >= 2 || playerStats.maxLevel >= 21,
     unlocked: false,
   },
   {
@@ -4254,17 +4346,24 @@ function maybeLevelUp(prevScore) {
     level++;
     levelDisplay.textContent = `Nivel: ${level}`;
     if (typeof VFX !== "undefined") VFX.levelUp(level);
-    if (level % 10 === 0) {
+    if (level % 10 === 0 || [4, 7, 13, 16, 22, 25].includes(level)) {
       enemies = [];
       if (typeof Foes !== "undefined") Foes.clear();
     }
     // Acelerar spawns al subir de nivel
-    if (gameRunning && !bossActive) rescheduleSpawner();
-    if (level === 5 || level === 8 || level === 11) {
+    if (gameRunning && !bossActive && !(typeof Bosses !== "undefined" && Bosses.isMini())) rescheduleSpawner();
+    if (level === 5 || level === 8 || level === 11 || level === 15 || level === 21) {
       if (typeof showMiniToast === "function") {
-        showMiniToast(level === 11 ? "el laberinto se cierra…" : "la presión sube", 1600);
+        const msg =
+          level === 11 ? "el laberinto se cierra…" :
+          level === 15 ? "las brujas se reúnen…" :
+          level === 21 ? "el carnaval no termina…" :
+          "la presión sube";
+        showMiniToast(msg, 1600);
       }
     }
+    // Intentar mini-jefe / jefe al cruzar el hito
+    if (typeof Bosses !== "undefined") Bosses.trySpawnForLevel(level);
     if (typeof Rogue !== "undefined") Rogue.offerUpgrades(level);
   }
 }
