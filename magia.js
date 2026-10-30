@@ -75,8 +75,8 @@
     drawHud();
   }
   function onHit() { if (st.blasting || (global.bossActive || (typeof bossActive !== 'undefined' && bossActive))) return; add(2 + Math.min(10, (global.VFX ? VFX.getCombo() : 0)) * 0.2); }
-  function onKill(x, y) { add(6); if (RNG() < 0.09) st.seeds.push({ x, y, t: 0 }); }
-  function onDamage() { st.magia = Math.max(0, st.magia - 15); setTimeout(drawHud, 0); if (player.hearts <= 2) toast("¡uff! la gema se oscurece, busca semillas"); }
+  function onKill(x, y) { add(5); if (RNG() < 0.05) st.seeds.push({ x, y, t: 0 }); }
+  function onDamage() { st.magia = Math.max(0, st.magia - 25); setTimeout(drawHud, 0); if (player.hearts <= 2) toast("¡uff! la gema se oscurece, busca semillas"); }
 
   // ---------- Combo de equipo: 3 aliadas distintas en 12 s ----------
   function onAlly(type) {
@@ -110,7 +110,7 @@
       if (global.Foes) { Foes.list.slice().forEach((f) => { f.hp = 0; global.VFX && VFX.explosion(f.x + f.w / 2, f.y + f.h / 2, 1); }); const k = Foes.list.length; Foes.clear(); addPoints(10 * (n + k)); }
       else addPoints(10 * n);
       enemyBullets.length = 0;
-      if (boss && !boss.dying) { st.blasting = true; for (let i = 0; i < Math.ceil(bossHealth * 0.12); i++) handleBossHit(); st.blasting = false; } // el golpe de Magia no recarga Magia
+      if (boss && !boss.dying) { st.blasting = true; for (let i = 0; i < Math.ceil(bossHealth * 0.08); i++) handleBossHit(); st.blasting = false; } // el golpe de Magia no recarga Magia
     }, 260);
   }
 
