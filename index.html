@@ -179,19 +179,15 @@
             </div>
         </div>
 
-        <!-- Alerta Personalizada -->
-        <div id="customAlert" class="custom-alert">
+        <!-- Confirmación in-game (reemplaza window.confirm) -->
+        <div id="customAlert" class="custom-alert" role="dialog" aria-modal="true" aria-labelledby="alertTitle" hidden>
             <div class="custom-alert-content">
-                <div class="alert-icon" data-sw="warning"></div>
-                <div class="alert-title">¡Atención!</div>
-                <div class="alert-message">
-                    Una vez que cierres esto, nunca más volverá a aparecer.
-                    <br><br>
-                    ¿Estás segura de que quieres continuar?
-                </div>
+                <div class="alert-icon" id="alertIcon" data-sw="cart" aria-hidden="true"></div>
+                <div class="alert-title" id="alertTitle">Confirmar</div>
+                <div class="alert-message" id="alertMessage"></div>
                 <div class="alert-buttons">
-                    <button id="cancelAlert" class="alert-btn cancel-btn">Cancelar</button>
-                    <button id="confirmAlert" class="alert-btn confirm-btn">Sí, cerrar definitivamente</button>
+                    <button type="button" id="cancelAlert" class="alert-btn cancel-btn">Cancelar</button>
+                    <button type="button" id="confirmAlert" class="alert-btn confirm-btn">Aceptar</button>
                 </div>
             </div>
         </div>
@@ -441,15 +437,8 @@
                 localStorage.setItem('hasSeenUpdatePopup', 'true');
             });
             
-            // Los botones de alerta ya no son necesarios para el popup de actualización
-            // pero se mantienen para otras funcionalidades futuras
-            cancelBtn.addEventListener('click', () => {
-                customAlert.classList.remove('show');
-            });
-            
-            confirmBtn.addEventListener('click', () => {
-                customAlert.classList.remove('show');
-            });
+            // Botones de #customAlert los gestiona showConfirm() en shop.js
+            void cancelBtn; void confirmBtn; void customAlert;
         }
 
         function initAudioControls() {

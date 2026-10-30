@@ -1,5 +1,5 @@
 /* Space War — service worker (offline). Sube VERSION en cada entrega. */
-const VERSION = "v2.3.10";
+const VERSION = "v2.3.11";
 const CACHE = "space-war-" + VERSION;
 const ASSETS = [
   "./",

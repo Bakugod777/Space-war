@@ -3084,144 +3084,140 @@ body:not(.touch-ui) #touchControls {
 /* =================== CUSTOM ALERT =================== */
 .custom-alert {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(15px);
+    background: rgba(11, 15, 30, 0.82);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 15000;
-    animation: fadeIn 0.3s ease-out;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    box-sizing: border-box;
 }
-
-.custom-alert.show {
+.custom-alert.show,
+.custom-alert:not([hidden]).show {
     display: flex;
 }
+.custom-alert[hidden] { display: none !important; }
 
 .custom-alert-content {
-    background: var(--c-void);
-    border: 3px solid rgba(255, 100, 100, 0.8);
-    border-radius: 20px;
-    box-shadow: 
-        0 0 50px rgba(255, 0, 0, 0.6),
-        0 0 100px rgba(255, 50, 50, 0.3),
-        inset 0 0 30px rgba(255, 255, 255, 0.1);
-    max-width: 450px;
-    width: 90%;
-    padding: 30px;
+    background: var(--c-deep);
+    border: 3px solid var(--c-void);
+    border-radius: 4px 7px 3px 6px;
+    box-shadow: 0 0 0 2px #4CAF50, 5px 6px 0 2px var(--c-void);
+    max-width: min(420px, calc(100vw - 24px));
+    width: 100%;
+    padding: 22px 20px 18px;
     text-align: center;
-    animation: alertSlide 0.5s ease-out;
+    animation: alertSlide 0.35s ease-out;
+    font-family: "Exo 2", sans-serif;
+}
+
+.custom-alert.tone-warn .custom-alert-content {
+    box-shadow: 0 0 0 2px var(--c-rose), 5px 6px 0 2px var(--c-void);
+}
+.custom-alert.tone-info .custom-alert-content {
+    box-shadow: 0 0 0 2px var(--c-cyan), 5px 6px 0 2px var(--c-void);
 }
 
 .alert-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-    animation: alertIconPulse 2s infinite;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image-rendering: pixelated;
+}
+.alert-icon .sw-icon,
+.alert-icon .sw-icon-lg {
+    width: 40px;
+    height: 40px;
 }
 
 .alert-title {
-    color: #fff;
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-shadow: 
-        0 0 10px rgba(255, 100, 100, 0.8),
-        0 0 20px rgba(255, 0, 0, 0.6);
+    color: #4CAF50;
+    font: 800 clamp(1.05rem, 3.5vw, 1.35rem) "Orbitron", sans-serif;
+    margin: 0 0 12px;
+    letter-spacing: 0.04em;
+    text-shadow: 2px 2px 0 var(--c-void);
 }
+.custom-alert.tone-warn .alert-title { color: var(--c-rose); }
+.custom-alert.tone-info .alert-title { color: var(--c-cyan); }
 
 .alert-message {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 30px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    color: var(--c-ink);
+    font-size: clamp(0.95rem, 2.6vw, 1.05rem);
+    line-height: 1.55;
+    margin: 0 0 20px;
+    opacity: 0.95;
+}
+.alert-message strong { color: #fff; font-weight: 800; }
+.alert-cost {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 10px;
+    font-weight: 800;
+    color: var(--c-void);
+    background: #FFD54F;
+    border: 2px solid var(--c-void);
+    border-radius: 3px;
+    box-shadow: 2px 2px 0 var(--c-void);
 }
 
 .alert-buttons {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .alert-btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    min-height: 44px;
     min-width: 120px;
+    padding: 0 18px;
+    border: 3px solid var(--c-void);
+    border-radius: 4px;
+    font: 800 14px "Exo 2", sans-serif;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .cancel-btn {
-    background: var(--c-mint);
-    color: white;
-    box-shadow: 
-        0 4px 15px rgba(108, 117, 125, 0.4),
-        inset 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-.cancel-btn:hover {
     background: var(--c-deep);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px rgba(108, 117, 125, 0.6),
-        inset 0 0 15px rgba(255, 255, 255, 0.3);
+    color: var(--c-ink);
+    box-shadow: 0 0 0 2px rgba(234, 242, 255, 0.25), 3px 3px 0 2px var(--c-void);
+}
+.cancel-btn:hover,
+.cancel-btn:focus-visible {
+    transform: translate(-1px, -1px);
+    outline: none;
 }
 
 .confirm-btn {
-    background: var(--c-rose);
-    color: white;
-    box-shadow: 
-        0 4px 15px rgba(220, 53, 69, 0.4),
-        inset 0 0 10px rgba(255, 255, 255, 0.2);
+    background: #4CAF50;
+    color: var(--c-void);
+    box-shadow: 0 0 0 2px var(--c-ink), 3px 3px 0 2px var(--c-void);
 }
-
-.confirm-btn:hover {
-    background: var(--c-rose);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px rgba(220, 53, 69, 0.6),
-        inset 0 0 15px rgba(255, 255, 255, 0.3);
+.custom-alert.tone-warn .confirm-btn { background: var(--c-rose); color: #fff; }
+.confirm-btn:hover,
+.confirm-btn:focus-visible {
+    transform: translate(-1px, -1px);
+    outline: none;
 }
 
 .alert-btn:active {
-    transform: translateY(0);
-    box-shadow: 
-        0 2px 10px rgba(0, 0, 0, 0.4),
-        inset 0 0 10px rgba(0, 0, 0, 0.2);
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 2px var(--c-ink), 1px 1px 0 2px var(--c-void);
 }
 
 @keyframes alertSlide {
-    from {
-        opacity: 0;
-        transform: translateY(-100px) scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes alertIconPulse {
-    0% { 
-        transform: scale(1);
-        filter: drop-shadow(0 0 10px rgba(255, 100, 100, 0.6));
-    }
-    50% { 
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8));
-    }
-    100% { 
-        transform: scale(1);
-        filter: drop-shadow(0 0 10px rgba(255, 100, 100, 0.6));
-    }
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Responsive para la alerta */
