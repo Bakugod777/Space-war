@@ -602,9 +602,10 @@ function updateGame() {
       if (bullet.fuse <= 0) {
         const bx = bullet.x + bullet.width / 2, by = bullet.y + bullet.height / 2;
         const mul = typeof Diff !== "undefined" ? Diff.bulletMul() : 1;
+        const bag = window.enemyBullets || enemyBullets;
         for (let k = 0; k < 6; k++) {
           const a = (Math.PI * 2 * k) / 6;
-          enemyBullets.push({
+          bag.push({
             x: bx - 3, y: by,
             vx: Math.cos(a) * 3.2 * mul, speed: Math.sin(a) * 3.2 * mul,
             width: 5, height: 5, witch: true, src: "estallido bomba",
@@ -2143,8 +2144,9 @@ function bossAttack() {
   if (!boss || boss.appearing || boss.dying) return;
   // Ataque especial: disparo múltiple cada 2 segundos
   if (gameNow() - boss.attackTimer > 8000) { // ráfaga de 3 con huecos esquivables
+    const bag = window.enemyBullets || enemyBullets;
     for (const i of [-1, 1]) { // dos balas a los lados: el centro queda libre para disparar
-      enemyBullets.push({
+      bag.push({
         x: boss.x + boss.width / 2 + i * 72,
         y: boss.y + boss.height,
         speed: 2.6,
