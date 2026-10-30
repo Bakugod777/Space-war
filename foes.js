@@ -45,9 +45,9 @@
     const f = {
       type, x, y, w: T * s, h: T * s,
       hp, maxHp: hp, t: 0, flash: 0, vx: 0, vy: 0, baseX: x,
-      state: "in", stateT: 0, fireT: 1100 + RNG() * 700,
-      phase: RNG() * Math.PI * 2, dashT: 0, elite,
-      orbitR: 36 + RNG() * 40, aimT: 0,
+      state: "in", stateT: 0, fireT: 450 + RNG() * 550, // disparan pronto al entrar
+      phase: RNG() * Math.PI * 2, dashT: 0, elite, glow: 0,
+      orbitR: 36 + RNG() * 40, aimT: 0, eliteGun: 700 + RNG() * 400,
     };
     if (type === "fast") f.vy = (2.7 + Math.min(2.2, level * 0.08)) * sm;
     if (type === "tank") f.vy = 0.7 * sm;
@@ -142,7 +142,7 @@
 
     const __t = gameNow();
     const ramp = __t < 120000 ? __t / 200000 : 0.6 + 0.4 * Math.min(1, (__t - 120000) / 360000);
-    const chance = Math.min(0.78, (0.22 + lvl * 0.05) * (0.55 + 0.45 * ramp) * (1 + 0.55 * Math.max(0, lvl - 10)));
+    const chance = Math.min(0.9, (0.38 + lvl * 0.055) * (0.6 + 0.4 * ramp) * (1 + 0.55 * Math.max(0, lvl - 10)));
     if (RNG() > chance) return false;
 
     const type = pickType(lvl);
@@ -185,6 +185,15 @@
       ctx.strokeStyle = "rgba(255,77,122,0.85)";
       ctx.lineWidth = 1;
       ctx.strokeRect(Math.round(f.x) + 1, Math.round(f.y) + 1, f.w - 2, f.h - 2);
+      ctx.restore();
+    }
+    // Aviso de disparo: brillo rojo antes de soltar la bala
+    if (f.glow > 0.35) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 0.35 + 0.45 * Math.min(1, f.glow);
+      ctx.fillStyle = "#FF4D7A";
+      ctx.fillRect(Math.round(f.x) + 2, Math.round(f.y) + 2, f.w - 4, f.h - 4);
       ctx.restore();
     }
     if (f.flash > 0) {
@@ -234,6 +243,10 @@
     return f.x < player.x + player.width && f.x + f.w > player.x && f.y < player.y + player.height && f.y + f.h > player.y;
   }
 
+  function bang() {
+    if (global.SFX) SFX.play("impact", 0.35);
+  }
+
   function firePetals(f, n, spread) {
     const bx = f.x + f.w / 2, by = f.y + f.h;
     const mul = D().bulletMul();
@@ -247,22 +260,49 @@
         src: "bala " + (LABELS[f.type] || f.type),
       });
     }
+    bang();
   }
 
-  function fireAimed(f) {
+  function fireAimed(f, opts) {
     const bx = f.x + f.w / 2, by = f.y + f.h;
     const px = player.x + player.width / 2, py = player.y + player.height / 2;
     const dx = px - bx, dy = py - by, m = Math.hypot(dx, dy) || 1;
-    const sp = 4.0 * D().bulletMul();
-    // doble bala con ligera dispersión (más difícil de esquivar)
-    [-0.08, 0.08].forEach((off) => {
+    const sp = (opts && opts.sp ? opts.sp : 4.0) * D().bulletMul();
+    const offs = (opts && opts.double) ? [-0.08, 0.08] : [0];
+    offs.forEach((off) => {
       const ang = Math.atan2(dy, dx) + off;
       enemyBullets.push({
         x: bx - 2, y: by,
         vx: Math.cos(ang) * sp, speed: Math.sin(ang) * sp,
-        width: 5, height: 10, src: "bala francotiradora",
+        width: opts && opts.w ? opts.w : 5,
+        height: opts && opts.h ? opts.h : 10,
+        src: (opts && opts.src) || ("bala " + (LABELS[f.type] || f.type)),
       });
     });
+    bang();
+  }
+
+  /** Ráfaga hacia abajo (naves clásicas) */
+  function fireSpray(f, vxs, speed) {
+    const bx = f.x + f.w / 2, by = f.y + f.h;
+    const bs = (speed || 3.2) * D().bulletMul();
+    const mul = D().bulletMul();
+    vxs.forEach((vx) => {
+      enemyBullets.push({
+        x: bx - 2, y: by, vx: vx * mul, speed: bs,
+        width: 4, height: 10,
+        src: "bala " + (LABELS[f.type] || f.type),
+      });
+    });
+    bang();
+  }
+
+  /** Cuenta atrás de disparo + glow de aviso (emoción al esquivar) */
+  function tickGun(f, dt, rateMul, onFire) {
+    if (f.y < -8) return; // aún fuera de pantalla
+    f.fireT -= dt * (rateMul || 1);
+    f.glow = f.fireT <= 320 && f.fireT > 0 ? 1 : (f.glow || 0) * 0.9;
+    if (f.fireT <= 0) onFire();
   }
 
   function update(ctx, dtMs, K) {
@@ -272,10 +312,32 @@
       f.t += dt; if (f.flash > 0) f.flash -= K;
       switch (f.type) {
         case "fast":
-          f.y += f.vy * K; f.x = f.baseX + Math.sin(f.t / 260) * 46; break;
+          f.y += f.vy * K; f.x = f.baseX + Math.sin(f.t / 260) * 46;
+          // Rápidos: bala guiada — te obligan a moverte
+          tickGun(f, dt, 1.1 + level * 0.02, () => {
+            f.fireT = Math.max(700, 1400 - level * 35);
+            fireAimed(f, { sp: 3.6, w: 4, h: 9, src: "bala rápido" });
+          });
+          break;
+        case "tank":
+          f.y += f.vy * K;
+          // Tanque: triple spray pesado
+          tickGun(f, dt, 0.95, () => {
+            f.fireT = Math.max(900, 1700 - level * 30);
+            fireSpray(f, [-1.6, 0, 1.6], 2.8 + level * 0.04);
+          });
+          break;
+        case "splitter":
+          f.y += f.vy * K;
+          tickGun(f, dt, 1, () => {
+            f.fireT = Math.max(850, 1600 - level * 35);
+            fireAimed(f, { sp: 3.4, src: "bala divisor" });
+            if (level >= 5 || f.elite) fireSpray(f, [-1.4, 1.4], 3.0);
+          });
+          break;
         case "kamikaze":
           f.stateT += dt;
-          if (f.state === "in") { f.y += f.vy * K; if (f.y > GH * 0.18) { f.state = "blink"; f.stateT = 0; if (global.SFX) SFX.play("impact", 0.4); } }
+          if (f.state === "in") { f.y += f.vy * K; if (f.y > GH * 0.18) { f.state = "blink"; f.stateT = 0; if (global.SFX) SFX.play("impact", 0.4); fireAimed(f, { sp: 3.2, src: "bala kamikaze" }); } }
           else if (f.state === "blink") {
             if (f.stateT >= Math.max(180, 320 - level * 12)) {
               f.state = "dive";
@@ -288,32 +350,35 @@
         case "fan":
           if (f.y < GH * 0.14) f.y += f.vy * K; else { f.x += f.vx * K; if (f.x < 0 || f.x + f.w > GW) f.vx *= -1; }
           if (f.t > 12000) f.y += 2.2 * K;
-          f.fireT -= dt * (1.15 + 0.4 * Math.max(0, level - 5));
-          f.glow = f.fireT <= 280 && f.fireT > 0 ? 1 : 0;
-          if (f.fireT <= 0) {
-            f.fireT = Math.max(850, 2000 - level * 55);
-            const bx = f.x + f.w / 2, by = f.y + f.h;
-            const bs = (3.0 + level * 0.055) * D().bulletMul();
-            [-2.0, -0.7, 0.7, 2.0].forEach((vx) => enemyBullets.push({ x: bx - 2, y: by, vx: vx * D().bulletMul(), speed: bs, width: 4, height: 10, src: "bala abanico" }));
-          }
+          tickGun(f, dt, 1.15 + 0.4 * Math.max(0, level - 5), () => {
+            f.fireT = Math.max(750, 1800 - level * 55);
+            fireSpray(f, [-2.2, -0.75, 0.75, 2.2], 3.1 + level * 0.055);
+          });
           break;
         case "familiar":
           f.y += f.vy * K; f.x += f.vx * K;
           if (f.x <= 0 || f.x + f.w >= GW) f.vx *= -1;
+          // Familiares: perdigón pequeño (presión de enjambre)
+          tickGun(f, dt, 0.85, () => {
+            f.fireT = Math.max(1100, 2000 - level * 40);
+            fireAimed(f, { sp: 3.0, w: 4, h: 6, src: "bala familiar" });
+          });
           break;
         case "ribbon":
           f.y += f.vy * K;
           f.x = f.baseX + Math.sin(f.t / 200 + f.phase) * Math.min(78, GW * 0.22);
+          tickGun(f, dt, 1.05, () => {
+            f.fireT = Math.max(800, 1500 - level * 40);
+            firePetals(f, f.elite ? 4 : 3, 0.42);
+          });
           break;
         case "grief":
           f.y += f.vy * K;
           f.x += Math.sin(f.t / 380 + f.phase) * 0.45 * K;
-          // Semillas siempre escupen pétalos (no solo élites)
-          f.fireT -= dt;
-          if (f.fireT <= 0) {
-            f.fireT = Math.max(1100, 1800 - level * 40);
+          tickGun(f, dt, 1, () => {
+            f.fireT = Math.max(1000, 1650 - level * 40);
             firePetals(f, f.elite ? 5 : 3, 0.38);
-          }
+          });
           break;
         case "witch":
           f.dashT += dt;
@@ -322,7 +387,7 @@
             const dx = player.x - f.x, dy = player.y - f.y, m = Math.hypot(dx, dy) || 1;
             const dash = 6.2 + Math.min(3.2, level * 0.1);
             f.vx = (dx / m) * dash; f.vy = (dy / m) * dash;
-            firePetals(f, 3, 0.45); // dash con ráfaga
+            firePetals(f, 3, 0.45);
           } else if (f.state === "dash") {
             f.x += f.vx * K; f.y += f.vy * K;
             if (f.dashT > 400) { f.state = "in"; f.dashT = 0; f.vy = 0.95 * D().speedMul(); f.vx = 0; f.baseX = f.x; }
@@ -330,10 +395,11 @@
             f.y += f.vy * K;
             f.x = f.baseX + Math.sin(f.t / 260 + f.phase) * 34;
           }
-          f.fireT -= dt;
-          if (f.fireT <= 0 && f.state !== "dash") {
-            f.fireT = Math.max(650, 1400 - level * 40);
-            firePetals(f, 7, 0.26);
+          if (f.state !== "dash") {
+            tickGun(f, dt, 1.1, () => {
+              f.fireT = Math.max(600, 1300 - level * 40);
+              firePetals(f, 7, 0.26);
+            });
           }
           break;
         case "sniper":
@@ -344,9 +410,10 @@
             f.x = f.baseX + Math.sin(f.t / 420) * 22;
             f.aimT += dt;
             f.state = f.aimT > 320 ? "charge" : "hold";
+            f.glow = f.state === "charge" ? 1 : 0;
             f.fireT -= dt;
             if (f.fireT <= 0) {
-              fireAimed(f);
+              fireAimed(f, { double: true, sp: 4.2, src: "bala francotiradora" });
               f.fireT = Math.max(650, 1300 - level * 45);
               f.aimT = 0; f.state = "hold";
               f.y += 6;
@@ -361,22 +428,34 @@
           f.y += f.vy * K;
           f.x = f.baseX + Math.cos(f.phase) * (f.orbitR || 40);
           f.x = Math.max(0, Math.min(GW - f.w, f.x));
-          f.fireT -= dt;
-          if (f.fireT <= 0) {
-            f.fireT = Math.max(1000, 1800 - level * 35);
+          tickGun(f, dt, 1, () => {
+            f.fireT = Math.max(900, 1650 - level * 35);
             firePetals(f, f.elite ? 4 : 2, 0.48);
-          }
+            if (f.elite || level >= 6) fireAimed(f, { sp: 3.5, src: "bala órbita" });
+          });
           break;
         }
         case "half":
-          f.x += f.vx * K; f.y += f.vy * K; if (f.x < 0 || f.x + f.w > GW) f.vx *= -1; break;
+          f.x += f.vx * K; f.y += f.vy * K; if (f.x < 0 || f.x + f.w > GW) f.vx *= -1;
+          tickGun(f, dt, 0.9, () => {
+            f.fireT = 1600 + RNG() * 600;
+            fireSpray(f, [0], 3.4);
+          });
+          break;
         default:
           f.y += f.vy * K;
+          tickGun(f, dt, 1, () => {
+            f.fireT = Math.max(900, 1600 - level * 30);
+            fireAimed(f, { sp: 3.5 });
+          });
       }
-      // élites genéricos: a veces disparan
-      if (f.elite && f.type !== "witch" && f.type !== "fan" && f.type !== "sniper" && f.type !== "grief" && f.type !== "orbiter") {
-        f.fireT -= dt;
-        if (f.fireT <= 0) { f.fireT = 2000 + RNG() * 800; fireAimed(f); }
+      // Élites: ráfaga extra además de su patrón
+      if (f.elite && (f.type === "fast" || f.type === "tank" || f.type === "splitter" || f.type === "ribbon" || f.type === "familiar")) {
+        f.eliteGun = (f.eliteGun || 900) - dt;
+        if (f.eliteGun <= 0 && f.y > 0) {
+          f.eliteGun = 1400 + RNG() * 500;
+          fireAimed(f, { double: true, sp: 3.8, src: "bala élite" });
+        }
       }
       draw(ctx, f);
       if (f.y > GH + 40 || f.x < -80 || f.x > GW + 80) { foes.splice(i, 1); continue; }

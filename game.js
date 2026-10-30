@@ -357,8 +357,9 @@ function spawnEnemy() {
     speed: RNG() * 2 + 1,
     health: 1,
     image: new Image(),
-    canShoot: false,
+    canShoot: level >= 1, // casi todas las naves disparan
     lastShot: 0,
+    fireGap: Math.max(900, 1800 - level * 40),
   };
 
   // Determinar el tipo de enemigo basado en el nivel
@@ -366,22 +367,29 @@ function spawnEnemy() {
     // Enemigo tipo 4 (artillero)
     enemy.health = 2;
     enemy.speed = 0.5; // Muy lento
-    enemy.canShoot = true; // Puede disparar
+    enemy.canShoot = true;
+    enemy.fireGap = Math.max(700, 1200 - level * 20);
     enemy.image.src = "assets/enemy4.png";
   } else if (level >= 20 && RNG() > 0.85) {
-    // Enemigo tipo 3 (muy rápido)
+    // Enemigo tipo 3 (muy rápido) — dispara al pasar
     enemy.health = 2;
     enemy.speed = RNG() * 4 + 5; // Velocidad entre 7 y 13
+    enemy.canShoot = true;
+    enemy.fireGap = Math.max(800, 1400 - level * 25);
     enemy.image.src = "assets/enemy3.png";
   } else if (level >= 10 && RNG() > 0.8) {
     // Enemigo tipo 2 (resistente)
     enemy.health = 3;
     enemy.speed = RNG() * 2 + 1; // Velocidad entre 1 y 3
+    enemy.canShoot = true;
+    enemy.fireGap = Math.max(850, 1500 - level * 30);
     enemy.image.src = "assets/enemy2.png";
   } else {
     // Enemigo tipo 1 (normal)
     enemy.health = 1;
     enemy.speed = RNG() * 2 + 1; // Velocidad entre 1 y 3
+    enemy.canShoot = true;
+    enemy.fireGap = Math.max(1000, 1700 - level * 35);
     enemy.image.src = "assets/enemy1.png";
   }
   if (RNG() < 0.1) {
@@ -401,19 +409,34 @@ function spawnEnemy() {
   enemies.push(enemy);
 }
 
-// función para que el enemigo dispare
+// función para que el enemigo dispare (apunta un poco al jugador)
 function enemyShoot(enemy) {
+  if (enemy.y < 0) return;
   const currentTime = gameNow();
-  if (currentTime - enemy.lastShot > 3000) {
-    // Dispara cada 3 segundos
+  const gap = enemy.fireGap || Math.max(900, 1800 - level * 40);
+  if (currentTime - enemy.lastShot > gap) {
+    const bx = enemy.x + enemy.width / 2;
+    const by = enemy.y + enemy.height;
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+    const dx = px - bx, dy = py - by, m = Math.hypot(dx, dy) || 1;
+    const sp = (4.2 + Math.min(2, level * 0.05)) * (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
+    // 1 guiada + a veces spray lateral
     enemyBullets.push({
-      x: enemy.x + enemy.width / 2,
-      y: enemy.y + enemy.height,
-      speed: 5,
-      width: 3,
-      height: 8,
+      x: bx - 2, y: by,
+      vx: (dx / m) * sp * 0.55, speed: Math.max(2.8, (dy / m) * sp),
+      width: 4, height: 9, src: "bala nave",
     });
+    if (enemy.canShoot && (level >= 6 || enemy.image.src.includes("enemy4"))) {
+      [-1.4, 1.4].forEach((vx) => {
+        enemyBullets.push({
+          x: bx - 2, y: by, vx: vx, speed: sp * 0.75,
+          width: 3, height: 8, src: "bala nave",
+        });
+      });
+    }
     enemy.lastShot = currentTime;
+    if (typeof SFX !== "undefined") SFX.play("impact", 0.3);
   }
 }
 
