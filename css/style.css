@@ -5232,3 +5232,168 @@ body.desk-field.game-running #pcHints {
   font-size: 11px;
   color: #3FE0F0;
 }
+
+/* ===================== v2.3.9: pantalla de muerte + campo escritorio ===================== */
+/* Mantener el marco vertical al morir (antes se rompía al quitar game-running) */
+body.desk-field.game-over { background: #0B0F1E; }
+body.desk-field.game-over::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; opacity: .45; pointer-events: none;
+  background: #0B0F1E url(../assets/laberinto/fondo_far_fase1.png) 0 0 / 360px 640px repeat;
+  image-rendering: pixelated;
+}
+body.desk-field.game-over #game-container {
+  position: fixed !important; top: 0; left: var(--fx); width: var(--fw) !important; height: 100vh;
+  transform: translateZ(0); z-index: 1; box-shadow: 0 0 0 2px #1B2440;
+}
+body.desk-field.game-over #gameCanvas { left: 0; right: auto; }
+
+/* Ocultar chrome de menú durante el resumen */
+body.game-over .shop-btn,
+body.game-over .settings-btn,
+body.game-over .audio-controls,
+body.game-over .moai-btn,
+body.game-over .achievements-btn,
+body.game-over .title-selector-btn,
+body.game-over #pcHints,
+body.game-over #pauseButton,
+body.game-over #settingsButton,
+body.game-over #touchControls,
+body.game-over #magiaHud,
+body.game-over #magiaBtn,
+body.game-over #lifeGem,
+body.game-over #killFeed,
+body.game-over #comboDisplay,
+body.game-over #miniToast {
+  display: none !important;
+}
+
+/* Overlay a pantalla completa — no depende del ancho del campo */
+#gameOverDisplay {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  z-index: 3200 !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  box-sizing: border-box;
+  background: rgba(11, 15, 30, 0.72) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: auto;
+  text-align: center;
+  font-size: 16px !important;
+  color: var(--c-ink);
+  animation: none !important;
+}
+#gameOverDisplay[hidden] { display: none !important; }
+#gameOverDisplay:not([hidden]) { display: flex !important; }
+
+#gameOverDisplay .go-card {
+  width: min(92vw, 400px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 18px 18px 16px;
+  background: var(--c-deep);
+  border: 3px solid var(--c-void);
+  border-radius: 4px 7px 3px 6px;
+  box-shadow: 0 0 0 2px var(--c-ink), 5px 6px 0 2px var(--c-void);
+  text-align: center;
+}
+
+#gameOverDisplay .go-summary-slot { margin: 0; }
+#gameOverDisplay .run-summary {
+  font-family: "Exo 2", sans-serif;
+  font-size: 14px;
+  color: var(--c-ink);
+  margin: 0 0 12px;
+  text-align: left;
+}
+#gameOverDisplay .run-summary h3 {
+  font-family: "Orbitron", sans-serif;
+  color: var(--c-gold);
+  font-size: clamp(14px, 3.8vw, 17px);
+  line-height: 1.35;
+  text-align: center;
+  margin: 0 0 12px;
+  text-shadow: 2px 2px 0 var(--c-void);
+}
+#gameOverDisplay .run-summary dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(11, 15, 30, 0.55);
+  border: 2px solid rgba(234, 242, 255, 0.12);
+  border-radius: 4px;
+}
+#gameOverDisplay .run-summary dt { opacity: 0.72; }
+#gameOverDisplay .run-summary dd { margin: 0; text-align: right; font-weight: 700; }
+#gameOverDisplay .run-summary .go-picks,
+#gameOverDisplay .run-summary p {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.88;
+  text-align: center;
+}
+
+#gameOverDisplay .go-title {
+  font: 900 clamp(18px, 5vw, 26px) "Orbitron", sans-serif !important;
+  color: var(--c-rose) !important;
+  text-shadow: 3px 3px 0 var(--c-void) !important;
+  margin: 14px 0 14px !important;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+#gameOverDisplay #restartBtn,
+#restartBtn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: 148px;
+  padding: 0 24px !important;
+  margin: 0 auto !important;
+  font: 800 16px "Exo 2", sans-serif !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+  background: var(--c-cyan) !important;
+  color: var(--c-void) !important;
+  border: 3px solid var(--c-void) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 0 2px var(--c-ink), 3px 3px 0 2px var(--c-void) !important;
+  animation: none !important;
+  cursor: pointer;
+}
+#gameOverDisplay #restartBtn:hover,
+#gameOverDisplay #restartBtn:focus-visible {
+  transform: translate(-1px, -1px);
+  outline: none;
+}
+#gameOverDisplay #restartBtn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 2px var(--c-ink), 1px 1px 0 2px var(--c-void) !important;
+}
+
+@media (max-height: 560px) {
+  #gameOverDisplay .go-card { padding: 12px 14px; }
+  #gameOverDisplay .run-summary dl { gap: 3px 12px; padding: 8px 10px; }
+  #gameOverDisplay .go-title { margin: 10px 0 !important; font-size: 18px !important; }
+}
