@@ -152,7 +152,10 @@
       VFX.shake(8);
       VFX.floatText(GW / 2, 90, def.name, def.color, 22);
     }
-    if (global.SFX) SFX.play("achievement", 0.5);
+    if (global.SFX) {
+      SFX.play("achievement", 0.5);
+      if (SFX.startBossMusic) SFX.startBossMusic();
+    }
     return true;
   }
 
@@ -221,16 +224,20 @@
       VFX.floatText(cx, cy, "¡mini-jefe caído!", "#FFD54F", 20);
       VFX.shake(12);
     }
-    if (global.SFX) SFX.play("explosion", 1);
+    if (global.SFX) {
+      SFX.play("explosion", 1);
+      if (SFX.stopBossMusic) SFX.stopBossMusic(true);
+    }
     addPoints(pts);
     if (typeof Magia !== "undefined") Magia.onKill(cx, cy);
-    // premio pequeño
+    // premio pequeño + botín
     player.hearts = Math.min(
       maxHearts + (hasExtraHeart ? 1 : 0),
       player.hearts + 1
     );
     if (typeof updateHeartsDisplay === "function") updateHeartsDisplay();
-    if (typeof showMiniToast === "function") showMiniToast(name + " derrotado · +1 gema", 2000);
+    if (typeof dropBossLoot === "function") dropBossLoot(cx, cy, "mini");
+    if (typeof showMiniToast === "function") showMiniToast(name + " derrotado · +1 gema · botín", 2000);
     try {
       playerStats.bossesKilled = (playerStats.bossesKilled || 0); // mini no cuenta como boss full
       playerStats.miniBossesKilled = (playerStats.miniBossesKilled || 0) + 1;
@@ -437,10 +444,10 @@
   }
 
   function drawBossSprite(ctx) {
-    if (!boss || !boss.rosterFrame) return false;
-    // sustituye draw si hay frame de sheet
+    if (!boss || typeof boss.rosterFrame !== "number") return false;
+    // sustituye draw si hay frame de sheet (frame 0 = Paimon)
     if (!sheet.complete || sheet.naturalWidth < 256) return false;
-    const fr = boss.rosterFrame || 0;
+    const fr = boss.rosterFrame;
     ctx.save();
     let scale = 1, opacity = 1;
     if (boss.appearing) {

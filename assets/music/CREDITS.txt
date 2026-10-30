@@ -1,0 +1,6 @@
+boss-battle.ogg
+  Title: Space Boss Battle
+  Author: MintoDog
+  Source: https://opengameart.org/content/space-boss-battle
+  License: CC0 (public domain)
+  Note: re-encoded to lower bitrate for web size; original CC0.

@@ -578,6 +578,48 @@ function spawnRerir() {
   rerirs.push(rerir);
 }
 
+/** Botín tras derrotar jefe / mini-jefe: cae cerca del cadáver */
+function dropBossLoot(cx, cy, tier) {
+  const at = (arr, make, ox, oy, spd) => {
+    const p = make();
+    p.x = Math.max(8, Math.min(GW - (p.width || 48) - 8, cx + ox - (p.width || 48) / 2));
+    p.y = Math.max(-20, cy + oy);
+    if (spd) p.speed = spd;
+    arr.push(p);
+  };
+  const mk = (src, w = 48, h = 48, speed = 1.6) => {
+    const o = { x: 0, y: 0, width: w, height: h, speed, image: new Image() };
+    o.image.src = src;
+    return o;
+  };
+  // Siempre: kit (cura) + arlee (cadencia)
+  at(kits, () => mk("assets/laberinto/semilla_idle.png", 50, 50, 1.4), -40, -10, 1.4);
+  at(arlees, () => mk("assets/arlee.png"), 40, -20);
+  at(cynos, () => mk("assets/cyno.png"), 0, -50);
+  if (tier === "boss") {
+    at(flins, () => mk("assets/flins.png"), -70, -40);
+    at(xiaos, () => mk("assets/xiao.png"), 70, -35, 1.3);
+    if (player.hearts <= 2) at(rerirs, () => mk("assets/rerir.png"), 20, -70);
+    // arma xiao como enemigo-loot cerca
+    const wpn = {
+      x: Math.max(8, Math.min(GW - 58, cx - 25)),
+      y: cy - 80,
+      width: 50, height: 50,
+      speedX: RNG() < 0.5 ? -2 : 2,
+      speedY: 2.2,
+      health: 2,
+      image: new Image(),
+    };
+    wpn.image.src = "assets/xiao_weapon.png";
+    enemies.push(wpn);
+  }
+  if (typeof SFX !== "undefined") SFX.play("powerup", 0.8);
+  if (typeof VFX !== "undefined") VFX.floatText(cx, cy - 30, "¡botín!", "#FFD54F", 16);
+  if (typeof showMiniToast === "function") {
+    showMiniToast(tier === "boss" ? "¡botín de jefe!" : "¡botín de mini-jefe!", 1800);
+  }
+}
+
 function updateGame() {
   const now = performance.now();
   let dtMs = SIM ? 1000 / 60 : Math.min(50, Math.max(0, now - __lastFrameTs)); // tope: evita saltos tras pausas
@@ -1307,6 +1349,7 @@ function startGame() {
   if (typeof Foes !== "undefined") Foes.clear();
   if (typeof Bosses !== "undefined") Bosses.reset();
   if (typeof Magia !== "undefined") Magia.reset();
+  if (typeof SFX !== "undefined" && SFX.stopBossMusic) SFX.stopBossMusic(false);
   GameClock.reset();
   __lastFrameTs = performance.now();
   gamePaused = false;
@@ -2229,6 +2272,9 @@ function spawnBoss() {
     VFX.explosion(boss.x + boss.width / 2, boss.y + boss.height / 2, 2);
   }
 
+  // Tema épico de jefe (CC0)
+  if (typeof SFX !== "undefined" && SFX.startBossMusic) SFX.startBossMusic();
+
   // Bloquear enemigos normales
   enemies = [];
   if (typeof Foes !== "undefined") Foes.clear();
@@ -2371,6 +2417,10 @@ function handleBossHit() {
       const victorySound = SFX.audio("explosion");
       victorySound.play().catch(() => {});
     } catch (e) {}
+    // Volver a música de exploración
+    if (typeof SFX !== "undefined" && SFX.stopBossMusic) SFX.stopBossMusic(true);
+    // Botín de power-ups en el punto de muerte
+    dropBossLoot(bossX + bossWidth / 2, bossY + bossHeight / 2, "boss");
     // Eliminar boss inmediatamente
     bossActive = false;
     bossBar.style.display = "none";
@@ -2379,11 +2429,11 @@ function handleBossHit() {
     player.hearts = Math.max(player.hearts, Math.min(maxHearts + (hasExtraHeart ? 1 : 0), player.hearts + 3));
     window.__postBossAt = gameNow();
     if (typeof updateHeartsDisplay === "function") updateHeartsDisplay();
-    if (typeof showMiniToast === "function") showMiniToast("¡le ganaste! +3 gemas · respira", 2200);
-    // Sube de nivel y limpia enemigos
+    if (typeof showMiniToast === "function") showMiniToast("¡le ganaste! +3 gemas · botín · respira", 2200);
+    // Sube de nivel y limpia enemigos (el botín ya está dropeado)
     level++;
     levelDisplay.textContent = `Nivel: ${level}`;
-    enemies = [];
+    // no vaciar enemies: puede haber arma-xiao del botín
     // Permitir que vuelvan a aparecer enemigos normales
     if (typeof enemySpawnInterval !== "undefined")
       gClear(enemySpawnInterval);
