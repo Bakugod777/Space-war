@@ -194,6 +194,8 @@ let enemies = []; // Enemigos
 let kits = []; // Kits de salud
 let meteors = []; // Meteoritos
 let enemyBullets = []; // Balas enemigas
+// Exponer en window: foes.js / bosses.js empujan aquí sin ambigüedad de scope
+window.enemyBullets = enemyBullets;
 let xiaos = []; // Array para los kits especiales xiao
 let arlees = []; // Array para los power-ups de velocidad de disparo
 let cynos = []; // Array para los power-ups de invulnerabilidad
@@ -354,9 +356,9 @@ function spawnEnemy() {
     speed: RNG() * 2 + 1,
     health: 1,
     image: new Image(),
-    canShoot: level >= 1, // casi todas las naves disparan
-    lastShot: 0,
-    fireGap: Math.max(900, 1800 - level * 40),
+    canShoot: true, // todas las naves legacy disparan
+    lastShot: null, // se arma en el primer enemyShoot
+    fireGap: Math.max(650, 1100 - level * 45),
   };
 
   // Determinar el tipo de enemigo basado en el nivel
@@ -393,9 +395,10 @@ function spawnEnemy() {
     enemy.health = 1;
     enemy.speedX = 2.5;
     enemy.speedY = 3.5;
+    enemy.canShoot = false; // es loot-arma, no artillero
     enemy.image.src = "assets/xiao_weapon.png";
-    { const p = Math.max(0, level - 10); if (p) { enemy.speed *= 1 + 0.25 * p; enemy.health += Math.floor(p * 0.75); } } // post-jefe: más rápidos y duros
-  enemies.push(enemy);
+    { const p = Math.max(0, level - 10); if (p) { enemy.speed *= 1 + 0.25 * p; enemy.health += Math.floor(p * 0.75); } }
+    enemies.push(enemy);
     return;
   }
   if (RNG() < 0.06) {
@@ -408,32 +411,40 @@ function spawnEnemy() {
 
 // función para que el enemigo dispare (apunta un poco al jugador)
 function enemyShoot(enemy) {
-  if (enemy.y < 0) return;
+  // No disparar si es arma-xiao u offscreen arriba
+  if (enemy.speedX !== undefined) return;
+  if (enemy.y < -24) return;
+  if (!enemy.canShoot) return;
   const currentTime = gameNow();
-  const gap = enemy.fireGap || Math.max(900, 1800 - level * 40);
-  if (currentTime - enemy.lastShot > gap) {
+  const gap = enemy.fireGap || Math.max(700, 1200 - level * 40);
+  // Primer tiro al entrar: lastShot null cuenta como listo ya
+  if (enemy.lastShot != null && currentTime - enemy.lastShot < gap) return;
+  {
     const bx = enemy.x + enemy.width / 2;
     const by = enemy.y + enemy.height;
     const px = player.x + player.width / 2;
     const py = player.y + player.height / 2;
-    const dx = px - bx, dy = py - by, m = Math.hypot(dx, dy) || 1;
-    const sp = (4.2 + Math.min(2, level * 0.05)) * (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
-    // 1 guiada + a veces spray lateral
-    enemyBullets.push({
-      x: bx - 2, y: by,
-      vx: (dx / m) * sp * 0.55, speed: Math.max(2.8, (dy / m) * sp),
-      width: 4, height: 9, src: "bala nave",
+    const dx = px - bx, dy = Math.max(40, py - by); // siempre con componente hacia abajo
+    const m = Math.hypot(dx, dy) || 1;
+    const sp = (3.8 + Math.min(2.2, level * 0.06)) * (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
+    const bag = window.enemyBullets || enemyBullets;
+    bag.push({
+      x: bx - 3, y: by,
+      vx: (dx / m) * sp * 0.7, speed: (dy / m) * sp,
+      width: 6, height: 12, src: "bala nave",
     });
-    if (enemy.canShoot && (level >= 6 || enemy.image.src.includes("enemy4"))) {
-      [-1.4, 1.4].forEach((vx) => {
-        enemyBullets.push({
-          x: bx - 2, y: by, vx: vx, speed: sp * 0.75,
-          width: 3, height: 8, src: "bala nave",
+    // spray lateral desde nivel 2
+    if (level >= 2 || (enemy.image && enemy.image.src.includes("enemy4"))) {
+      [-1.6, 1.6].forEach((vx) => {
+        bag.push({
+          x: bx - 2, y: by, vx: vx, speed: sp * 0.85,
+          width: 5, height: 10, src: "bala nave",
         });
       });
     }
     enemy.lastShot = currentTime;
-    if (typeof SFX !== "undefined") SFX.play("impact", 0.3);
+    if (typeof SFX !== "undefined") SFX.play("impact", 0.28);
+    if (typeof VFX !== "undefined" && VFX.muzzleFlash) VFX.muzzleFlash(bx, by);
   }
 }
 
@@ -597,9 +608,10 @@ function updateGame() {
       if (bullet.fuse <= 0) {
         const bx = bullet.x + bullet.width / 2, by = bullet.y + bullet.height / 2;
         const mul = typeof Diff !== "undefined" ? Diff.bulletMul() : 1;
+        const bag = window.enemyBullets || enemyBullets;
         for (let k = 0; k < 6; k++) {
           const a = (Math.PI * 2 * k) / 6;
-          enemyBullets.push({
+          bag.push({
             x: bx - 3, y: by,
             vx: Math.cos(a) * 3.2 * mul, speed: Math.sin(a) * 3.2 * mul,
             width: 5, height: 5, witch: true, src: "estallido bomba",
@@ -1159,7 +1171,9 @@ function startGame() {
   player.iframesUntil = 0; window.__postBossAt = null;
   // Estado de power-ups de la partida anterior (sus temporizadores se borran con el reloj): volver a lo normal.
   normalFireRate = 500; isFireRateReduced = false; hasFireRateBoost = false; hasDoublePoints = false; isInvulnerable = false; hasTemporaryHeart = false;
-  xiaos = []; arlees = []; cynos = []; flins = []; rerirs = []; kits = []; meteors = []; enemyBullets = []; bullets = [];
+  xiaos = []; arlees = []; cynos = []; flins = []; rerirs = []; kits = []; meteors = [];
+  enemyBullets = []; window.enemyBullets = enemyBullets;
+  bullets = [];
   bossActive = false; boss = null; if (typeof bossBar !== "undefined") bossBar.style.display = "none";
   player.canShoot = true; // el reloj se reinicia: el enfriamiento pendiente se cancela
   player.x = GW / 2 - player.width / 2;
@@ -1182,7 +1196,8 @@ function startGame() {
   bullets = [];
   kits = [];
   meteors = [];
-  enemyBullets = []; // Limpiar las balas enemigas
+  enemyBullets = [];
+  window.enemyBullets = enemyBullets;
   xiaos = [];
   arlees = []; // Limpiar los power-ups de velocidad de disparo
   cynos = [];
@@ -2158,8 +2173,9 @@ function bossAttack() {
   if (!boss || boss.appearing || boss.dying) return;
   // Ataque especial: disparo múltiple cada 2 segundos
   if (gameNow() - boss.attackTimer > 8000) { // ráfaga de 3 con huecos esquivables
+    const bag = window.enemyBullets || enemyBullets;
     for (const i of [-1, 1]) { // dos balas a los lados: el centro queda libre para disparar
-      enemyBullets.push({
+      bag.push({
         x: boss.x + boss.width / 2 + i * 72,
         y: boss.y + boss.height,
         speed: 2.6,
