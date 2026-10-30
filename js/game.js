@@ -2257,6 +2257,10 @@ function handleBossHit() {
     if (typeof enemySpawnInterval !== "undefined")
       gClear(enemySpawnInterval);
     spawnEnemies();
+    // Carta de mejora por derrotar al jefe
+    if (typeof Rogue !== "undefined") {
+      Rogue.offerUpgrades(level, { title: "¡Jefe derrotado! · escoge una" });
+    }
   }
 }
 
@@ -2310,7 +2314,10 @@ function maybeLevelUp(prevScore) {
     }
     // Intentar mini-jefe / jefe al cruzar el hito
     if (typeof Bosses !== "undefined") Bosses.trySpawnForLevel(level);
-    if (typeof Rogue !== "undefined") Rogue.offerUpgrades(level);
+    // Cartas solo en hitos 5 / 10 / 15 / 20… (el jefe también otorga al morir)
+    if (typeof Rogue !== "undefined" && Rogue.isMilestoneLevel(level)) {
+      Rogue.offerUpgrades(level);
+    }
   }
 }
 

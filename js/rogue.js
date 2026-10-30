@@ -1,6 +1,6 @@
 /**
- * Space War — Capa roguelike: partida con semilla, mejoras 1 de 3 entre niveles
- * (con rareza y acumulación), muerte permanente por partida y resumen final.
+ * Space War — Capa roguelike: partida con semilla, mejoras 1 de 3
+ * (hitos 5/10/15/20… y tras derrotar un jefe; rareza y acumulación).
  */
 (function (global) {
   function mulberry32(a) {
@@ -90,26 +90,31 @@
       }
       return out;
     },
-    offerUpgrades(lvl) {
+    /** true en niveles 5, 10, 15, 20… */
+    isMilestoneLevel(lvl) {
+      return lvl >= 5 && lvl % 5 === 0;
+    },
+    offerUpgrades(lvl, opts) {
       if (this.choosing) return;
-      const opts = this.roll(); if (!opts.length) return;
+      const choices = this.roll(); if (!choices.length) return;
       this.choosing = true; player.shooting = false;
       document.body.classList.add("choosing"); if (global.VFX && VFX.clearBanner) VFX.clearBanner();
       if (global.setPaused) setPaused(true, true);
       const el = document.getElementById("upgradePanel");
-      el.querySelector(".up-title").textContent = `Nivel: ${level} · escoge una`;
+      const title = (opts && opts.title) || `Nivel: ${level} · escoge una`;
+      el.querySelector(".up-title").textContent = title;
       const box = el.querySelector(".up-cards"); box.innerHTML = "";
-      opts.forEach((o, i) => {
+      choices.forEach((o, i) => {
         const b = document.createElement("button"); b.type = "button"; b.className = `up-card r-${o.rar}`;
         const st = this.stacks[o.u.id] || 0;
         b.innerHTML = `<span class="up-key">${i + 1}</span><span class="up-icon ti-${o.u.type}"></span><i class="up-type t-${o.u.type}">${TYPES[o.u.type].label} ${(this.typeCount[o.u.type] || 0) % 3 + 1}/3</i><b>${o.u.name}</b><small>${o.u.desc(RAR[o.rar].k)}</small><em>${o.rar !== "comun" ? '<span class="star-px" aria-hidden="true"></span> ' : ""}${RAR[o.rar].label}${st ? " · x" + (st + 1) : ""}</em>`;
         b.onclick = () => this.pick(o);
         box.appendChild(b);
       });
-      this._keys = (e) => { const n = parseInt(e.key, 10); if (n >= 1 && n <= opts.length) { e.preventDefault(); this.pick(opts[n - 1]); } };
+      this._keys = (e) => { const n = parseInt(e.key, 10); if (n >= 1 && n <= choices.length) { e.preventDefault(); this.pick(choices[n - 1]); } };
       document.addEventListener("keydown", this._keys);
       el.classList.add("show");
-      if (global.SIM_MODE) { this.pick(opts[Math.floor(RNG() * opts.length)]); return; }
+      if (global.SIM_MODE) { this.pick(choices[Math.floor(RNG() * choices.length)]); return; }
       setTimeout(() => { const f = box.querySelector("button"); if (f) f.focus(); }, 50);
     },
     pick(o) {
