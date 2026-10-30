@@ -113,12 +113,51 @@
   function startMusic() {
     if (!init()) return Promise.resolve();
     unlock();
+    // Si suena el tema de jefe, no pises con el synth de exploración
+    if (bossTrack && !bossTrack.paused) return Promise.resolve();
     if (!music.on) { music.on = true; music.next = ctx.currentTime + 0.05; music.timer = setInterval(schedule, 50); }
     return Promise.resolve();
   }
   function stopMusic() { music.on = false; clearInterval(music.timer); }
 
-  function setVolume(v) { v = Number(v); if (!Number.isFinite(v)) v = 0.5; volume = Math.max(0, Math.min(1, v)); if (master) master.gain.value = volume; }
+  // ---- Tema épico de jefe (archivo CC0) ----
+  let bossTrack = null;
+  let bossWanted = false;
+  function ensureBossTrack() {
+    if (bossTrack) return bossTrack;
+    bossTrack = new Audio("assets/music/boss-battle.ogg");
+    bossTrack.loop = true;
+    bossTrack.preload = "auto";
+    bossTrack.volume = Math.max(0, Math.min(1, volume * 0.85));
+    bossTrack.addEventListener("error", () => { /* silencioso si falta el asset */ });
+    return bossTrack;
+  }
+  function startBossMusic() {
+    unlock();
+    bossWanted = true;
+    stopMusic(); // corta el synth de exploración
+    const a = ensureBossTrack();
+    a.volume = Math.max(0, Math.min(1, volume * 0.85));
+    try { a.currentTime = 0; } catch (e) {}
+    return a.play().catch(() => {});
+  }
+  function stopBossMusic(resumeExplore) {
+    bossWanted = false;
+    if (bossTrack) {
+      try { bossTrack.pause(); bossTrack.currentTime = 0; } catch (e) {}
+    }
+    if (resumeExplore !== false) startMusic();
+  }
+  function isBossMusicOn() {
+    return !!(bossTrack && !bossTrack.paused && bossWanted);
+  }
+
+  function setVolume(v) {
+    v = Number(v); if (!Number.isFinite(v)) v = 0.5;
+    volume = Math.max(0, Math.min(1, v));
+    if (master) master.gain.value = volume;
+    if (bossTrack) bossTrack.volume = Math.max(0, Math.min(1, volume * 0.85));
+  }
 
   // Objeto compatible con el antiguo `new Audio(...)`.
   function audio(name) {
@@ -129,10 +168,27 @@
         play: startMusic, pause: stopMusic, addEventListener() {},
       };
     }
+    if (name === "boss") {
+      return {
+        loop: true,
+        get paused() { return !isBossMusicOn(); },
+        get volume() { return volume; }, set volume(v) { setVolume(v); },
+        play: startBossMusic, pause: () => stopBossMusic(false), addEventListener() {},
+      };
+    }
     return { volume: 1, currentTime: 0, play() { play(name, this.volume); return Promise.resolve(); }, pause() {} };
   }
-  function suspend() { if (ctx && ctx.state === "running") ctx.suspend().catch(() => {}); }
-  function resume() { if (ctx && ctx.state !== "running") ctx.resume().catch(() => {}); }
+  function suspend() {
+    if (ctx && ctx.state === "running") ctx.suspend().catch(() => {});
+    if (bossTrack && !bossTrack.paused) try { bossTrack.pause(); } catch (e) {}
+  }
+  function resume() {
+    if (ctx && ctx.state !== "running") ctx.resume().catch(() => {});
+    if (bossWanted && bossTrack) bossTrack.play().catch(() => {});
+  }
 
-  global.SFX = { play, audio, unlock, setVolume, suspend, resume, startMusic, stopMusic };
+  global.SFX = {
+    play, audio, unlock, setVolume, suspend, resume,
+    startMusic, stopMusic, startBossMusic, stopBossMusic, isBossMusicOn,
+  };
 })(window);
