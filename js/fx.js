@@ -416,10 +416,11 @@
         ctx.restore();
         return;
       }
-      const w = Math.max(4, bullet.width), h = Math.max(bullet.witch ? 6 : 10, bullet.height);
-      ctx.fillStyle = "#0B0F1E"; ctx.fillRect(ex - 1, ey - 1, w + 2, h + 2);
-      ctx.fillStyle = bullet.witch ? "#9B6BFF" : "#FF4D7A"; ctx.fillRect(ex, ey, w, h);
-      ctx.fillStyle = "#FF8AD8"; ctx.fillRect(ex + 1, ey + 1, Math.max(1, w - 2), 2);
+      const w = Math.max(6, bullet.width), h = Math.max(bullet.witch ? 7 : 12, bullet.height);
+      // Contorno + núcleo bien visible (no se “pierde” en el fondo)
+      ctx.fillStyle = "#0B0F1E"; ctx.fillRect(ex - 2, ey - 2, w + 4, h + 4);
+      ctx.fillStyle = bullet.witch ? "#C9A0FF" : "#FF1744"; ctx.fillRect(ex, ey, w, h);
+      ctx.fillStyle = "#FFE082"; ctx.fillRect(ex + 1, ey + 1, Math.max(1, w - 2), Math.max(1, Math.floor(h / 3)));
       ctx.restore();
     },
 

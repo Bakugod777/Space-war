@@ -109,18 +109,26 @@
       const n = enemies.length; enemies.length = 0;
       if (global.Foes) { Foes.list.slice().forEach((f) => { f.hp = 0; global.VFX && VFX.explosion(f.x + f.w / 2, f.y + f.h / 2, 1); }); const k = Foes.list.length; Foes.clear(); addPoints(10 * (n + k)); }
       else addPoints(10 * n);
-      enemyBullets.length = 0;
+      EB().length = 0;
       if (boss && !boss.dying) { st.blasting = true; for (let i = 0; i < Math.ceil(bossHealth * 0.08); i++) handleBossHit(); st.blasting = false; } // el golpe de Magia no recarga Magia
     }, 260);
   }
 
   // ---------- Laberinto de bruja ----------
+  function EB() {
+    if (typeof enemyBullets !== "undefined" && enemyBullets) {
+      global.enemyBullets = enemyBullets;
+      return enemyBullets;
+    }
+    return global.enemyBullets || (global.enemyBullets = []);
+  }
   function phaseOf() { if (!boss) return 0; const r = boss.health / bossHealth; return r > 0.66 ? 1 : r > 0.33 ? 2 : 3; }
   function shootRing(cx, cy, n, sp, off, gap) {
+    const bag = EB();
     for (let i = 0; i < n; i++) {
       if (gap != null && Math.abs(i - gap) < 1.5) continue;
       const a = off + (i / n) * Math.PI * 2;
-      enemyBullets.push({ x: cx, y: cy, vx: Math.cos(a) * sp, speed: Math.sin(a) * sp, width: 6, height: 6, witch: true, src: st.phase === 1 ? 'jefe:espiral' : 'jefe:flor' });
+      bag.push({ x: cx, y: cy, vx: Math.cos(a) * sp, speed: Math.sin(a) * sp, width: 6, height: 6, witch: true, src: st.phase === 1 ? 'jefe:espiral' : 'jefe:flor' });
     }
   }
   function updateWitch(dt, K) {
@@ -143,10 +151,11 @@
       shootRing(cx, cy, 8, 1.7 * easy, st.ang, Math.floor((st.ang * 2) % 8));
     } else if (p === 3 && st.patT <= 0) { // cortina alterna + tiro dirigido
       st.patT = 1700; st.alt = !st.alt;
+      const bag = EB();
       const cols = Math.max(5, Math.floor(GW / 84)); // cortina más rala: huecos de ~2 columnas
-      for (let i = 0; i < cols; i++) if ((i % 2 === 0) === st.alt) enemyBullets.push({ x: (i + 0.5) * (GW / cols), y: -6, vx: 0, speed: 2.0 * easy, width: 6, height: 10, witch: true, src: 'jefe:cortina' });
+      for (let i = 0; i < cols; i++) if ((i % 2 === 0) === st.alt) bag.push({ x: (i + 0.5) * (GW / cols), y: -6, vx: 0, speed: 2.0 * easy, width: 6, height: 10, witch: true, src: 'jefe:cortina' });
       const dx = player.x - cx, dy = player.y - cy, m = Math.hypot(dx, dy) || 1;
-      if (st.alt) enemyBullets.push({ x: cx, y: cy, vx: (dx / m) * 2.6, speed: (dy / m) * 2.6, width: 6, height: 6, witch: true, src: 'jefe:dirigido' });
+      if (st.alt) bag.push({ x: cx, y: cy, vx: (dx / m) * 2.6, speed: (dy / m) * 2.6, width: 6, height: 6, witch: true, src: 'jefe:dirigido' });
     }
   }
   // Fondo por fase: far + near en mosaico vertical, escala entera

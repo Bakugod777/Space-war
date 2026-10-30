@@ -60,7 +60,7 @@
     const f = {
       type, x, y, w: T * s, h: T * s,
       hp, maxHp: hp, t: 0, flash: 0, vx: 0, vy: 0, baseX: x,
-      state: "in", stateT: 0, fireT: 450 + RNG() * 550, // disparan pronto al entrar
+      state: "in", stateT: 0, fireT: 220 + RNG() * 380, // disparan casi al entrar
       phase: RNG() * Math.PI * 2, dashT: 0, elite, glow: 0,
       orbitR: 36 + RNG() * 40, aimT: 0, eliteGun: 700 + RNG() * 400,
     };
@@ -185,7 +185,8 @@
 
     const __t = gameNow();
     const ramp = __t < 120000 ? __t / 200000 : 0.6 + 0.4 * Math.min(1, (__t - 120000) / 360000);
-    const chance = Math.min(0.9, (0.38 + lvl * 0.055) * (0.6 + 0.4 * ramp) * (1 + 0.55 * Math.max(0, lvl - 10)));
+    // Alta tasa de foes (con arma); el legado queda de respaldo
+    const chance = Math.min(0.96, (0.55 + lvl * 0.06) * (0.7 + 0.3 * ramp) * (1 + 0.55 * Math.max(0, lvl - 10)));
     if (RNG() > chance) return false;
 
     const type = pickType(lvl);
@@ -299,16 +300,28 @@
     if (global.SFX) SFX.play("impact", 0.35);
   }
 
+  /** Lista viva de balas enemigas (siempre la del juego) */
+  function EB() {
+    // Preferir el array vivo del juego y re-sincronizar window (evita balas huérfanas)
+    if (typeof enemyBullets !== "undefined" && enemyBullets) {
+      global.enemyBullets = enemyBullets;
+      return enemyBullets;
+    }
+    if (!global.enemyBullets) global.enemyBullets = [];
+    return global.enemyBullets;
+  }
+
   function firePetals(f, n, spread) {
     const bx = f.x + f.w / 2, by = f.y + f.h;
     const mul = D().bulletMul();
+    const bag = EB();
     for (let i = 0; i < n; i++) {
       const a = Math.PI / 2 + (i - (n - 1) / 2) * spread;
       const sp = 3.55 * mul;
-      enemyBullets.push({
+      bag.push({
         x: bx - 3, y: by,
         vx: Math.cos(a) * sp, speed: Math.sin(a) * sp,
-        width: 7, height: 7, witch: true,
+        width: 8, height: 8, witch: true,
         src: "bala " + (LABELS[f.type] || f.type),
       });
     }
@@ -318,20 +331,23 @@
   function fireAimed(f, opts) {
     const bx = f.x + f.w / 2, by = f.y + f.h;
     const px = player.x + player.width / 2, py = player.y + player.height / 2;
-    const dx = px - bx, dy = py - by, m = Math.hypot(dx, dy) || 1;
+    // Forzar componente hacia abajo para que siempre se vea el tiro
+    const dx = px - bx, dy = Math.max(48, py - by), m = Math.hypot(dx, dy) || 1;
     const sp = (opts && opts.sp ? opts.sp : 4.0) * D().bulletMul();
-    const offs = (opts && opts.double) ? [-0.08, 0.08] : [0];
+    const offs = (opts && opts.double) ? [-0.1, 0.1] : [0];
+    const bag = EB();
     offs.forEach((off) => {
       const ang = Math.atan2(dy, dx) + off;
-      enemyBullets.push({
-        x: bx - 2, y: by,
+      bag.push({
+        x: bx - 3, y: by,
         vx: Math.cos(ang) * sp, speed: Math.sin(ang) * sp,
-        width: opts && opts.w ? opts.w : 5,
-        height: opts && opts.h ? opts.h : 10,
+        width: opts && opts.w ? opts.w : 6,
+        height: opts && opts.h ? opts.h : 12,
         src: (opts && opts.src) || ("bala " + (LABELS[f.type] || f.type)),
       });
     });
     bang();
+    if (global.VFX && VFX.muzzleFlash) VFX.muzzleFlash(bx, by);
   }
 
   /** Ráfaga hacia abajo (naves clásicas) */
@@ -339,10 +355,11 @@
     const bx = f.x + f.w / 2, by = f.y + f.h;
     const bs = (speed || 3.2) * D().bulletMul();
     const mul = D().bulletMul();
+    const bag = EB();
     vxs.forEach((vx) => {
-      enemyBullets.push({
-        x: bx - 2, y: by, vx: vx * mul, speed: bs,
-        width: 4, height: 10,
+      bag.push({
+        x: bx - 3, y: by, vx: vx * mul, speed: bs,
+        width: 6, height: 12,
         src: "bala " + (LABELS[f.type] || f.type),
       });
     });
@@ -351,7 +368,7 @@
 
   /** Cuenta atrás de disparo + glow de aviso (emoción al esquivar) */
   function tickGun(f, dt, rateMul, onFire) {
-    if (f.y < -8) return; // aún fuera de pantalla
+    if (f.y < -28) return; // aún muy fuera de pantalla
     f.fireT -= dt * (rateMul || 1);
     f.glow = f.fireT <= 320 && f.fireT > 0 ? 1 : (f.glow || 0) * 0.9;
     if (f.fireT <= 0) onFire();
@@ -509,7 +526,7 @@
               x: bx - 4, y: by, vx: 0, speed: 1.6,
               width: 8, height: 8, src: "bomba", bomb: true, fuse: 700,
             };
-            enemyBullets.push(bomb);
+            EB().push(bomb);
             bang();
           }
           tickGun(f, dt, 0.7, () => {
@@ -542,12 +559,13 @@
             const bx = f.x + f.w / 2, by = f.y + f.h / 2;
             const n = f.elite ? 8 : 6;
             const mul = D().bulletMul();
+            const bag = EB();
             for (let i = 0; i < n; i++) {
               const a = (Math.PI * 2 * i) / n;
-              enemyBullets.push({
+              bag.push({
                 x: bx - 3, y: by,
                 vx: Math.cos(a) * 2.8 * mul, speed: Math.sin(a) * 2.8 * mul,
-                width: 6, height: 6, witch: true, src: "bala cristal",
+                width: 7, height: 7, witch: true, src: "bala cristal",
               });
             }
             bang();
@@ -571,10 +589,10 @@
           f.trailT = (f.trailT || 0) + dt;
           if (f.trailT > 220 && f.y > 0) {
             f.trailT = 0;
-            enemyBullets.push({
+            EB().push({
               x: f.x + f.w / 2 - 2, y: f.y + f.h / 2,
               vx: 0, speed: 2.2 * D().bulletMul(),
-              width: 5, height: 5, witch: true, src: "rastro tejedora",
+              width: 6, height: 6, witch: true, src: "rastro tejedora",
             });
           }
           tickGun(f, dt, 0.85, () => {
