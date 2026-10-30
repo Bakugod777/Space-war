@@ -94,7 +94,9 @@ function resizeCanvas() {
   document.body.classList.toggle("desk-field", desk);
   document.documentElement.style.setProperty("--fw", fieldW + "px");
   document.documentElement.style.setProperty("--fx", Math.floor((vw - fieldW) / 2) + "px");
-  const dpr = Math.min(window.devicePixelRatio || 1, vw * vh > 1.2e6 ? 1.5 : 2);
+  // iPhone Retina es 3×; el pixel art no lo necesita. Cap más bajo en táctil = menos GPU fill.
+  const dprCap = __coarse ? (vw * vh > 9e5 ? 1.25 : 1.5) : (vw * vh > 1.2e6 ? 1.5 : 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
   canvas.width = Math.round(fieldW * dpr);
   canvas.height = Math.round(vh * dpr);
   canvas.style.width = fieldW + "px";
@@ -657,8 +659,9 @@ function updateGame() {
       enemy.y += enemy.speed * FK;
     }
 
-    // Halo sutil en enemigos peligrosos
-    if (enemy.canShoot || enemy.image.src.includes("enemy3.png")) {
+    // Halo sutil solo en desktop (shadowBlur es caro en Safari iOS)
+    if (!document.body.classList.contains("touch-ui") &&
+        (enemy.canShoot || enemy.image.src.includes("enemy3.png"))) {
       ctx.save();
       ctx.shadowColor = enemy.canShoot ? "#ff1744" : "#ff9100";
       ctx.shadowBlur = 12;
@@ -909,12 +912,15 @@ function updateGame() {
   flins.forEach((flin, i) => {
     flin.y += flin.speed * FK;
 
-    // Efecto visual especial para flins - brillo dorado
-    ctx.save();
-    ctx.shadowColor = "#FFD700";
-    ctx.shadowBlur = 15;
-    ctx.drawImage(flin.image, flin.x, flin.y, flin.width, flin.height);
-    ctx.restore();
+    if (!document.body.classList.contains("touch-ui")) {
+      ctx.save();
+      ctx.shadowColor = "#FFD700";
+      ctx.shadowBlur = 15;
+      ctx.drawImage(flin.image, flin.x, flin.y, flin.width, flin.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(flin.image, flin.x, flin.y, flin.width, flin.height);
+    }
 
     if (flin.y > GH) {
       flins.splice(i, 1);
@@ -956,12 +962,15 @@ function updateGame() {
   rerirs.forEach((rerir, i) => {
     rerir.y += rerir.speed * FK;
 
-    // Efecto visual especial para rerir - brillo azul
-    ctx.save();
-    ctx.shadowColor = "#00BFFF";
-    ctx.shadowBlur = 20;
-    ctx.drawImage(rerir.image, rerir.x, rerir.y, rerir.width, rerir.height);
-    ctx.restore();
+    if (!document.body.classList.contains("touch-ui")) {
+      ctx.save();
+      ctx.shadowColor = "#00BFFF";
+      ctx.shadowBlur = 20;
+      ctx.drawImage(rerir.image, rerir.x, rerir.y, rerir.width, rerir.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(rerir.image, rerir.x, rerir.y, rerir.width, rerir.height);
+    }
 
     if (rerir.y > GH) {
       rerirs.splice(i, 1);
@@ -1124,7 +1133,13 @@ function gameOver() {
   } else {
     gameOverDisplay.style.display = "flex";
   }
-  canvas.style.filter = "grayscale(70%) brightness(0.55)";
+  // CSS filter en el canvas fuerza un layer extra en iOS; overlay DOM es más barato
+  if (document.body.classList.contains("touch-ui")) {
+    canvas.style.filter = "none";
+    document.body.classList.add("go-dim");
+  } else {
+    canvas.style.filter = "grayscale(70%) brightness(0.55)";
+  }
 
   const music = initBgMusic();
   if (music) music.pause();
@@ -1243,7 +1258,7 @@ function startGame() {
   gameOverDisplay.style.display = "none";
   canvas.style.filter = "none";
 
-  document.body.classList.remove("game-over");
+  document.body.classList.remove("game-over", "go-dim");
   document.body.classList.add("game-running");
 
   // Reproducir música de fondo con configuración robusta

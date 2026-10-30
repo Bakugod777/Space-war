@@ -1,6 +1,7 @@
 /**
  * Space War — Visual Effects Engine (canvas)
  * Parallax stars, nebulae, particles, shake, combo, banners.
+ * Perfil "móvil" (iPhone): sin shadowBlur, menos estrellas/partículas.
  */
 (function (global) {
   let reducedMotion =
@@ -11,15 +12,25 @@
   let K = 1; // factor de frame (1 = 60 Hz)
   let hitStop = 0;
 
-  const MAX_PARTICLES = (typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches) ? 150 : 300;
-  const MAX_FLOATERS = 48;
-  const MAX_SHOCKWAVES = 12;
+  // iPhone / táctil: Safari paga caro shadowBlur, arcs y densidades altas.
+  const isMobile =
+    (typeof matchMedia !== "undefined" &&
+      (matchMedia("(pointer: coarse)").matches ||
+        (matchMedia("(max-width: 900px)").matches &&
+          ("ontouchstart" in global || (navigator.maxTouchPoints || 0) > 0)))) ||
+    false;
+  const MAX_PARTICLES = isMobile ? 72 : 280;
+  const MAX_FLOATERS = isMobile ? 20 : 48;
+  const MAX_SHOCKWAVES = isMobile ? 5 : 12;
+  const USE_GLOW = !isMobile; // shadowBlur es el asesino #1 en iOS canvas
+  const FX_SCALE = isMobile ? 0.55 : 1; // menos partículas por burst
 
   const particles = [];
   const floaters = [];
   const shockwaves = [];
   const stars = [[], [], []];
   const nebulae = [];
+  let thrusterTick = 0;
 
   let shakeIntensity = 0;
   let shakeDecay = 0.88;
@@ -43,9 +54,10 @@
   function initStars(width, height) {
     w = width;
     h = height;
+    const counts = isMobile ? [28, 40, 52] : [60, 90, 140];
     for (let layer = 0; layer < 3; layer++) {
       stars[layer].length = 0;
-      const count = layer === 0 ? 60 : layer === 1 ? 90 : 140;
+      const count = counts[layer];
       for (let i = 0; i < count; i++) {
         stars[layer].push({
           x: Math.random() * width,
@@ -63,12 +75,13 @@
       ["#0c2461", "#1e3799", "#0a3d62"],
       ["#b71540", "#6F1E51", "#1e272e"],
     ];
-    for (let i = 0; i < 4; i++) {
+    const nCount = isMobile ? 2 : 4;
+    for (let i = 0; i < nCount; i++) {
       const colors = palette[i % palette.length];
       nebulae.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        r: rand(180, 420),
+        r: rand(isMobile ? 120 : 180, isMobile ? 260 : 420),
         vx: rand(-0.08, 0.08),
         vy: rand(0.02, 0.12),
         colors,
@@ -86,7 +99,8 @@
   }
 
   function spawnParticle(p) {
-    if (particles.length >= MAX_PARTICLES) particles.shift();
+    if (particles.length >= MAX_PARTICLES) return; // no shift O(n); simplemente no spawnea
+    if (!USE_GLOW) p.glow = false;
     particles.push(p);
   }
 
@@ -114,7 +128,8 @@
       drag = 0.97,
       glow = true,
     } = opts || {};
-    for (let i = 0; i < count; i++) {
+    const n = Math.max(1, Math.round(count * FX_SCALE));
+    for (let i = 0; i < n; i++) {
       const a = angle + (Math.random() - 0.5) * spread;
       const sp = speed * (0.4 + Math.random());
       spawnParticle({
@@ -128,7 +143,7 @@
         color: colors[(Math.random() * colors.length) | 0],
         gravity,
         drag,
-        glow,
+        glow: glow && USE_GLOW,
       });
     }
   }
@@ -226,7 +241,7 @@
         ctx.restore();
       }
 
-      // Parallax stars
+      // Parallax stars (rects en móvil: más barato que arc)
       for (let layer = 0; layer < 3; layer++) {
         const list = stars[layer];
         const alphaBase = 0.35 + layer * 0.22;
@@ -238,14 +253,19 @@
             s.x = Math.random() * width;
           }
           const twinkle = 0.55 + 0.45 * Math.sin(time * (1.5 + layer) + s.tw);
-          ctx.beginPath();
           ctx.fillStyle = `rgba(220,235,255,${alphaBase * twinkle})`;
-          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-          ctx.fill();
-          if (layer === 2 && twinkle > 0.9) {
-            ctx.fillStyle = `rgba(255,255,255,${0.15 * twinkle})`;
-            ctx.fillRect(s.x - s.r * 2.5, s.y - 0.5, s.r * 5, 1);
-            ctx.fillRect(s.x - 0.5, s.y - s.r * 2.5, 1, s.r * 5);
+          if (isMobile) {
+            const rr = Math.max(1, s.r);
+            ctx.fillRect(s.x - rr, s.y - rr, rr * 2, rr * 2);
+          } else {
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+            if (layer === 2 && twinkle > 0.9) {
+              ctx.fillStyle = `rgba(255,255,255,${0.15 * twinkle})`;
+              ctx.fillRect(s.x - s.r * 2.5, s.y - 0.5, s.r * 5, 1);
+              ctx.fillRect(s.x - 0.5, s.y - s.r * 2.5, 1, s.r * 5);
+            }
           }
         }
       }
@@ -266,16 +286,21 @@
         }
         const t = p.life / p.maxLife;
         const r = p.size * (0.4 + t);
-        if (p.glow) {
+        if (p.glow && USE_GLOW) {
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 10 * t;
         }
         ctx.globalAlpha = Math.max(0, t);
         ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        if (isMobile) {
+          const s = Math.max(1.5, r * 1.6);
+          ctx.fillRect(p.x - s * 0.5, p.y - s * 0.5, s, s);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (p.glow && USE_GLOW) ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
       }
 
@@ -309,8 +334,10 @@
         ctx.font = `bold ${f.size}px Orbitron, sans-serif`;
         ctx.textAlign = "center";
         ctx.fillStyle = f.color;
-        ctx.shadowColor = f.color;
-        ctx.shadowBlur = 12;
+        if (USE_GLOW) {
+          ctx.shadowColor = f.color;
+          ctx.shadowBlur = 12;
+        }
         ctx.fillText(f.text, f.x, f.y);
         ctx.restore();
       }
@@ -321,17 +348,13 @@
       const cy = player.y + player.height / 2;
       const pulse = 0.5 + 0.5 * Math.sin(time * 6);
 
-      // Engine thrusters
+      // Engine thrusters (en móvil: 1 cada 3 frames, sin glow)
       if (!reducedMotion) {
-        const moving =
-          player.movingLeft ||
-          player.movingRight ||
-          player.movingUp ||
-          player.movingDown ||
-          true;
-        if (moving) {
+        thrusterTick++;
+        const every = isMobile ? 3 : 1;
+        if (thrusterTick % every === 0) {
           burst(cx + rand(-6, 6), player.y + player.height - 4, {
-            count: 2,
+            count: isMobile ? 1 : 2,
             speed: 2.2,
             life: 0.28,
             size: 2.2,
@@ -341,7 +364,7 @@
             gravity: 0.08,
             spread: 0.9,
             angle: Math.PI / 2,
-            glow: true,
+            glow: USE_GLOW,
           });
         }
       }
@@ -352,8 +375,10 @@
         ctx.beginPath();
         ctx.strokeStyle = `rgba(0,229,255,${0.35 + 0.35 * pulse})`;
         ctx.lineWidth = 2;
-        ctx.shadowColor = "#00e5ff";
-        ctx.shadowBlur = 16;
+        if (USE_GLOW) {
+          ctx.shadowColor = "#00e5ff";
+          ctx.shadowBlur = 16;
+        }
         ctx.arc(cx, cy, player.width * 0.75 + pulse * 4, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
@@ -365,8 +390,10 @@
         ctx.beginPath();
         ctx.strokeStyle = `rgba(255,215,0,${0.3 + 0.3 * pulse})`;
         ctx.lineWidth = 2;
-        ctx.shadowColor = "#ffd700";
-        ctx.shadowBlur = 12;
+        if (USE_GLOW) {
+          ctx.shadowColor = "#ffd700";
+          ctx.shadowBlur = 12;
+        }
         ctx.arc(cx, cy, player.width * 0.9 + pulse * 3, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
@@ -382,7 +409,8 @@
       ctx.fillStyle = "#3FE0F0"; ctx.fillRect(bx, by, 4, 12);
       ctx.fillStyle = "#EAF2FF"; ctx.fillRect(bx, by, 4, 3);
 
-      if (!reducedMotion && Math.random() > 0.4) {
+      // Trail de bala: en móvil menos frecuente
+      if (!reducedMotion && Math.random() > (isMobile ? 0.78 : 0.4)) {
         spawnParticle({
           x: x + rand(-2, 2),
           y: y + 10,
@@ -394,7 +422,7 @@
           color: "#00eaff",
           gravity: 0,
           drag: 0.95,
-          glow: true,
+          glow: USE_GLOW,
         });
       }
     },
@@ -683,12 +711,14 @@
       ctx.textAlign = "center";
       ctx.font = `bold ${Math.round(Math.min(30, width / 14))}px Orbitron, sans-serif`;
       ctx.fillStyle = banner.color;
-      ctx.shadowColor = banner.color;
-      ctx.shadowBlur = 24;
+      if (USE_GLOW) {
+        ctx.shadowColor = banner.color;
+        ctx.shadowBlur = 24;
+      }
       ctx.fillText(banner.title, 0, 0);
       ctx.font = "13px Orbitron, sans-serif";
       ctx.fillStyle = "#ffffff";
-      ctx.shadowBlur = 8;
+      if (USE_GLOW) ctx.shadowBlur = 8;
       ctx.fillText(banner.subtitle, 0, 32);
       ctx.restore();
     },

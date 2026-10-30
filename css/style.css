@@ -4743,6 +4743,33 @@ body.game-running .stars-mid {
     opacity: 0.15;
 }
 
+/* iPhone: apagar capas CSS decorativas y blurs durante partida (GPU) */
+body.touch-ui.game-running .stars,
+body.touch-ui.game-running .stars-mid {
+    display: none !important;
+}
+body.touch-ui.game-running #scoreBoard,
+body.touch-ui.game-running #levelDisplay,
+body.touch-ui.game-running #comboDisplay,
+body.touch-ui.game-running #pauseBtn,
+body.touch-ui.game-running .pause-btn,
+body.touch-ui.game-running #settingsBtn,
+body.touch-ui.game-running .settings-btn {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+body.go-dim #gameCanvas::after {
+    content: none;
+}
+body.go-dim::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(8, 10, 18, 0.55);
+    pointer-events: none;
+}
+
 #gameCanvas {
     position: relative;
     z-index: 5;

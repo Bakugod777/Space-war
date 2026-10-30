@@ -1,5 +1,5 @@
 /* Space War — service worker (offline). Sube VERSION en cada entrega. */
-const VERSION = "v2.3.15";
+const VERSION = "v2.3.16";
 const CACHE = "space-war-" + VERSION;
 const ASSETS = [
   "./",
@@ -42,7 +42,7 @@ const ASSETS = [
   // Assets
   "./assets/Boss.png",
   "./assets/bosses-sheet.png",
-  "./assets/music/boss-battle.ogg",
+  // boss-battle.ogg (~1.4 MB): lazy en runtime, no precache (ahorro en iPhone/datos)
   "./assets/paimon-sheet.png",
   "./assets/paimon.png",
   "./assets/arlee.png",
