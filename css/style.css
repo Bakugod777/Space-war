@@ -289,6 +289,8 @@ body {
 
 .menu-panel {
     width: min(360px, 88vw);
+    max-width: 100%;
+    flex: 0 0 auto;
     padding: 1.25rem 1.35rem 1.1rem;
     border-radius: 18px;
     background: rgba(11,15,30,0.78);
@@ -299,6 +301,7 @@ body {
         0 0 40px rgba(0, 180, 255, 0.12);
     backdrop-filter: blur(12px);
     animation: fadeIn 1.2s ease 0.25s both;
+    box-sizing: border-box;
 }
 
 #menu input {
@@ -596,7 +599,10 @@ canvas {
 #highScores {
     margin-top: 0.5rem;
     width: min(360px, 88vw);
+    max-width: 100%;
+    flex: 0 0 auto;
     animation: fadeIn 1.4s ease 0.35s both;
+    box-sizing: border-box;
 }
 
 #highScores h2 {
@@ -2588,13 +2594,13 @@ body:not(.touch-ui) #touchControls {
     .shop-btn,
     .title-selector-btn {
         --orb-size: 44px;
-        top: 10px;
+        top: max(10px, env(safe-area-inset-top, 0px));
         font-size: 1.05rem !important;
     }
-    .moai-btn { left: 10px; }
-    .achievements-btn { left: 60px; }
-    .shop-btn { left: 110px; }
-    .title-selector-btn { left: 160px; }
+    .moai-btn { left: max(10px, env(safe-area-inset-left, 0px)); }
+    .achievements-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 50px); }
+    .shop-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 100px); }
+    .title-selector-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 150px); }
     
     .achievements-modal-content {
         width: 99%;
@@ -4828,6 +4834,8 @@ body:not(.game-running) .nebula-layer {
 }
 body:not(.game-running) #menu {
     z-index: 30;
+    /* refuerzo: nunca cortar el eyebrow con justify center + overflow hidden */
+    overflow-y: auto;
 }
 
 /* ——— SVG icon system ——— */
