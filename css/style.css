@@ -1,9 +1,9 @@
-@font-face{font-family:'Orbitron';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/orbitron-latin-400-normal.woff2') format('woff2');}
-@font-face{font-family:'Orbitron';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/orbitron-latin-700-normal.woff2') format('woff2');}
-@font-face{font-family:'Orbitron';font-style:normal;font-weight:900;font-display:swap;src:url('fonts/orbitron-latin-900-normal.woff2') format('woff2');}
-@font-face{font-family:'Exo 2';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/exo-2-latin-400-normal.woff2') format('woff2');}
-@font-face{font-family:'Exo 2';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/exo-2-latin-600-normal.woff2') format('woff2');}
-@font-face{font-family:'Exo 2';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/exo-2-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:400;font-display:swap;src:url('../fonts/orbitron-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:700;font-display:swap;src:url('../fonts/orbitron-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:900;font-display:swap;src:url('../fonts/orbitron-latin-900-normal.woff2') format('woff2');}
+@font-face{font-family:'Exo 2';font-style:normal;font-weight:400;font-display:swap;src:url('../fonts/exo-2-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Exo 2';font-style:normal;font-weight:600;font-display:swap;src:url('../fonts/exo-2-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Exo 2';font-style:normal;font-weight:700;font-display:swap;src:url('../fonts/exo-2-latin-700-normal.woff2') format('woff2');}
 /* Partículas épicas al disparar */
 .bullet-particle {
     position: absolute;
@@ -5006,7 +5006,7 @@ body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab
 /* ---- Identidad: pixel + collage de papel (sin vidrio ni degradados) ---- */
 :root { --c-star: #FF8AD8; }
 .star { color: var(--c-star); }
-#scoresList li:first-child::after { content: ""; display: inline-block; width: 16px; height: 16px; margin-left: 6px; vertical-align: -2px; background: url(assets/brand/estrella-sheet.png) 0 -8px / 96px 32px no-repeat; image-rendering: pixelated; animation: starTw .6s steps(1) infinite; }
+#scoresList li:first-child::after { content: ""; display: inline-block; width: 16px; height: 16px; margin-left: 6px; vertical-align: -2px; background: url(../assets/brand/estrella-sheet.png) 0 -8px / 96px 32px no-repeat; image-rendering: pixelated; animation: starTw .6s steps(1) infinite; }
 .sp-card, .up-card, .settings-btn, .pause-btn, #gameOverDisplay {
     background: var(--c-deep) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
     border: 3px solid var(--c-void) !important; border-radius: 4px 7px 3px 6px !important;
@@ -5021,7 +5021,7 @@ body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab
 .sp-card h2, .up-title, .run-summary h3 { text-shadow: 2px 2px 0 var(--c-void); }
 .sp-seg, .sp-key, .sp-actions button { border-radius: 3px !important; }
 .sp-primary { box-shadow: 3px 3px 0 var(--c-void); }
-.up-icon { width: 32px; height: 32px; background: url(assets/tipos-sheet.png) 0 0 / 96px 32px no-repeat; image-rendering: pixelated; }
+.up-icon { width: 32px; height: 32px; background: url(../assets/tipos-sheet.png) 0 0 / 96px 32px no-repeat; image-rendering: pixelated; }
 .ti-impulso { background-position: 0 0; } .ti-rafaga { background-position: -32px 0; } .ti-carga { background-position: -64px 0; }
 .px-ico { display: inline-block; width: 18px; height: 18px; image-rendering: pixelated; }
 .px-pause { width: 6px; height: 18px; background: var(--c-ink); box-shadow: 12px 0 0 var(--c-ink); margin-right: 12px; }
@@ -5030,7 +5030,7 @@ body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab
 
 /* Estrella firma (sprite, alterna cada 300 ms) */
 .star-px { display: inline-block; width: 16px; height: 16px; vertical-align: -2px; image-rendering: pixelated;
-    background: url(assets/brand/estrella-sheet.png) 0 -8px / 96px 32px no-repeat; animation: starTw .6s steps(1) infinite; }
+    background: url(../assets/brand/estrella-sheet.png) 0 -8px / 96px 32px no-repeat; animation: starTw .6s steps(1) infinite; }
 .star-lg { width: 32px; height: 32px; vertical-align: -8px; background-size: 96px 32px; background-position: -32px 0; animation-name: starTwLg; }
 @keyframes starTw { 0% { background-position: 0 -8px; } 50% { background-position: -16px -8px; } }
 @keyframes starTwLg { 0% { background-position: -32px 0; } 50% { background-position: -64px 0; } }
@@ -5041,7 +5041,7 @@ body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab
 #scissorCut { position: fixed; left: 0; right: 0; top: 0; height: 100%; z-index: 5000; pointer-events: none; display: none;
     background: transparent; image-rendering: pixelated; }
 #scissorCut::before { content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 24px; background: var(--c-void); }
-#scissorCut::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: url(assets/brand/corte-tijera.png) 0 0 / 360px 24px repeat-x; image-rendering: pixelated; }
+#scissorCut::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: url(../assets/brand/corte-tijera.png) 0 0 / 360px 24px repeat-x; image-rendering: pixelated; }
 #scissorCut.run { display: block; animation: scissor 350ms steps(14) forwards; }
 @keyframes scissor { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
 
@@ -5055,7 +5055,7 @@ body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab
 #shootButton:active, .shoot-btn:active { background: #ff6f93 !important; transform: translate(2px, 2px) scale(.96); box-shadow: 0 0 0 2px var(--c-ink), 1px 1px 0 2px var(--c-void) !important; }
 .shoot-btn-label { color: var(--c-void); }
 /* Barra de recarga: relleno Magia, sin degradado naranja */
-#shootCooldownFill, .shoot-cooldown-mobile-fill { background: url(assets/laberinto/magia_relleno.png) 0 0 / 100% 100% !important; image-rendering: pixelated; box-shadow: none !important; }
+#shootCooldownFill, .shoot-cooldown-mobile-fill { background: url(../assets/laberinto/magia_relleno.png) 0 0 / 100% 100% !important; image-rendering: pixelated; box-shadow: none !important; }
 #shootCooldownBar, .shoot-cooldown-mobile { background: var(--c-void) !important; border: 2px solid var(--c-ink) !important; border-radius: 2px !important; box-shadow: none !important; }
 /* Cartas */
 .t-carga { background: rgba(255,201,74,.18) !important; color: var(--c-gold) !important; }
@@ -5136,7 +5136,7 @@ body:not(.touch-ui) #magiaHud { bottom: calc(16px + var(--sab)) !important; }
 /* v2.2.3: campo vertical en escritorio */
 body.desk-field.game-running { background: #0B0F1E; }
 body.desk-field.game-running::before { content: ""; position: fixed; inset: 0; z-index: 0; opacity: .5; pointer-events: none;
-  background: #0B0F1E url(assets/laberinto/fondo_far_fase1.png) 0 0 / 360px 640px repeat; image-rendering: pixelated; }
+  background: #0B0F1E url(../assets/laberinto/fondo_far_fase1.png) 0 0 / 360px 640px repeat; image-rendering: pixelated; }
 body.desk-field.game-running #game-container { position: fixed !important; top: 0; left: var(--fx); width: var(--fw) !important; height: 100vh; transform: translateZ(0); z-index: 1;
   box-shadow: 0 0 0 2px #1B2440; }
 body.desk-field.game-running #gameCanvas { left: 0; right: auto; }

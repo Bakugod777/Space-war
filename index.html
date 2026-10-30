@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="preload" href="fonts/orbitron-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/exo-2-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="game-container">
@@ -268,20 +268,20 @@
     
 
     <script src="vendor/anime.min.js"></script>
-    <script src="icons.js"></script>
-    <script src="moai-messages.js"></script>
-    <script src="store.js"></script>
-    <script src="sfx.js"></script>
-    <script src="settings.js"></script>
-    <script src="fx.js"></script>
-    <script src="ui-anime.js"></script>
-    <script src="difficulty.js"></script>
-    <script src="game.js"></script>
-    <script src="foes.js"></script>
-    <script src="bosses.js"></script>
-    <script src="rogue.js"></script>
-    <script src="magia.js"></script>
-    <script src="sim.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/moai-messages.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/sfx.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/fx.js"></script>
+    <script src="js/ui-anime.js"></script>
+    <script src="js/difficulty.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/foes.js"></script>
+    <script src="js/bosses.js"></script>
+    <script src="js/rogue.js"></script>
+    <script src="js/magia.js"></script>
+    <script src="js/sim.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const scores = SafeStore.getArray("scores", (x) => x && typeof x.name === "string" && Number.isFinite(x.score));
