@@ -60,11 +60,13 @@
     const f = {
       type, x, y, w: T * s, h: T * s,
       hp, maxHp: hp, t: 0, flash: 0, vx: 0, vy: 0, baseX: x,
-      state: "in", stateT: 0, fireT: 220 + RNG() * 380, // disparan casi al entrar
+      // Nivel bajo: tardan más en disparar; luego aprietan
+      state: "in", stateT: 0,
+      fireT: (level <= 3 ? 900 : level <= 6 ? 500 : 240) + RNG() * (level <= 3 ? 700 : 400),
       phase: RNG() * Math.PI * 2, dashT: 0, elite, glow: 0,
       orbitR: 36 + RNG() * 40, aimT: 0, eliteGun: 700 + RNG() * 400,
     };
-    if (type === "fast") f.vy = (2.7 + Math.min(2.2, level * 0.08)) * sm;
+    if (type === "fast") f.vy = ((level <= 3 ? 2.1 : 2.7) + Math.min(2.2, level * 0.08)) * sm;
     if (type === "tank") f.vy = 0.7 * sm;
     if (type === "splitter") f.vy = 1.45 * sm;
     if (type === "kamikaze") f.vy = 1.35 * sm;
@@ -184,19 +186,21 @@
     }
 
     const __t = gameNow();
-    const ramp = __t < 120000 ? __t / 200000 : 0.6 + 0.4 * Math.min(1, (__t - 120000) / 360000);
-    // Alta tasa de foes (con arma); el legado queda de respaldo
-    const chance = Math.min(0.96, (0.55 + lvl * 0.06) * (0.7 + 0.3 * ramp) * (1 + 0.55 * Math.max(0, lvl - 10)));
+    // Primeros 90 s: rampa suave; luego sube la densidad
+    const ramp = __t < 90000 ? 0.35 + 0.45 * (__t / 90000)
+      : __t < 180000 ? 0.8 + 0.2 * ((__t - 90000) / 90000)
+      : 1;
+    const chance = Math.min(0.94, (0.28 + lvl * 0.05) * ramp * (1 + 0.5 * Math.max(0, lvl - 10)));
     if (RNG() > chance) return false;
 
     const type = pickType(lvl);
     const elite = RNG() < D().eliteChance();
     const x0 = 8 + RNG() * Math.max(1, GW - T - 16);
     spawnOne(type, x0, -T, { elite });
-    // Familiares casi siempre en pareja/trío (presión Madoka)
-    if (type === "familiar") {
+    // Familiares en grupo solo cuando ya hay nivel/tiempo
+    if (type === "familiar" && (lvl >= 4 || __t > 75000)) {
       spawnOne("familiar", Math.max(8, Math.min(GW - 40, x0 + 34)), -T - 16);
-      if (RNG() < 0.55) spawnOne("familiar", Math.max(8, Math.min(GW - 40, x0 - 34)), -T - 28);
+      if (lvl >= 6 && RNG() < 0.45) spawnOne("familiar", Math.max(8, Math.min(GW - 40, x0 - 34)), -T - 28);
     }
     return true;
   }

@@ -357,7 +357,8 @@ function spawnEnemy() {
     image: new Image(),
     canShoot: true, // todas las naves legacy disparan
     lastShot: null, // primer tiro al entrar en pantalla
-    fireGap: Math.max(650, 1100 - level * 45),
+    // De menos a más: al inicio disparan con pausa larga
+    fireGap: Math.max(750, (level <= 3 ? 1800 : 1300) - level * 40),
   };
 
   // Determinar el tipo de enemigo basado en el nivel
@@ -385,9 +386,9 @@ function spawnEnemy() {
   } else {
     // Enemigo tipo 1 (normal)
     enemy.health = 1;
-    enemy.speed = RNG() * 2 + 1; // Velocidad entre 1 y 3
+    enemy.speed = (level <= 3 ? 0.7 : 1) * (RNG() * 2 + 1); // más lentos al inicio
     enemy.canShoot = true;
-    enemy.fireGap = Math.max(1000, 1700 - level * 35);
+    enemy.fireGap = Math.max(1100, (level <= 3 ? 2000 : 1700) - level * 35);
     enemy.image.src = "assets/enemy1.png";
   }
   if (RNG() < 0.1) {
@@ -422,14 +423,16 @@ function enemyShoot(enemy) {
   const py = player.y + player.height / 2;
   const dx = px - bx, dy = Math.max(40, py - by);
   const m = Math.hypot(dx, dy) || 1;
-  const sp = (3.8 + Math.min(2.2, level * 0.06)) * (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
+  const sp = ((level <= 3 ? 2.8 : 3.6) + Math.min(2.2, level * 0.06)) *
+    (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
   const bag = window.enemyBullets || enemyBullets;
   bag.push({
     x: bx - 3, y: by,
     vx: (dx / m) * sp * 0.7, speed: (dy / m) * sp,
     width: 6, height: 12, src: "bala nave",
   });
-  if (level >= 2 || (enemy.image && enemy.image.src.includes("enemy4"))) {
+  // Spray lateral solo cuando ya hay ritmo (nivel 4+)
+  if (level >= 4 || (enemy.image && enemy.image.src.includes("enemy4"))) {
     [-1.6, 1.6].forEach((vx) => {
       bag.push({
         x: bx - 2, y: by, vx: vx, speed: sp * 0.85,
