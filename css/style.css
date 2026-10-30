@@ -3175,6 +3175,14 @@ body:not(.touch-ui) #touchControls {
     height: 40px;
 }
 
+.alert-brand {
+    font: 700 11px "Exo 2", sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7dffa0;
+    margin: 0 0 10px;
+    opacity: 0.95;
+}
 .alert-title {
     color: #4CAF50;
     font: 800 clamp(1.05rem, 3.5vw, 1.35rem) "Orbitron", sans-serif;
