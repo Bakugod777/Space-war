@@ -491,6 +491,30 @@
       });
     },
 
+    /** Pétalos al tumbar familiares / cintas / brujitas (colores planos, sin glow-soup) */
+    petalBurst(x, y) {
+      burst(x, y, {
+        count: 12,
+        speed: 3.0,
+        life: 0.65,
+        size: 3,
+        colors: ["#f48fb1", "#e91e8c", "#ffd54f", "#ffe8f0"],
+        gravity: 0.04,
+        spread: Math.PI * 2,
+      });
+      spawnShockwave({
+        x,
+        y,
+        r: 4,
+        speed: 3.0,
+        life: 0.32,
+        maxLife: 0.32,
+        width: 2,
+        rgb: "233,30,140",
+      });
+      VFX.shake(2);
+    },
+
     powerUp(x, y, colors) {
       burst(x, y, {
         count: 20,
