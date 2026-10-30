@@ -401,8 +401,22 @@
 
     drawEnemyBullet(ctx, bullet) {
       ctx.save();
-      const w = Math.max(4, bullet.width), h = Math.max(bullet.witch ? 6 : 10, bullet.height);
       const ex = Math.round(bullet.x), ey = Math.round(bullet.y);
+      // Estrellitas de Paimon (cruz teal pixel)
+      if (bullet.paimonStar) {
+        const cx = ex + 4, cy = ey + 4;
+        ctx.fillStyle = "#0B0F1E";
+        ctx.fillRect(cx - 4, cy - 1, 8, 3);
+        ctx.fillRect(cx - 1, cy - 4, 3, 8);
+        ctx.fillStyle = "#4EDAD2";
+        ctx.fillRect(cx - 3, cy, 7, 1);
+        ctx.fillRect(cx, cy - 3, 1, 7);
+        ctx.fillStyle = "#E8FFFC";
+        ctx.fillRect(cx, cy, 1, 1);
+        ctx.restore();
+        return;
+      }
+      const w = Math.max(4, bullet.width), h = Math.max(bullet.witch ? 6 : 10, bullet.height);
       ctx.fillStyle = "#0B0F1E"; ctx.fillRect(ex - 1, ey - 1, w + 2, h + 2);
       ctx.fillStyle = bullet.witch ? "#9B6BFF" : "#FF4D7A"; ctx.fillRect(ex, ey, w, h);
       ctx.fillStyle = "#FF8AD8"; ctx.fillRect(ex + 1, ey + 1, Math.max(1, w - 2), 2);

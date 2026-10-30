@@ -5,6 +5,13 @@
 (function (global) {
   const sheet = new Image();
   sheet.src = "assets/bosses-sheet.png";
+  const paimonSheet = new Image();
+  paimonSheet.src = "assets/paimon-sheet.png";
+  const PAIMON = {
+    FRAME: 128, // cada cuadro del sheet
+    // 0 idle · 1 bob · 2 cast · 3 mad
+    IDLE: 0, BOB: 1, CAST: 2, MAD: 3,
+  };
 
   /** Jefes principales por nivel */
   const ROSTER = {
@@ -186,6 +193,18 @@
     boss.phase = 1;
     boss.patternT = 0;
     boss.spiral = 0;
+    boss.animT = 0;
+    boss.castUntil = 0;
+    boss.moveDir = RNG() < 0.5 ? -1 : 1;
+    if (def.id === "paimon") {
+      // Hitbox cuadrada chibi (el sheet es 128×128)
+      boss.width = 128;
+      boss.height = 128;
+      boss.x = GW / 2 - 64;
+      boss.y = typeof bossTopY === "function" ? bossTopY() : 48;
+      boss.paimon = true;
+      boss.baseY = boss.y;
+    }
     const nameEl = document.getElementById("bossName");
     if (nameEl) nameEl.textContent = def.name;
     const fill = document.getElementById("bossHealthFill");
@@ -198,6 +217,94 @@
     if (typeof showMiniToast === "function") showMiniToast(def.toast, 2400);
     if (global.VFX) VFX.floatText(GW / 2, 100, def.name, def.color, 20);
     return true;
+  }
+
+  /** Estrella teal de Paimon (comida de emergencia / magia) */
+  function firePaimonStar(x, y, ang, sp) {
+    const mul = global.Diff ? Diff.bulletMul() : 1;
+    const s = sp * mul;
+    enemyBullets.push({
+      x: x - 4, y: y - 4,
+      vx: Math.cos(ang) * s,
+      speed: Math.sin(ang) * s,
+      width: 8, height: 8,
+      witch: true,
+      src: "jefe:paimon",
+      paimonStar: true,
+    });
+  }
+
+  function paimonAnimFrame() {
+    if (!boss) return PAIMON.IDLE;
+    const now = gameNow();
+    if (boss.phase >= 3) return PAIMON.MAD;
+    if (now < (boss.castUntil || 0)) return PAIMON.CAST;
+    return (Math.floor((boss.animT || 0) / 280) % 2 === 0) ? PAIMON.IDLE : PAIMON.BOB;
+  }
+
+  function updatePaimon(dt) {
+    if (!boss || !boss.paimon || boss.appearing || boss.dying) return;
+    boss.animT = (boss.animT || 0) + dt;
+    // Flota + paseo lateral suave
+    const bob = Math.sin(boss.animT / 280) * 8;
+    boss.y = (boss.baseY || 48) + bob;
+    const speed = 1.1 + (boss.phase || 1) * 0.35;
+    boss.x += (boss.moveDir || 1) * speed * (typeof FK !== "undefined" ? FK : 1);
+    if (boss.x < 8) { boss.x = 8; boss.moveDir = 1; }
+    if (boss.x + boss.width > GW - 8) { boss.x = GW - boss.width - 8; boss.moveDir = -1; }
+  }
+
+  function attackPaimon(phase, now, bx, by) {
+    // Telegráfo: pose de cast ~280 ms antes de soltar
+    const wind = 280;
+    if (now - (boss._starAt || 0) > (phase === 3 ? 850 : phase === 2 ? 1200 : 1600)) {
+      boss.castUntil = now + wind;
+      boss._starAt = now;
+      boss._pendingStar = true;
+    }
+    if (boss._pendingStar && now >= (boss.castUntil || 0)) {
+      boss._pendingStar = false;
+      const n = 3 + phase;
+      for (let i = 0; i < n; i++) {
+        const a = Math.PI / 2 + (i - (n - 1) / 2) * 0.32;
+        firePaimonStar(bx, by, a, 3.1 + phase * 0.2);
+      }
+      bang(0.4);
+      if (global.VFX) VFX.floatText(bx, by - 20, "¡estrellitas!", "#4EDAD2", 14);
+    }
+
+    if (phase >= 2 && now - (boss._foodAt || 0) > (phase === 3 ? 1400 : 2000)) {
+      boss.castUntil = now + wind;
+      boss._foodAt = now;
+      // Anillo de “bocadillos”
+      const n = phase === 3 ? 12 : 8;
+      for (let i = 0; i < n; i++) {
+        firePaimonStar(bx, by, (Math.PI * 2 * i) / n + Math.PI / 2, 2.6);
+      }
+      fireAimed(bx, by, 3.9, "jefe:paimon");
+      bang(0.45);
+      if (typeof showMiniToast === "function" && phase === 2) {
+        showMiniToast("¡comida de emergencia!", 1200);
+      }
+    }
+
+    if (phase >= 3 && now - (boss._rageAt || 0) > 2400) {
+      boss.castUntil = now + 400;
+      boss._rageAt = now;
+      // Lluvia: tres columnas + abanico
+      [-60, 0, 60].forEach((ox) => {
+        firePaimonStar(bx + ox, by, Math.PI / 2, 4.0);
+        firePaimonStar(bx + ox, by, Math.PI / 2 + 0.15, 3.6);
+      });
+      fireFan(bx, by, 7, 0.2, 3.5);
+      // Cambio de dirección brusco (dash)
+      boss.moveDir = player.x + player.width / 2 < bx ? -1 : 1;
+      bang(0.55);
+      if (global.VFX) {
+        VFX.shake(5);
+        VFX.floatText(bx, by - 28, "¡MODO EMERGENCIA!", "#FF4D7A", 16);
+      }
+    }
   }
 
   function hitMini(dmg) {
@@ -379,28 +486,14 @@
     boss.spiral = (boss.spiral || 0) + 0.12;
 
     const bx = boss.x + boss.width / 2;
-    const by = boss.y + boss.height;
+    const by = boss.y + boss.height * 0.85;
     const now = gameNow();
+    const dt = 16;
 
-    // Paimon: estrellas teal + “bocadillos” guiados (comida de emergencia)
     if (id === "paimon") {
-      if (now - (boss._starAt || 0) > (phase === 3 ? 900 : phase === 2 ? 1300 : 1800)) {
-        // abanico de estrellitas
-        fireFan(bx, by, 3 + phase, 0.28, 3.0 + phase * 0.15);
-        boss._starAt = now;
-      }
-      if (phase >= 2 && now - (boss._foodAt || 0) > (phase === 3 ? 1100 : 1600)) {
-        // orbes “comida” (balas witch = pétalo/estrella visual)
-        fireRing(bx, by, phase === 3 ? 10 : 7, 2.5, true);
-        fireAimed(bx, by, 3.8, "jefe:paimon");
-        boss._foodAt = now;
-      }
-      if (phase >= 3 && now - (boss._rageAt || 0) > 2200) {
-        fireAimed(bx - 50, by, 4.2, "jefe:paimon");
-        fireAimed(bx + 50, by, 4.2, "jefe:paimon");
-        fireFan(bx, by, 5, 0.22, 3.6);
-        boss._rageAt = now;
-      }
+      updatePaimon(dt);
+      attackPaimon(phase, now, bx, by);
+      return;
     }
 
     // Walpurgia: pétalos densos
@@ -445,9 +538,6 @@
 
   function drawBossSprite(ctx) {
     if (!boss || typeof boss.rosterFrame !== "number") return false;
-    // sustituye draw si hay frame de sheet (frame 0 = Paimon)
-    if (!sheet.complete || sheet.naturalWidth < 256) return false;
-    const fr = boss.rosterFrame;
     ctx.save();
     let scale = 1, opacity = 1;
     if (boss.appearing) {
@@ -473,12 +563,40 @@
         return true;
       }
     }
+
+    // —— Paimon: sheet propio animado ——
+    if (boss.paimon && paimonSheet.complete && paimonSheet.naturalWidth >= PAIMON.FRAME) {
+      if (!boss.dying && !boss.appearing) {
+        // movimiento lo hace updatePaimon; aquí solo dibuja
+      }
+      const fr = paimonAnimFrame();
+      const F = PAIMON.FRAME;
+      ctx.globalAlpha = opacity;
+      ctx.imageSmoothingEnabled = false;
+      ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
+      ctx.scale(scale, scale);
+      // aura suave en fase 3
+      if (boss.phase >= 3) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(255,77,122,0.18)";
+        ctx.ellipse(0, 8, 70, 58, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.drawImage(paimonSheet, fr * F, 0, F, F, -F / 2, -F / 2, F, F);
+      ctx.restore();
+      return true;
+    }
+
+    // —— Otros jefes: bosses-sheet ——
+    if (!sheet.complete || sheet.naturalWidth < 256) { ctx.restore(); return false; }
     if (!boss.dying && !boss.appearing) {
       boss.x += Math.sin(gameNow() / 600) * 2 * (typeof FK !== "undefined" ? FK : 1);
       if (boss.x < 0) boss.x = 0;
       if (boss.x + boss.width > GW) boss.x = GW - boss.width;
     }
+    const fr = boss.rosterFrame;
     ctx.globalAlpha = opacity;
+    ctx.imageSmoothingEnabled = false;
     ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
     ctx.scale(scale, scale);
     ctx.drawImage(sheet, fr * 256, 0, 256, 128, -boss.width / 2, -boss.height / 2, boss.width, boss.height);
