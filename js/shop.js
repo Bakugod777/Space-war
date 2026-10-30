@@ -299,7 +299,7 @@ function initShopSystem() {
     if (typeof UIAnime !== "undefined") {
       UIAnime.openModal(shopModal);
     } else {
-      shopModal.style.display = "block";
+      shopModal.style.display = "flex";
     }
 
     renderShopItems();
@@ -387,8 +387,73 @@ function renderShopItems(category = "all") {
   });
 }
 
+/**
+ * Confirmación temática (sustituye window.confirm del navegador).
+ * opts: { title, message, confirmLabel, cancelLabel, tone, icon }
+ */
+function showConfirm(opts) {
+  const o = opts || {};
+  const el = document.getElementById("customAlert");
+  if (!el) {
+    return Promise.resolve(
+      window.confirm(String(o.message || "").replace(/<[^>]+>/g, ""))
+    );
+  }
+  const titleEl = document.getElementById("alertTitle");
+  const msgEl = document.getElementById("alertMessage");
+  const iconEl = document.getElementById("alertIcon");
+  const okBtn = document.getElementById("confirmAlert");
+  const cancelBtn = document.getElementById("cancelAlert");
+  const tone = o.tone || "shop";
+
+  if (titleEl) titleEl.textContent = o.title || "Confirmar";
+  if (msgEl) msgEl.innerHTML = o.message || "";
+  if (okBtn) okBtn.textContent = o.confirmLabel || "Aceptar";
+  if (cancelBtn) cancelBtn.textContent = o.cancelLabel || "Cancelar";
+  if (iconEl) {
+    const name = o.icon || (tone === "shop" ? "cart" : "warning");
+    iconEl.setAttribute("data-sw", name);
+    if (typeof swIcon === "function") iconEl.innerHTML = swIcon(name, "sw-icon-lg");
+  }
+
+  el.classList.remove("tone-shop", "tone-warn", "tone-info");
+  el.classList.add("tone-" + tone);
+  el.hidden = false;
+  el.classList.add("show");
+  el.style.display = "flex";
+
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (val) => {
+      if (done) return;
+      done = true;
+      el.classList.remove("show");
+      el.hidden = true;
+      el.style.display = "none";
+      document.removeEventListener("keydown", onKey);
+      okBtn && okBtn.removeEventListener("click", onOk);
+      cancelBtn && cancelBtn.removeEventListener("click", onCancel);
+      el.removeEventListener("click", onBackdrop);
+      resolve(val);
+    };
+    const onOk = () => finish(true);
+    const onCancel = () => finish(false);
+    const onBackdrop = (e) => { if (e.target === el) finish(false); };
+    const onKey = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); finish(false); }
+      if (e.key === "Enter") { e.preventDefault(); finish(true); }
+    };
+    okBtn && okBtn.addEventListener("click", onOk);
+    cancelBtn && cancelBtn.addEventListener("click", onCancel);
+    el.addEventListener("click", onBackdrop);
+    document.addEventListener("keydown", onKey);
+    setTimeout(() => { if (okBtn) okBtn.focus(); }, 40);
+  });
+}
+window.showConfirm = showConfirm;
+
 // Comprar item
-function purchaseItem(itemId) {
+async function purchaseItem(itemId) {
   const item = shopItems.find((i) => i.id === itemId);
   if (!item || item.purchased) return;
 
@@ -398,35 +463,45 @@ function purchaseItem(itemId) {
     return;
   }
 
-  // Confirmar compra
-  if (confirm(`¿Deseas canjear "${item.name}" por ${item.cost} puntos?`)) {
-    item.purchased = true;
-    savePurchase(item.id);
+  const ok = await showConfirm({
+    title: "Canjear en la tienda",
+    message:
+      `¿Deseas canjear <strong>«${item.name}»</strong> por ` +
+      `<span class="alert-cost">${item.cost} puntos</span>?`,
+    confirmLabel: "Canjear",
+    cancelLabel: "Cancelar",
+    tone: "shop",
+    icon: item.icon || "cart",
+  });
+  if (!ok) return;
 
-    // ANIMACIÓN ÉPICA DE COMPRA
-    createEpicPurchaseAnimation(item);
+  item.purchased = true;
+  savePurchase(item.id);
 
-    // Mostrar contenido después de la animación
-    setTimeout(() => {
-      showItemContent(item);
-    }, 2000);
+  // ANIMACIÓN ÉPICA DE COMPRA
+  createEpicPurchaseAnimation(item);
 
-    renderShopItems();
-    updateShopStats();
+  // Mostrar contenido después de la animación
+  setTimeout(() => {
+    showItemContent(item);
+  }, 2000);
 
-    // Sonido de compra
-    try {
-      const purchaseSound = SFX.audio("achievement");
-      purchaseSound.volume = 0.5;
-      purchaseSound.play().catch(() => {});
-    } catch (e) {}
+  renderShopItems();
+  updateShopStats();
 
-    // Si es un avatar (título), actualizar el sistema de títulos
-    if (item.category === "avatars") {
-      updateAvailableTitles();
-    }
+  // Sonido de compra
+  try {
+    const purchaseSound = SFX.audio("achievement");
+    purchaseSound.volume = 0.5;
+    purchaseSound.play().catch(() => {});
+  } catch (e) {}
+
+  // Si es un avatar (título), actualizar el sistema de títulos
+  if (item.category === "avatars") {
+    updateAvailableTitles();
   }
 }
+window.purchaseItem = purchaseItem;
 
 // Crear animación épica de compra
 function createEpicPurchaseAnimation(item) {
@@ -537,7 +612,7 @@ function showItemContent(item) {
   contentTitle.textContent = item.name;
   contentText.textContent = item.content;
 
-  contentModal.style.display = "block";
+  contentModal.style.display = "flex";
 
   // Cerrar modal de contenido
   const contentClose = document.querySelector(".item-content-close");

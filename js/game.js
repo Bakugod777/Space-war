@@ -54,18 +54,18 @@ window.addEventListener("resize", refreshTouchUiMode);
 window.addEventListener("orientationchange", refreshTouchUiMode);
 
 gameOverDisplay.id = "gameOverDisplay";
-gameOverDisplay.style.position = "absolute";
-gameOverDisplay.style.top = "50%";
-gameOverDisplay.style.left = "50%";
-gameOverDisplay.style.transform = "translate(-50%, -50%)";
-gameOverDisplay.style.fontSize = "50px";
-gameOverDisplay.style.color = "white";
-gameOverDisplay.style.display = "none";
-gameOverDisplay.style.zIndex = "1000";
-gameOverDisplay.style.textAlign = "center";
+gameOverDisplay.setAttribute("role", "dialog");
+gameOverDisplay.setAttribute("aria-modal", "true");
+gameOverDisplay.setAttribute("aria-label", "Fin de partida");
+gameOverDisplay.hidden = true;
 gameOverDisplay.innerHTML =
-  "<div class='go-title'>se acabó la ronda</div><button id='restartBtn'>otra vez</button>";
-document.getElementById("game-container").appendChild(gameOverDisplay);
+  "<div class='go-card'>" +
+  "<div class='go-summary-slot'></div>" +
+  "<div class='go-title'>se acabó la ronda</div>" +
+  "<button type='button' id='restartBtn'>otra vez</button>" +
+  "</div>";
+// Overlay a body: no queda atrapado en el campo estrecho de escritorio
+document.body.appendChild(gameOverDisplay);
 
 // Lienzo nítido según devicePixelRatio (limitado a 2 por rendimiento)
 let GW = window.innerWidth, GH = window.innerHeight, WORLD_SCALE = 1;
@@ -194,6 +194,7 @@ let enemies = []; // Enemigos
 let kits = []; // Kits de salud
 let meteors = []; // Meteoritos
 let enemyBullets = []; // Balas enemigas
+window.enemyBullets = enemyBullets; // foes/bosses empujan aquí sin ambigüedad de scope
 let xiaos = []; // Array para los kits especiales xiao
 let arlees = []; // Array para los power-ups de velocidad de disparo
 let cynos = []; // Array para los power-ups de invulnerabilidad
@@ -354,9 +355,9 @@ function spawnEnemy() {
     speed: RNG() * 2 + 1,
     health: 1,
     image: new Image(),
-    canShoot: level >= 1, // casi todas las naves disparan
-    lastShot: 0,
-    fireGap: Math.max(900, 1800 - level * 40),
+    canShoot: true, // todas las naves legacy disparan
+    lastShot: null, // primer tiro al entrar en pantalla
+    fireGap: Math.max(650, 1100 - level * 45),
   };
 
   // Determinar el tipo de enemigo basado en el nivel
@@ -393,9 +394,10 @@ function spawnEnemy() {
     enemy.health = 1;
     enemy.speedX = 2.5;
     enemy.speedY = 3.5;
+    enemy.canShoot = false; // es loot-arma, no artillero
     enemy.image.src = "assets/xiao_weapon.png";
-    { const p = Math.max(0, level - 10); if (p) { enemy.speed *= 1 + 0.25 * p; enemy.health += Math.floor(p * 0.75); } } // post-jefe: más rápidos y duros
-  enemies.push(enemy);
+    { const p = Math.max(0, level - 10); if (p) { enemy.speed *= 1 + 0.25 * p; enemy.health += Math.floor(p * 0.75); } }
+    enemies.push(enemy);
     return;
   }
   if (RNG() < 0.06) {
@@ -408,33 +410,36 @@ function spawnEnemy() {
 
 // función para que el enemigo dispare (apunta un poco al jugador)
 function enemyShoot(enemy) {
-  if (enemy.y < 0) return;
+  if (enemy.speedX !== undefined) return;
+  if (enemy.y < -24) return;
+  if (!enemy.canShoot) return;
   const currentTime = gameNow();
-  const gap = enemy.fireGap || Math.max(900, 1800 - level * 40);
-  if (currentTime - enemy.lastShot > gap) {
-    const bx = enemy.x + enemy.width / 2;
-    const by = enemy.y + enemy.height;
-    const px = player.x + player.width / 2;
-    const py = player.y + player.height / 2;
-    const dx = px - bx, dy = py - by, m = Math.hypot(dx, dy) || 1;
-    const sp = (4.2 + Math.min(2, level * 0.05)) * (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
-    // 1 guiada + a veces spray lateral
-    enemyBullets.push({
-      x: bx - 2, y: by,
-      vx: (dx / m) * sp * 0.55, speed: Math.max(2.8, (dy / m) * sp),
-      width: 4, height: 9, src: "bala nave",
-    });
-    if (enemy.canShoot && (level >= 6 || enemy.image.src.includes("enemy4"))) {
-      [-1.4, 1.4].forEach((vx) => {
-        enemyBullets.push({
-          x: bx - 2, y: by, vx: vx, speed: sp * 0.75,
-          width: 3, height: 8, src: "bala nave",
-        });
+  const gap = enemy.fireGap || Math.max(700, 1200 - level * 40);
+  if (enemy.lastShot != null && currentTime - enemy.lastShot < gap) return;
+  const bx = enemy.x + enemy.width / 2;
+  const by = enemy.y + enemy.height;
+  const px = player.x + player.width / 2;
+  const py = player.y + player.height / 2;
+  const dx = px - bx, dy = Math.max(40, py - by);
+  const m = Math.hypot(dx, dy) || 1;
+  const sp = (3.8 + Math.min(2.2, level * 0.06)) * (typeof Diff !== "undefined" ? Diff.bulletMul() : 1);
+  const bag = window.enemyBullets || enemyBullets;
+  bag.push({
+    x: bx - 3, y: by,
+    vx: (dx / m) * sp * 0.7, speed: (dy / m) * sp,
+    width: 6, height: 12, src: "bala nave",
+  });
+  if (level >= 2 || (enemy.image && enemy.image.src.includes("enemy4"))) {
+    [-1.6, 1.6].forEach((vx) => {
+      bag.push({
+        x: bx - 2, y: by, vx: vx, speed: sp * 0.85,
+        width: 5, height: 10, src: "bala nave",
       });
-    }
-    enemy.lastShot = currentTime;
-    if (typeof SFX !== "undefined") SFX.play("impact", 0.3);
+    });
   }
+  enemy.lastShot = currentTime;
+  if (typeof SFX !== "undefined") SFX.play("impact", 0.28);
+  if (typeof VFX !== "undefined" && VFX.muzzleFlash) VFX.muzzleFlash(bx, by);
 }
 
 // Power-ups → js/powerups.js
@@ -1102,30 +1107,28 @@ function updateHeartsDisplay() {
 function gameOver() {
   gameRunning = false;
   if (typeof bossBar !== "undefined") bossBar.style.display = "none";
+  if (typeof setPaused === "function") setPaused(true, true);
   scissorCut();
+  // Mantener el marco del campo en escritorio; ocultar chrome de menú
+  document.body.classList.add("game-over");
+  document.body.classList.remove("game-running");
+  refreshTouchUiMode();
   if (typeof Rogue !== "undefined") Rogue.showSummary(gameOverDisplay);
+  gameOverDisplay.hidden = false;
   if (typeof UIAnime !== "undefined") {
     UIAnime.gameOver(gameOverDisplay);
   } else {
-    gameOverDisplay.style.display = "block";
+    gameOverDisplay.style.display = "flex";
   }
-  canvas.style.filter = "grayscale(100%)";
+  canvas.style.filter = "grayscale(70%) brightness(0.55)";
 
-  // Pausar la música cuando el juego termina
   const music = initBgMusic();
-  if (music) {
-    music.pause();
-    console.log("Música pausada al terminar el juego");
-  }
+  if (music) music.pause();
 
-  // Remover clase cuando el juego termina
-  document.body.classList.remove("game-running");
-  refreshTouchUiMode();
-
-  // Actualizar estadísticas de fin de partida
   updateStatsOnGameEnd();
-
   saveScore();
+  const btn = document.getElementById("restartBtn");
+  if (btn) setTimeout(() => btn.focus(), 80);
 }
 
 function saveScore() {
@@ -1148,8 +1151,7 @@ function displayScores(scores) {
 }
 
 document.getElementById("restartBtn").addEventListener("click", () => {
-  // Remover clase antes de recargar
-  document.body.classList.remove("game-running");
+  document.body.classList.remove("game-running", "game-over");
   window.location.reload();
 });
 
@@ -1159,7 +1161,8 @@ function startGame() {
   player.iframesUntil = 0; window.__postBossAt = null;
   // Estado de power-ups de la partida anterior (sus temporizadores se borran con el reloj): volver a lo normal.
   normalFireRate = 500; isFireRateReduced = false; hasFireRateBoost = false; hasDoublePoints = false; isInvulnerable = false; hasTemporaryHeart = false;
-  xiaos = []; arlees = []; cynos = []; flins = []; rerirs = []; kits = []; meteors = []; enemyBullets = []; bullets = [];
+  xiaos = []; arlees = []; cynos = []; flins = []; rerirs = []; kits = []; meteors = [];
+  enemyBullets = []; window.enemyBullets = enemyBullets; bullets = [];
   bossActive = false; boss = null; if (typeof bossBar !== "undefined") bossBar.style.display = "none";
   player.canShoot = true; // el reloj se reinicia: el enfriamiento pendiente se cancela
   player.x = GW / 2 - player.width / 2;
@@ -1182,7 +1185,8 @@ function startGame() {
   bullets = [];
   kits = [];
   meteors = [];
-  enemyBullets = []; // Limpiar las balas enemigas
+  enemyBullets = [];
+  window.enemyBullets = enemyBullets;
   xiaos = [];
   arlees = []; // Limpiar los power-ups de velocidad de disparo
   cynos = [];
@@ -1231,10 +1235,11 @@ function startGame() {
 
   player.image.style.filter = "none";
   gameRunning = true;
+  gameOverDisplay.hidden = true;
   gameOverDisplay.style.display = "none";
   canvas.style.filter = "none";
 
-  // Añadir clase para ocultar controles de menú
+  document.body.classList.remove("game-over");
   document.body.classList.add("game-running");
 
   // Reproducir música de fondo con configuración robusta
@@ -1248,25 +1253,15 @@ function startGame() {
     const currentMuted = localStorage.getItem("gameMuted") === "true";
     music.volume = currentMuted ? 0 : currentVolume / 100;
 
-    console.log("Intentando reproducir música, volumen:", music.volume);
-
     music
       .play()
-      .then(() => {
-        console.log("Música reproduciéndose correctamente");
-      })
-      .catch((error) => {
-        console.log("Error al reproducir música:", error);
-        // Intentar reproducir en el próximo clic del usuario
+      .then(() => {})
+      .catch(() => {
+        // Autoplay bloqueado: se reintenta con el próximo gesto del usuario
         document.addEventListener(
           "click",
           function playMusic() {
-            music
-              .play()
-              .then(() => {
-                console.log("Música iniciada después de clic del usuario");
-              })
-              .catch(() => {});
+            music.play().catch(() => {});
             document.removeEventListener("click", playMusic);
           },
           { once: true }
@@ -1552,17 +1547,7 @@ function initBgMusic() {
       }
     });
 
-    // Evento para manejar errores de carga
-    bgMusic.addEventListener("error", (e) => {
-      console.log("Error al cargar la música:", e);
-    });
-
-    // Evento cuando la música está lista para reproducir
-    bgMusic.addEventListener("canplay", () => {
-      console.log("Música lista para reproducir");
-    });
-
-    console.log("Música de fondo inicializada");
+    bgMusic.addEventListener("error", () => {});
   }
   return bgMusic;
 }
@@ -2257,6 +2242,9 @@ function handleBossHit() {
     if (typeof enemySpawnInterval !== "undefined")
       gClear(enemySpawnInterval);
     spawnEnemies();
+    if (typeof Rogue !== "undefined") {
+      Rogue.offerUpgrades(level, { title: "¡Jefe derrotado! · escoge una" });
+    }
   }
 }
 
@@ -2310,7 +2298,10 @@ function maybeLevelUp(prevScore) {
     }
     // Intentar mini-jefe / jefe al cruzar el hito
     if (typeof Bosses !== "undefined") Bosses.trySpawnForLevel(level);
-    if (typeof Rogue !== "undefined") Rogue.offerUpgrades(level);
+    // Cartas solo en hitos 5 / 10 / 15 / 20… (el jefe también otorga al morir)
+    if (typeof Rogue !== "undefined" && Rogue.isMilestoneLevel(level)) {
+      Rogue.offerUpgrades(level);
+    }
   }
 }
 

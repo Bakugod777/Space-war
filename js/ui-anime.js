@@ -145,13 +145,13 @@
 
     openModal(modal) {
       if (!modal) return;
-      // Mantener display:block como el CSS original del proyecto
-      modal.style.display = "block";
+      // flex: centra el panel en cualquier viewport / safe-area
+      modal.style.display = "flex";
       modal.style.opacity = "0";
 
       const content =
         modal.querySelector(
-          ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content"
+          ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content, .title-selector-content"
         ) || modal.firstElementChild;
 
       if (!ready()) {
@@ -186,7 +186,7 @@
         clearInline(modal, ["opacity"]);
         const content =
           modal.querySelector(
-            ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content"
+            ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content, .title-selector-content"
           ) || modal.firstElementChild;
         if (content) {
           clearInline(content, ["opacity", "transform"]);
@@ -350,24 +350,32 @@
 
     gameOver(el) {
       if (!el) return;
-      el.style.display = "block";
-      if (!ready()) return;
+      el.hidden = false;
+      el.style.display = "flex";
+      const card = el.querySelector(".go-card") || el;
+      if (!ready()) {
+        card.style.opacity = "1";
+        return;
+      }
+      anime.remove(card);
       anime.remove(el);
+      el.style.opacity = "1";
       anime({
-        targets: el,
+        targets: card,
         opacity: [0, 1],
-        scale: [0.7, 1],
-        duration: 700,
-        easing: "easeOutElastic(1, .65)",
+        translateY: [28, 0],
+        scale: [0.92, 1],
+        duration: 560,
+        easing: "easeOutCubic",
       });
       const btn = el.querySelector("#restartBtn");
       if (btn) {
         anime({
           targets: btn,
-          translateY: [24, 0],
+          translateY: [16, 0],
           opacity: [0, 1],
-          delay: 280,
-          duration: 520,
+          delay: 180,
+          duration: 420,
           easing: "easeOutExpo",
         });
       }

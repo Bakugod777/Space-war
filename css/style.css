@@ -3084,144 +3084,140 @@ body:not(.touch-ui) #touchControls {
 /* =================== CUSTOM ALERT =================== */
 .custom-alert {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(15px);
+    background: rgba(11, 15, 30, 0.82);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 15000;
-    animation: fadeIn 0.3s ease-out;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    box-sizing: border-box;
 }
-
-.custom-alert.show {
+.custom-alert.show,
+.custom-alert:not([hidden]).show {
     display: flex;
 }
+.custom-alert[hidden] { display: none !important; }
 
 .custom-alert-content {
-    background: var(--c-void);
-    border: 3px solid rgba(255, 100, 100, 0.8);
-    border-radius: 20px;
-    box-shadow: 
-        0 0 50px rgba(255, 0, 0, 0.6),
-        0 0 100px rgba(255, 50, 50, 0.3),
-        inset 0 0 30px rgba(255, 255, 255, 0.1);
-    max-width: 450px;
-    width: 90%;
-    padding: 30px;
+    background: var(--c-deep);
+    border: 3px solid var(--c-void);
+    border-radius: 4px 7px 3px 6px;
+    box-shadow: 0 0 0 2px #4CAF50, 5px 6px 0 2px var(--c-void);
+    max-width: min(420px, calc(100vw - 24px));
+    width: 100%;
+    padding: 22px 20px 18px;
     text-align: center;
-    animation: alertSlide 0.5s ease-out;
+    animation: alertSlide 0.35s ease-out;
+    font-family: "Exo 2", sans-serif;
+}
+
+.custom-alert.tone-warn .custom-alert-content {
+    box-shadow: 0 0 0 2px var(--c-rose), 5px 6px 0 2px var(--c-void);
+}
+.custom-alert.tone-info .custom-alert-content {
+    box-shadow: 0 0 0 2px var(--c-cyan), 5px 6px 0 2px var(--c-void);
 }
 
 .alert-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-    animation: alertIconPulse 2s infinite;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image-rendering: pixelated;
+}
+.alert-icon .sw-icon,
+.alert-icon .sw-icon-lg {
+    width: 40px;
+    height: 40px;
 }
 
 .alert-title {
-    color: #fff;
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-shadow: 
-        0 0 10px rgba(255, 100, 100, 0.8),
-        0 0 20px rgba(255, 0, 0, 0.6);
+    color: #4CAF50;
+    font: 800 clamp(1.05rem, 3.5vw, 1.35rem) "Orbitron", sans-serif;
+    margin: 0 0 12px;
+    letter-spacing: 0.04em;
+    text-shadow: 2px 2px 0 var(--c-void);
 }
+.custom-alert.tone-warn .alert-title { color: var(--c-rose); }
+.custom-alert.tone-info .alert-title { color: var(--c-cyan); }
 
 .alert-message {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 30px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    color: var(--c-ink);
+    font-size: clamp(0.95rem, 2.6vw, 1.05rem);
+    line-height: 1.55;
+    margin: 0 0 20px;
+    opacity: 0.95;
+}
+.alert-message strong { color: #fff; font-weight: 800; }
+.alert-cost {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 10px;
+    font-weight: 800;
+    color: var(--c-void);
+    background: #FFD54F;
+    border: 2px solid var(--c-void);
+    border-radius: 3px;
+    box-shadow: 2px 2px 0 var(--c-void);
 }
 
 .alert-buttons {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .alert-btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    min-height: 44px;
     min-width: 120px;
+    padding: 0 18px;
+    border: 3px solid var(--c-void);
+    border-radius: 4px;
+    font: 800 14px "Exo 2", sans-serif;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .cancel-btn {
-    background: var(--c-mint);
-    color: white;
-    box-shadow: 
-        0 4px 15px rgba(108, 117, 125, 0.4),
-        inset 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-.cancel-btn:hover {
     background: var(--c-deep);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px rgba(108, 117, 125, 0.6),
-        inset 0 0 15px rgba(255, 255, 255, 0.3);
+    color: var(--c-ink);
+    box-shadow: 0 0 0 2px rgba(234, 242, 255, 0.25), 3px 3px 0 2px var(--c-void);
+}
+.cancel-btn:hover,
+.cancel-btn:focus-visible {
+    transform: translate(-1px, -1px);
+    outline: none;
 }
 
 .confirm-btn {
-    background: var(--c-rose);
-    color: white;
-    box-shadow: 
-        0 4px 15px rgba(220, 53, 69, 0.4),
-        inset 0 0 10px rgba(255, 255, 255, 0.2);
+    background: #4CAF50;
+    color: var(--c-void);
+    box-shadow: 0 0 0 2px var(--c-ink), 3px 3px 0 2px var(--c-void);
 }
-
-.confirm-btn:hover {
-    background: var(--c-rose);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px rgba(220, 53, 69, 0.6),
-        inset 0 0 15px rgba(255, 255, 255, 0.3);
+.custom-alert.tone-warn .confirm-btn { background: var(--c-rose); color: #fff; }
+.confirm-btn:hover,
+.confirm-btn:focus-visible {
+    transform: translate(-1px, -1px);
+    outline: none;
 }
 
 .alert-btn:active {
-    transform: translateY(0);
-    box-shadow: 
-        0 2px 10px rgba(0, 0, 0, 0.4),
-        inset 0 0 10px rgba(0, 0, 0, 0.2);
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 2px var(--c-ink), 1px 1px 0 2px var(--c-void);
 }
 
 @keyframes alertSlide {
-    from {
-        opacity: 0;
-        transform: translateY(-100px) scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes alertIconPulse {
-    0% { 
-        transform: scale(1);
-        filter: drop-shadow(0 0 10px rgba(255, 100, 100, 0.6));
-    }
-    50% { 
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8));
-    }
-    100% { 
-        transform: scale(1);
-        filter: drop-shadow(0 0 10px rgba(255, 100, 100, 0.6));
-    }
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Responsive para la alerta */
@@ -5231,4 +5227,435 @@ body.desk-field.game-running #pcHints {
   border-radius: 4px;
   font-size: 11px;
   color: #3FE0F0;
+}
+
+/* ===================== v2.3.9: pantalla de muerte + campo escritorio ===================== */
+/* Mantener el marco vertical al morir (antes se rompía al quitar game-running) */
+body.desk-field.game-over { background: #0B0F1E; }
+body.desk-field.game-over::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; opacity: .45; pointer-events: none;
+  background: #0B0F1E url(../assets/laberinto/fondo_far_fase1.png) 0 0 / 360px 640px repeat;
+  image-rendering: pixelated;
+}
+body.desk-field.game-over #game-container {
+  position: fixed !important; top: 0; left: var(--fx); width: var(--fw) !important; height: 100vh;
+  transform: translateZ(0); z-index: 1; box-shadow: 0 0 0 2px #1B2440;
+}
+body.desk-field.game-over #gameCanvas { left: 0; right: auto; }
+
+/* Ocultar chrome de menú durante el resumen */
+body.game-over .shop-btn,
+body.game-over .settings-btn,
+body.game-over .audio-controls,
+body.game-over .moai-btn,
+body.game-over .achievements-btn,
+body.game-over .title-selector-btn,
+body.game-over #pcHints,
+body.game-over #pauseButton,
+body.game-over #settingsButton,
+body.game-over #touchControls,
+body.game-over #magiaHud,
+body.game-over #magiaBtn,
+body.game-over #lifeGem,
+body.game-over #killFeed,
+body.game-over #comboDisplay,
+body.game-over #miniToast {
+  display: none !important;
+}
+
+/* Overlay a pantalla completa — no depende del ancho del campo */
+#gameOverDisplay {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  z-index: 3200 !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  box-sizing: border-box;
+  background: rgba(11, 15, 30, 0.72) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: auto;
+  text-align: center;
+  font-size: 16px !important;
+  color: var(--c-ink);
+  animation: none !important;
+}
+#gameOverDisplay[hidden] { display: none !important; }
+#gameOverDisplay:not([hidden]) { display: flex !important; }
+
+#gameOverDisplay .go-card {
+  width: min(92vw, 400px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 18px 18px 16px;
+  background: var(--c-deep);
+  border: 3px solid var(--c-void);
+  border-radius: 4px 7px 3px 6px;
+  box-shadow: 0 0 0 2px var(--c-ink), 5px 6px 0 2px var(--c-void);
+  text-align: center;
+}
+
+#gameOverDisplay .go-summary-slot { margin: 0; }
+#gameOverDisplay .run-summary {
+  font-family: "Exo 2", sans-serif;
+  font-size: 14px;
+  color: var(--c-ink);
+  margin: 0 0 12px;
+  text-align: left;
+}
+#gameOverDisplay .run-summary h3 {
+  font-family: "Orbitron", sans-serif;
+  color: var(--c-gold);
+  font-size: clamp(14px, 3.8vw, 17px);
+  line-height: 1.35;
+  text-align: center;
+  margin: 0 0 12px;
+  text-shadow: 2px 2px 0 var(--c-void);
+}
+#gameOverDisplay .run-summary dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(11, 15, 30, 0.55);
+  border: 2px solid rgba(234, 242, 255, 0.12);
+  border-radius: 4px;
+}
+#gameOverDisplay .run-summary dt { opacity: 0.72; }
+#gameOverDisplay .run-summary dd { margin: 0; text-align: right; font-weight: 700; }
+#gameOverDisplay .run-summary .go-picks,
+#gameOverDisplay .run-summary p {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.88;
+  text-align: center;
+}
+
+#gameOverDisplay .go-title {
+  font: 900 clamp(18px, 5vw, 26px) "Orbitron", sans-serif !important;
+  color: var(--c-rose) !important;
+  text-shadow: 3px 3px 0 var(--c-void) !important;
+  margin: 14px 0 14px !important;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+#gameOverDisplay #restartBtn,
+#restartBtn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: 148px;
+  padding: 0 24px !important;
+  margin: 0 auto !important;
+  font: 800 16px "Exo 2", sans-serif !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+  background: var(--c-cyan) !important;
+  color: var(--c-void) !important;
+  border: 3px solid var(--c-void) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 0 2px var(--c-ink), 3px 3px 0 2px var(--c-void) !important;
+  animation: none !important;
+  cursor: pointer;
+}
+#gameOverDisplay #restartBtn:hover,
+#gameOverDisplay #restartBtn:focus-visible {
+  transform: translate(-1px, -1px);
+  outline: none;
+}
+#gameOverDisplay #restartBtn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 2px var(--c-ink), 1px 1px 0 2px var(--c-void) !important;
+}
+
+@media (max-height: 560px) {
+  #gameOverDisplay .go-card { padding: 12px 14px; }
+  #gameOverDisplay .run-summary dl { gap: 3px 12px; padding: 8px 10px; }
+  #gameOverDisplay .go-title { margin: 10px 0 !important; font-size: 18px !important; }
+}
+
+/* ===================== v2.3.10: responsive global (modales + HUD + menú) ===================== */
+:root {
+  --sw-pad: max(12px, env(safe-area-inset-top, 0px));
+  --sw-pad-x: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+  --sw-pad-b: max(12px, env(safe-area-inset-bottom, 0px));
+}
+
+/* Contenedores de modal: flex + safe-area (funciona con display:flex|block vía JS) */
+.moai-modal,
+.achievements-modal,
+.shop-modal,
+.item-content-modal,
+.title-selector-modal,
+.update-popup,
+.custom-alert {
+  align-items: center;
+  justify-content: center;
+  padding: var(--sw-pad) var(--sw-pad-x) var(--sw-pad-b) !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.moai-modal[style*="display: block"],
+.moai-modal[style*="display: flex"],
+.achievements-modal[style*="display: block"],
+.achievements-modal[style*="display: flex"],
+.shop-modal[style*="display: block"],
+.shop-modal[style*="display: flex"],
+.item-content-modal[style*="display: block"],
+.item-content-modal[style*="display: flex"],
+.title-selector-modal[style*="display: block"],
+.title-selector-modal[style*="display: flex"],
+.custom-alert[style*="display: block"],
+.custom-alert[style*="display: flex"] {
+  display: flex !important;
+}
+
+/* Paneles: caben en viewport corto/estrecho */
+.moai-modal-content,
+.achievements-modal-content,
+.shop-modal-content,
+.item-content-modal-content,
+.title-selector-content,
+.update-popup-content,
+.custom-alert-content {
+  margin: auto !important;
+  width: min(920px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  max-width: calc(100vw - 2 * var(--sw-pad-x)) !important;
+  max-height: min(92dvh, calc(100dvh - var(--sw-pad) - var(--sw-pad-b))) !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.moai-modal-content {
+  width: min(420px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  padding: clamp(18px, 4vw, 28px) !important;
+  padding-top: clamp(40px, 6vw, 48px) !important;
+}
+.moai-modal-content p {
+  font-size: clamp(0.95rem, 2.8vw, 1.15rem) !important;
+  line-height: 1.55 !important;
+  margin: 0.6em 0 !important;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.item-content-modal-content {
+  width: min(560px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  padding: clamp(16px, 3.5vw, 28px) !important;
+  padding-top: clamp(48px, 7vw, 56px) !important;
+  text-align: left !important;
+}
+.item-content-modal-content h2 {
+  font-size: clamp(1.05rem, 3.6vw, 1.65rem) !important;
+  line-height: 1.3 !important;
+  margin: 0 0 14px !important;
+  padding-bottom: 10px !important;
+  position: static !important;
+  top: auto !important;
+  word-wrap: break-word;
+}
+.item-content-text {
+  font-size: clamp(0.88rem, 2.6vw, 1.05rem) !important;
+  line-height: 1.65 !important;
+  padding-bottom: 8px !important;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.item-content-close,
+.shop-close,
+.achievements-close,
+.moai-close,
+.title-selector-close {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  right: 6px !important;
+  top: 6px !important;
+  float: none !important;
+  z-index: 5;
+}
+
+/* Tienda / logros: layout interno que scrollea bien */
+.shop-modal-content,
+.achievements-modal-content {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  width: min(900px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+}
+.shop-header,
+.achievements-header {
+  flex: 0 0 auto;
+  padding: clamp(12px, 2.5vw, 22px) !important;
+}
+.shop-header h2,
+.achievements-header h2 {
+  font-size: clamp(1.15rem, 4vw, 2rem) !important;
+  letter-spacing: 0.06em !important;
+  margin: 0 0 12px !important;
+}
+.shop-stats,
+.achievements-stats {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)) !important;
+  gap: 8px !important;
+  justify-content: stretch !important;
+}
+.shop-categories,
+.achievements-categories {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.shop-category-tabs,
+.category-tabs {
+  flex: 0 0 auto;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  padding: 8px !important;
+  justify-content: center !important;
+}
+.shop-tab-btn,
+.tab-btn {
+  flex: 1 1 auto !important;
+  min-width: min(110px, 42vw) !important;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.shop-items-list,
+.achievements-list {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px !important;
+}
+
+.title-selector-content {
+  width: min(700px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  padding: clamp(16px, 3vw, 28px) !important;
+}
+.title-selector-content h2 {
+  font-size: clamp(1.2rem, 4.5vw, 2rem) !important;
+}
+.title-selector-modal {
+  display: flex !important; /* solo existe en el DOM mientras está abierto */
+}
+
+.update-popup-content {
+  width: min(500px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  max-height: min(80dvh, calc(100dvh - var(--sw-pad) - var(--sw-pad-b))) !important;
+}
+.update-header h2 {
+  font-size: clamp(1rem, 3.8vw, 1.4rem) !important;
+  line-height: 1.35 !important;
+}
+.update-body {
+  padding: clamp(14px, 3vw, 24px) !important;
+  font-size: clamp(0.9rem, 2.5vw, 1rem) !important;
+}
+
+/* HUD orbs: no se salen en móvil estrecho */
+@media (max-width: 720px) {
+  .moai-btn,
+  .achievements-btn,
+  .shop-btn,
+  .title-selector-btn {
+    --orb-size: 42px !important;
+    top: max(10px, env(safe-area-inset-top, 0px)) !important;
+    font-size: 1.05rem !important;
+  }
+  .moai-btn { left: max(10px, env(safe-area-inset-left, 0px)) !important; }
+  .achievements-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 48px) !important; }
+  .shop-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 96px) !important; }
+  .title-selector-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 144px) !important; }
+
+  .audio-controls {
+    top: max(10px, env(safe-area-inset-top, 0px)) !important;
+    right: max(8px, env(safe-area-inset-right, 0px)) !important;
+    max-width: min(160px, 42vw);
+    transform: scale(0.92);
+    transform-origin: top right;
+  }
+}
+
+@media (max-width: 380px) {
+  .title-selector-btn { display: none !important; } /* 4 orbes no caben; títulos siguen en tienda */
+  .audio-controls .volume-label { display: none; }
+}
+
+/* Menú principal: evita overflow vertical en landscape / pantallas bajas */
+@media (max-height: 640px) {
+  #menu {
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)) !important;
+    gap: 0.75rem !important;
+  }
+  .menu-title .title-space { font-size: clamp(1.6rem, 8vh, 2.4rem) !important; }
+  .menu-title .title-war { font-size: clamp(1.8rem, 9vh, 2.8rem) !important; }
+  .menu-tagline { margin-top: 0.4rem !important; font-size: 0.9rem !important; }
+  .menu-panel { padding: 0.85rem 1rem !important; }
+  #highScores { max-height: 22vh; overflow: auto; }
+}
+
+/* Upgrade / settings / game-over ya usan overlay; reforzar en móvil */
+#upgradePanel .up-wrap,
+#settingsPanel .sp-card {
+  width: min(96vw, 520px) !important;
+  max-height: min(90dvh, calc(100dvh - 24px));
+  overflow: auto;
+}
+@media (max-width: 560px) {
+  .up-cards { grid-template-columns: 1fr !important; }
+  .up-card { transform: none !important; min-height: 96px; }
+}
+
+/* Touch controls: no tapan demasiado en landscape móvil */
+@media (orientation: landscape) and (max-height: 480px) {
+  body.touch-ui.game-running #joystickArea {
+    width: 84px !important;
+    height: 84px !important;
+  }
+  body.touch-ui.game-running #shootButton {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+
+/* Campo escritorio: HUD no se sale del marco */
+@media (min-width: 900px) {
+  body.desk-field.game-running .audio-controls {
+    right: max(12px, calc(100vw - var(--fx) - var(--fw) + 8px)) !important;
+  }
 }

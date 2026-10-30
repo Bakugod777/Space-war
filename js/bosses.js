@@ -69,15 +69,35 @@
     if (global.SFX) SFX.play("impact", vol || 0.4);
   }
 
+  function EB() {
+    // Preferir el array vivo del juego y re-sincronizar window (evita balas huérfanas)
+    if (typeof enemyBullets !== "undefined" && enemyBullets) {
+      global.enemyBullets = enemyBullets;
+      return enemyBullets;
+    }
+    if (!global.enemyBullets) global.enemyBullets = [];
+    return global.enemyBullets;
+  }
+
+  function clearEB() {
+    if (typeof enemyBullets !== "undefined") {
+      enemyBullets = [];
+      global.enemyBullets = enemyBullets;
+    } else {
+      global.enemyBullets = [];
+    }
+  }
+
   function fireRing(x, y, n, sp, witch) {
     const mul = global.Diff ? Diff.bulletMul() : 1;
+    const bag = EB();
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n + Math.PI / 2;
-      enemyBullets.push({
+      bag.push({
         x: x - 3, y: y,
         vx: Math.cos(a) * sp * mul,
         speed: Math.sin(a) * sp * mul,
-        width: witch ? 7 : 5, height: witch ? 7 : 10,
+        width: witch ? 8 : 6, height: witch ? 8 : 12,
         witch: !!witch,
         src: "bala mini-jefe",
       });
@@ -87,26 +107,27 @@
 
   function fireAimed(x, y, sp, src) {
     const px = player.x + player.width / 2, py = player.y + player.height / 2;
-    const dx = px - x, dy = py - y, m = Math.hypot(dx, dy) || 1;
+    const dx = px - x, dy = Math.max(48, py - y), m = Math.hypot(dx, dy) || 1;
     const mul = global.Diff ? Diff.bulletMul() : 1;
     const s = sp * mul;
-    enemyBullets.push({
-      x: x - 2, y: y,
+    EB().push({
+      x: x - 3, y: y,
       vx: (dx / m) * s, speed: (dy / m) * s,
-      width: 5, height: 10, src: src || "bala mini-jefe",
+      width: 6, height: 12, src: src || "bala mini-jefe",
     });
     bang(0.3);
   }
 
   function fireFan(x, y, count, spread, sp) {
     const mul = global.Diff ? Diff.bulletMul() : 1;
+    const bag = EB();
     for (let i = 0; i < count; i++) {
       const a = Math.PI / 2 + (i - (count - 1) / 2) * spread;
-      enemyBullets.push({
-        x: x - 2, y: y,
+      bag.push({
+        x: x - 3, y: y,
         vx: Math.cos(a) * sp * mul,
         speed: Math.sin(a) * sp * mul,
-        width: 4, height: 10, src: "bala mini-jefe",
+        width: 6, height: 12, src: "bala mini-jefe",
       });
     }
     bang(0.3);
@@ -137,7 +158,7 @@
     // limpiar presión normal
     if (typeof Foes !== "undefined") Foes.clear();
     enemies = [];
-    enemyBullets = [];
+    clearEB();
     const scale = 1 + Math.min(0.6, Math.max(0, level - def.lvl) * 0.04);
     const hp = Math.round(def.hp * scale * (global.Diff ? 1 + Diff.pressure() * 0.08 : 1));
     mini = {
@@ -229,7 +250,7 @@
   function firePaimonStar(x, y, ang, sp) {
     const mul = global.Diff ? Diff.bulletMul() : 1;
     const s = sp * mul;
-    enemyBullets.push({
+    EB().push({
       x: x - 4, y: y - 4,
       vx: Math.cos(ang) * s,
       speed: Math.sin(ang) * s,
@@ -357,7 +378,7 @@
     } catch (e) {}
     mini = null;
     hideBar();
-    enemyBullets = [];
+    clearEB();
   }
 
   function drawMini(ctx) {
@@ -522,15 +543,15 @@
         const a = boss.spiral;
         const mul = global.Diff ? Diff.bulletMul() : 1;
         const sp = 3.4 * mul;
-        enemyBullets.push({
+        EB().push({
           x: bx - 3, y: by,
           vx: Math.cos(a) * sp, speed: Math.sin(a) * sp + 1.2,
-          width: 6, height: 6, witch: true, src: "jefe:laberinto",
+          width: 7, height: 7, witch: true, src: "jefe:laberinto",
         });
-        enemyBullets.push({
+        EB().push({
           x: bx - 3, y: by,
           vx: Math.cos(a + Math.PI) * sp, speed: Math.sin(a + Math.PI) * sp + 1.2,
-          width: 6, height: 6, witch: true, src: "jefe:laberinto",
+          width: 7, height: 7, witch: true, src: "jefe:laberinto",
         });
         boss._spiralAt = now;
       }

@@ -773,7 +773,7 @@ function initAchievementSystem() {
     if (typeof UIAnime !== "undefined") {
       UIAnime.openModal(achievementsModal);
     } else {
-      achievementsModal.style.display = "block";
+      achievementsModal.style.display = "flex";
     }
 
     renderAchievements();
