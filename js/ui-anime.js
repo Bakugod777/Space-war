@@ -43,9 +43,11 @@
       const ensureVisible = () => {
         menuBits.forEach((el) => {
           el.style.opacity = "1";
+          el.style.transform = "";
         });
         titleParts.forEach((el) => {
           el.style.opacity = "1";
+          el.style.transform = "";
         });
       };
 

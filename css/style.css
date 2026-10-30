@@ -183,12 +183,30 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: clamp(1rem, 3vh, 2rem);
-    padding: 2rem 1rem 3rem;
+    /* flex-start + spacers: centra si cabe, scrollea sin cortar el eyebrow */
+    justify-content: flex-start;
+    gap: clamp(0.65rem, 2vh, 1.35rem);
+    padding:
+        max(76px, calc(env(safe-area-inset-top, 0px) + 64px))
+        max(16px, env(safe-area-inset-right, 0px))
+        max(64px, calc(env(safe-area-inset-bottom, 0px) + 52px))
+        max(16px, env(safe-area-inset-left, 0px));
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     color: #fff;
     animation: menuEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
     pointer-events: auto;
+}
+#menu::before,
+#menu::after {
+    content: "";
+    flex: 1 0 8px;
+    width: 100%;
+    min-height: 8px;
+    pointer-events: none;
 }
 
 @keyframes menuEnter {
@@ -197,13 +215,19 @@ body {
 }
 
 .menu-brand {
-    max-width: 720px;
+    width: min(720px, 100%);
+    max-width: 100%;
+    flex: 0 0 auto;
+    padding-inline: 4px;
+    box-sizing: border-box;
 }
 
 .menu-eyebrow {
     margin: 0 0 0.6rem;
+    padding-inline: 8px;
     font-family: var(--font-body);
-    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    font-size: clamp(0.75rem, 2vw, 0.9rem);
+    line-height: 1.35;
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: rgba(0, 234, 255, 0.85);
@@ -1462,10 +1486,16 @@ button, .touchButton {
     animation: orbIdle 3.2s ease-in-out infinite;
 }
 
-.moai-btn { left: 18px; --orb-accent: #7dd3fc; --orb-glow: rgba(125, 211, 252, 0.32); animation-delay: 0s; }
-.achievements-btn { left: 82px; --orb-accent: #ffd54f; --orb-glow: rgba(255, 213, 79, 0.34); animation-delay: 0.35s; }
-.shop-btn { left: 146px; --orb-accent: #ff8a4c; --orb-glow: rgba(255, 138, 76, 0.34); animation-delay: 0.7s; }
-.title-selector-btn { left: 210px; --orb-accent: #e0b3ff; --orb-glow: rgba(224, 179, 255, 0.32); animation-delay: 1s; }
+.moai-btn,
+.achievements-btn,
+.shop-btn,
+.title-selector-btn {
+    top: max(14px, env(safe-area-inset-top, 0px));
+}
+.moai-btn { left: max(14px, env(safe-area-inset-left, 0px)); --orb-accent: #7dd3fc; --orb-glow: rgba(125, 211, 252, 0.32); animation-delay: 0s; }
+.achievements-btn { left: calc(max(14px, env(safe-area-inset-left, 0px)) + 64px); --orb-accent: #ffd54f; --orb-glow: rgba(255, 213, 79, 0.34); animation-delay: 0.35s; }
+.shop-btn { left: calc(max(14px, env(safe-area-inset-left, 0px)) + 128px); --orb-accent: #ff8a4c; --orb-glow: rgba(255, 138, 76, 0.34); animation-delay: 0.7s; }
+.title-selector-btn { left: calc(max(14px, env(safe-area-inset-left, 0px)) + 192px); --orb-accent: #e0b3ff; --orb-glow: rgba(224, 179, 255, 0.32); animation-delay: 1s; }
 
 .moai-btn:hover,
 .achievements-btn:hover,
@@ -1496,8 +1526,8 @@ button, .touchButton {
 /* =================== CONTROLES DE AUDIO =================== */
 .audio-controls {
     position: fixed;
-    top: 18px;
-    right: 18px;
+    top: max(14px, env(safe-area-inset-top, 0px));
+    right: max(14px, env(safe-area-inset-right, 0px));
     display: flex;
     align-items: center;
     gap: 10px;
@@ -2427,13 +2457,13 @@ body:not(.touch-ui) #touchControls {
     .shop-btn,
     .title-selector-btn {
         --orb-size: 46px;
-        top: 12px;
+        top: max(12px, env(safe-area-inset-top, 0px));
         font-size: 1.15rem !important;
     }
-    .moai-btn { left: 12px; }
-    .achievements-btn { left: 66px; }
-    .shop-btn { left: 120px; }
-    .title-selector-btn { left: 174px; }
+    .moai-btn { left: max(12px, env(safe-area-inset-left, 0px)); }
+    .achievements-btn { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 54px); }
+    .shop-btn { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 108px); }
+    .title-selector-btn { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 162px); }
     
     .moai-modal-content {
         margin: 20% auto;
@@ -5031,8 +5061,14 @@ body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab
 @keyframes starTw { 0% { background-position: 0 -8px; } 50% { background-position: -16px -8px; } }
 @keyframes starTwLg { 0% { background-position: -32px 0; } 50% { background-position: -64px 0; } }
 /* Logo pixel: escala entera (1x en 360/375, @2x desde 390) */
-.menu-logo { margin: 0; line-height: 0; }
-.logo-img { image-rendering: pixelated; width: auto; height: auto; max-width: none; }
+.menu-logo { margin: 0; line-height: 0; width: 100%; display: flex; justify-content: center; }
+.logo-img {
+    image-rendering: pixelated;
+    display: block;
+    width: min(92vw, 360px);
+    max-width: 100%;
+    height: auto;
+}
 /* Corte de tijera: barrido de arriba a abajo en ~350 ms */
 #scissorCut { position: fixed; left: 0; right: 0; top: 0; height: 100%; z-index: 5000; pointer-events: none; display: none;
     background: transparent; image-rendering: pixelated; }
@@ -5591,19 +5627,19 @@ body.game-over #miniToast {
   .shop-btn,
   .title-selector-btn {
     --orb-size: 42px !important;
-    top: max(10px, env(safe-area-inset-top, 0px)) !important;
+    top: max(12px, env(safe-area-inset-top, 0px)) !important;
     font-size: 1.05rem !important;
   }
-  .moai-btn { left: max(10px, env(safe-area-inset-left, 0px)) !important; }
-  .achievements-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 48px) !important; }
-  .shop-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 96px) !important; }
-  .title-selector-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 144px) !important; }
+  .moai-btn { left: max(12px, env(safe-area-inset-left, 0px)) !important; }
+  .achievements-btn { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 50px) !important; }
+  .shop-btn { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 100px) !important; }
+  .title-selector-btn { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 150px) !important; }
 
   .audio-controls {
-    top: max(10px, env(safe-area-inset-top, 0px)) !important;
-    right: max(8px, env(safe-area-inset-right, 0px)) !important;
-    max-width: min(160px, 42vw);
-    transform: scale(0.92);
+    top: max(12px, env(safe-area-inset-top, 0px)) !important;
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    max-width: min(150px, 40vw);
+    transform: scale(0.9);
     transform-origin: top right;
   }
 }
@@ -5613,20 +5649,24 @@ body.game-over #miniToast {
   .audio-controls .volume-label { display: none; }
 }
 
-/* Menú principal: evita overflow vertical en landscape / pantallas bajas */
-@media (max-height: 640px) {
+/* Menú: pantallas bajas — logo más chico, scores compactos, sin cortar eyebrow */
+@media (max-height: 760px) {
   #menu {
-    justify-content: flex-start !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)) !important;
-    gap: 0.75rem !important;
+    gap: 0.55rem !important;
+    padding-top: max(68px, calc(env(safe-area-inset-top, 0px) + 56px)) !important;
+    padding-bottom: max(48px, calc(env(safe-area-inset-bottom, 0px) + 44px)) !important;
   }
-  .menu-title .title-space { font-size: clamp(1.6rem, 8vh, 2.4rem) !important; }
-  .menu-title .title-war { font-size: clamp(1.8rem, 9vh, 2.8rem) !important; }
-  .menu-tagline { margin-top: 0.4rem !important; font-size: 0.9rem !important; }
+  .logo-img { width: min(78vw, 280px) !important; }
+  .menu-eyebrow { font-size: 0.78rem !important; margin-bottom: 0.35rem !important; }
+  .menu-tagline { margin-top: 0.35rem !important; font-size: 0.9rem !important; }
   .menu-panel { padding: 0.85rem 1rem !important; }
-  #highScores { max-height: 22vh; overflow: auto; }
+  #highScores { max-height: min(26vh, 160px); overflow: auto; }
+  #highScores h2 { font-size: 0.95rem !important; margin: 0.35rem 0 !important; }
+}
+@media (max-height: 560px) {
+  .logo-img { width: min(56vw, 200px) !important; }
+  .menu-controls-hint { font-size: 0.72rem !important; }
+  #menu::before, #menu::after { flex-basis: 0; min-height: 0; }
 }
 
 /* Upgrade / settings / game-over ya usan overlay; reforzar en móvil */
