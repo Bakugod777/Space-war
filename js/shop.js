@@ -387,40 +387,69 @@ function renderShopItems(category = "all") {
   });
 }
 
+/** Crea el modal de confirmación si el HTML viejo (cache) no lo trae. Nunca usa window.confirm. */
+function ensureConfirmModal() {
+  let el = document.getElementById("customAlert");
+  if (el) return el;
+  el = document.createElement("div");
+  el.id = "customAlert";
+  el.className = "custom-alert";
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "alertTitle");
+  el.hidden = true;
+  el.innerHTML =
+    '<div class="custom-alert-content">' +
+    '<div class="alert-brand">Space War · tienda</div>' +
+    '<div class="alert-icon" id="alertIcon" aria-hidden="true"></div>' +
+    '<div class="alert-title" id="alertTitle">Confirmar</div>' +
+    '<div class="alert-message" id="alertMessage"></div>' +
+    '<div class="alert-buttons">' +
+    '<button type="button" id="cancelAlert" class="alert-btn cancel-btn">Cancelar</button>' +
+    '<button type="button" id="confirmAlert" class="alert-btn confirm-btn">Canjear</button>' +
+    "</div></div>";
+  document.body.appendChild(el);
+  return el;
+}
+
 /**
- * Confirmación temática (sustituye window.confirm del navegador).
+ * Confirmación temática in-game (NUNCA window.confirm del navegador).
  * opts: { title, message, confirmLabel, cancelLabel, tone, icon }
  */
 function showConfirm(opts) {
   const o = opts || {};
-  const el = document.getElementById("customAlert");
-  if (!el) {
-    return Promise.resolve(
-      window.confirm(String(o.message || "").replace(/<[^>]+>/g, ""))
-    );
-  }
+  const el = ensureConfirmModal();
   const titleEl = document.getElementById("alertTitle");
   const msgEl = document.getElementById("alertMessage");
   const iconEl = document.getElementById("alertIcon");
   const okBtn = document.getElementById("confirmAlert");
   const cancelBtn = document.getElementById("cancelAlert");
   const tone = o.tone || "shop";
+  let brand = el.querySelector(".alert-brand");
+  if (!brand) {
+    brand = document.createElement("div");
+    brand.className = "alert-brand";
+    const card = el.querySelector(".custom-alert-content");
+    if (card) card.insertBefore(brand, card.firstChild);
+  }
+  brand.textContent = tone === "shop" ? "Space War · tienda cósmica" : "Space War";
 
   if (titleEl) titleEl.textContent = o.title || "Confirmar";
   if (msgEl) msgEl.innerHTML = o.message || "";
-  if (okBtn) okBtn.textContent = o.confirmLabel || "Aceptar";
+  if (okBtn) okBtn.textContent = o.confirmLabel || "Canjear";
   if (cancelBtn) cancelBtn.textContent = o.cancelLabel || "Cancelar";
   if (iconEl) {
     const name = o.icon || (tone === "shop" ? "cart" : "warning");
     iconEl.setAttribute("data-sw", name);
     if (typeof swIcon === "function") iconEl.innerHTML = swIcon(name, "sw-icon-lg");
+    else iconEl.textContent = "★";
   }
 
   el.classList.remove("tone-shop", "tone-warn", "tone-info");
-  el.classList.add("tone-" + tone);
+  el.classList.add("tone-" + tone, "show");
   el.hidden = false;
-  el.classList.add("show");
   el.style.display = "flex";
+  el.style.zIndex = "20000";
 
   return new Promise((resolve) => {
     let done = false;
@@ -430,14 +459,14 @@ function showConfirm(opts) {
       el.classList.remove("show");
       el.hidden = true;
       el.style.display = "none";
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onKey, true);
       okBtn && okBtn.removeEventListener("click", onOk);
       cancelBtn && cancelBtn.removeEventListener("click", onCancel);
       el.removeEventListener("click", onBackdrop);
       resolve(val);
     };
-    const onOk = () => finish(true);
-    const onCancel = () => finish(false);
+    const onOk = (e) => { e.preventDefault(); e.stopPropagation(); finish(true); };
+    const onCancel = (e) => { e.preventDefault(); e.stopPropagation(); finish(false); };
     const onBackdrop = (e) => { if (e.target === el) finish(false); };
     const onKey = (e) => {
       if (e.key === "Escape") { e.preventDefault(); finish(false); }
@@ -446,7 +475,7 @@ function showConfirm(opts) {
     okBtn && okBtn.addEventListener("click", onOk);
     cancelBtn && cancelBtn.addEventListener("click", onCancel);
     el.addEventListener("click", onBackdrop);
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey, true);
     setTimeout(() => { if (okBtn) okBtn.focus(); }, 40);
   });
 }

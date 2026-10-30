@@ -94,12 +94,36 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  const path = url.pathname;
+  // HTML/JS/CSS: red primero para que la personalización y fixes lleguen sin SW viejo
+  const live =
+    req.mode === "navigate" ||
+    path.endsWith(".html") ||
+    path.endsWith(".js") ||
+    path.endsWith(".css") ||
+    path.endsWith("/sw.js") ||
+    /\/(index\.html)?$/.test(path);
+  if (live) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match("./index.html")))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) =>
       hit || fetch(req).then((res) => {
         if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
         return res;
-      }).catch(() => (req.mode === "navigate" ? caches.match("./index.html") : undefined))
+      }).catch(() => undefined)
     )
   );
 });
