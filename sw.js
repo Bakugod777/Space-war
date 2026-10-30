@@ -1,9 +1,10 @@
 /* Space War — service worker (offline). Sube VERSION en cada entrega. */
-const VERSION = "v2.2.5";
+const VERSION = "v2.2.6";
 const CACHE = "space-war-" + VERSION;
 const ASSETS = [
   "./assets/meteoro/meteoro-sheet.png",
   "./",
+  "./difficulty.js",
   "./assets/Boss.png",
   "./assets/arlee.png",
   "./assets/brand/corte-tijera.png",

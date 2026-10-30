@@ -5145,3 +5145,90 @@ body.desk-field.game-running #pauseButton { left: calc(var(--fx) + 66px) !import
 /* v2.2.4: en escritorio las barras van apiladas: Magia arriba, recarga abajo, 4 px entre ambas */
 body.desk-field.game-running #shootCooldownBar { left: 12px !important; right: auto !important; transform: none !important; bottom: calc(16px + var(--sab)) !important; top: auto !important; width: 236px !important; height: 12px !important; margin: 0 !important; box-sizing: content-box !important; }
 body.desk-field.game-running #magiaHud { left: 12px !important; right: auto !important; transform: none !important; bottom: calc(16px + 12px + 4px + 4px + var(--sab)) !important; top: auto !important; }
+
+/* ——— v2.2.6: responsive navegador + campo escritorio ——— */
+body.desk-field.game-running #levelDisplay {
+  left: 12px !important;
+  top: max(10px, env(safe-area-inset-top, 0px)) !important;
+}
+body.desk-field.game-running #scoreBoard {
+  right: 12px !important;
+  top: max(10px, env(safe-area-inset-top, 0px)) !important;
+}
+body.desk-field.game-running #lifeGem {
+  right: 12px !important;
+  top: calc(max(10px, env(safe-area-inset-top, 0px)) + 48px) !important;
+  left: auto !important;
+}
+body.desk-field.game-running #killFeed {
+  right: 10px !important;
+  bottom: 28% !important;
+  max-width: 160px;
+}
+body.desk-field.game-running #magiaBtn.ready {
+  left: 12px !important;
+  bottom: calc(16px + 12px + 4px + 56px + var(--sab)) !important;
+  right: auto !important;
+}
+body.desk-field.game-running #comboDisplay {
+  top: 14% !important;
+}
+/* Menú: no se estira en ultrawide */
+@media (min-width: 900px) {
+  #menu {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+  }
+  .menu-panel, #highScores {
+    width: min(100%, 420px);
+  }
+  body:not(.touch-ui) .audio-controls {
+    right: max(18px, env(safe-area-inset-right, 0px));
+  }
+}
+/* Landscape tablet / browser corto */
+@media (orientation: landscape) and (max-height: 520px) {
+  #menu {
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    justify-content: flex-start;
+    padding-top: 1rem;
+  }
+  .menu-title { font-size: clamp(1.6rem, 8vh, 2.6rem) !important; }
+  body.touch-ui #joystickArea { width: 96px; height: 96px; }
+}
+/* Hint teclado solo escritorio */
+#pcHints {
+  display: none;
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 6px 12px;
+  font-family: "Exo 2", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: rgba(234, 242, 255, 0.72);
+  background: rgba(11, 15, 30, 0.72);
+  border: 1px solid rgba(63, 224, 240, 0.28);
+  border-radius: 999px;
+  pointer-events: none;
+}
+body:not(.touch-ui).game-running #pcHints { display: block; }
+body.desk-field.game-running #pcHints {
+  left: calc(var(--fx) + var(--fw) / 2);
+  bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+}
+#pcHints kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  margin: 0 1px;
+  border: 1px solid rgba(63, 224, 240, 0.45);
+  border-radius: 4px;
+  font-size: 11px;
+  color: #3FE0F0;
+}

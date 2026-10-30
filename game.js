@@ -1456,57 +1456,52 @@ function createDamageEffect(x, y) {
 }
 
 let spawnerHandle = null;
-function spawnEnemies() {
-  gClear(spawnerHandle); // evita spawners duplicados al reiniciar
-  spawnerHandle = gSetInterval(() => {
-    if (bossActive) return; // No generar enemigos si el boss está activo
-    const __pb = window.__postBossAt != null ? gameNow() - window.__postBossAt : Infinity;
-    if (__pb < 10000) return; // respiro tras ganarle al jefe
-    // Después del jefe (nivel 11+) la presión sube más rápido en cada nivel.
-    const __post = Math.max(0, level - 10);
+let spawnerInterval = 2000;
+function spawnIntervalMs() {
+  return typeof Diff !== "undefined" ? Diff.spawnInterval() : Math.max(900, 2000 - level * 70);
+}
+function rescheduleSpawner() {
+  gClear(spawnerHandle);
+  spawnerInterval = spawnIntervalMs();
+  spawnerHandle = gSetInterval(spawnTick, spawnerInterval);
+}
+function spawnTick() {
+  if (bossActive) return;
+  const __pb = window.__postBossAt != null ? gameNow() - window.__postBossAt : Infinity;
+  if (__pb < 10000) return;
 
-    // Curva justa: crece suave y con tope (antes llegaba a 9 por oleada y bajaba a 1).
-    // Rampa de entrada: los primeros ~2 min suben despacio (máx. 5 % de muertes antes de 2 min).
-    const __t = gameNow(), ramp = __t < 120000 ? __t / 200000 : 0.6 + 0.4 * Math.min(1, (__t - 120000) / 360000); // después del min 2 sube despacio (tope al min 8)
-    const enemiesToSpawn = Math.min(6 + 3 * __post, Math.floor((1 + Math.sqrt(level) * 1.2 * (0.45 + 0.55 * ramp)) * (1 + 0.8 * __post)));
-    for (let i = 0; i < enemiesToSpawn; i++) {
-      if (typeof Foes !== "undefined" && Foes.rollSpawn(level)) continue;
-      spawnEnemy();
-    }
-    if (RNG() < 0.1 / (1 + Math.max(0, level - 10))) {
-      // 10% de probabilidad de que aparezca un kit (menos después del jefe)
-      spawnKit();
-    }
-    if (RNG() < 0.05) {
-      // 5% de probabilidad de que aparezca un meteorito
-      spawnMeteor();
-    }
-    // Spawn xiao con % de probabilidad solo si el jugador tiene exactamente 3 corazones
-    if (RNG() < 0.03 && player.hearts === maxHearts && !hasExtraHeart) {
-      spawnXiao();
-    }
-    // Spawn arlee con 7% de probabilidad solo si el jugador no tiene el boost activo
-    if (RNG() < 0.07) {
-      // 7% de probabilidad de que aparezca arlee
-      spawnArlee();
-    }
-    // Spawn cyno con 4% de probabilidad
-    if (RNG() < 0.04) {
-      spawnCyno();
-    }
-    // Spawn flins solo en el nivel 1 con 8% de probabilidad
-    if (level === 1 && RNG() < 0.08) {
-      spawnFlins();
-    }
-    // Spawn rerir solo si el jugador tiene 1 corazón y no tiene corazón temporal activo
-    if (player.hearts === 1 && !hasTemporaryHeart && RNG() < 0.15) {
-      spawnRerir();
-    }
-    // 6% probabilidad de que aparezca el enemigo xiao_weapon
-    if (RNG() < 0.1) {
-      spawnXiaoWeapon();
-    }
-  }, 2000);
+  // Ritmo dinámico: si el intervalo objetivo cambió, reprograma
+  const want = spawnIntervalMs();
+  if (want !== spawnerInterval) {
+    rescheduleSpawner();
+    return;
+  }
+
+  const enemiesToSpawn =
+    typeof Diff !== "undefined"
+      ? Diff.waveSize()
+      : Math.min(6 + 3 * Math.max(0, level - 10), Math.floor(1 + Math.sqrt(level) * 1.4));
+
+  for (let i = 0; i < enemiesToSpawn; i++) {
+    if (typeof Foes !== "undefined" && Foes.rollSpawn(level)) continue;
+    spawnEnemy();
+  }
+
+  const kitP = typeof Diff !== "undefined" ? Diff.kitChance() : 0.1 / (1 + Math.max(0, level - 10));
+  if (RNG() < kitP) spawnKit();
+
+  const metP = Math.min(0.14, 0.04 + level * 0.006 + Math.max(0, level - 10) * 0.02);
+  if (RNG() < metP) spawnMeteor();
+
+  if (RNG() < 0.03 && player.hearts === maxHearts && !hasExtraHeart) spawnXiao();
+  if (RNG() < Math.max(0.04, 0.07 - Math.max(0, level - 8) * 0.004)) spawnArlee();
+  if (RNG() < 0.035) spawnCyno();
+  if (level <= 2 && RNG() < 0.08) spawnFlins();
+  if (player.hearts === 1 && !hasTemporaryHeart && RNG() < 0.16) spawnRerir();
+  if (RNG() < Math.min(0.16, 0.08 + level * 0.006)) spawnXiaoWeapon();
+}
+function spawnEnemies() {
+  rescheduleSpawner();
 }
 
 function startPowerUpTimer() {
@@ -2372,6 +2367,8 @@ let playerStats = {
     ribbon: 0,
     grief: 0,
     witch: 0,
+    sniper: 0,
+    orbiter: 0,
     ifa: 0,
     xiao_weapon: 0,
   },
@@ -2852,6 +2849,17 @@ const achievements = [
     points: 35,
     icon: "skull",
     condition: () => playerStats.enemyTypesKilled.witch >= 3,
+    unlocked: false,
+  },
+  {
+    id: "sniper_break",
+    name: "Rompefrancotiradoras",
+    description: "Elimina 5 francotiradoras del laberinto.",
+    category: "combat",
+    rarity: "rare",
+    points: 30,
+    icon: "target",
+    condition: () => playerStats.enemyTypesKilled.sniper >= 5,
     unlocked: false,
   },
   {
@@ -4209,14 +4217,24 @@ window.addEventListener("pagehide", () => gameRunning && setPaused(true));
 
 // Subida de nivel (se usa también desde foes.js). Ofrece mejoras roguelike.
 function maybeLevelUp(prevScore) {
-  const step = typeof Rogue !== "undefined" ? Rogue.levelStep(level) : 100;
-  // Ritmo: además del puntaje, cada nivel pide tiempo mínimo (partida de ~10 min hasta nivel ~20).
-  if (score >= Rogue.nextLevelAt && gameNow() >= Rogue.levelMinTime(level)) { // un nivel por llamada
+  if (typeof Rogue === "undefined") return;
+  // Ritmo: además del puntaje, cada nivel pide tiempo mínimo.
+  if (score >= Rogue.nextLevelAt && gameNow() >= Rogue.levelMinTime(level)) {
     Rogue.nextLevelAt += Rogue.levelStep(level + 1);
     level++;
     levelDisplay.textContent = `Nivel: ${level}`;
     if (typeof VFX !== "undefined") VFX.levelUp(level);
-    if (level % 10 === 0) enemies = [];
+    if (level % 10 === 0) {
+      enemies = [];
+      if (typeof Foes !== "undefined") Foes.clear();
+    }
+    // Acelerar spawns al subir de nivel
+    if (gameRunning && !bossActive) rescheduleSpawner();
+    if (level === 5 || level === 8 || level === 11) {
+      if (typeof showMiniToast === "function") {
+        showMiniToast(level === 11 ? "el laberinto se cierra…" : "la presión sube", 1600);
+      }
+    }
     if (typeof Rogue !== "undefined") Rogue.offerUpgrades(level);
   }
 }
