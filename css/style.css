@@ -5397,3 +5397,269 @@ body.game-over #miniToast {
   #gameOverDisplay .run-summary dl { gap: 3px 12px; padding: 8px 10px; }
   #gameOverDisplay .go-title { margin: 10px 0 !important; font-size: 18px !important; }
 }
+
+/* ===================== v2.3.10: responsive global (modales + HUD + menú) ===================== */
+:root {
+  --sw-pad: max(12px, env(safe-area-inset-top, 0px));
+  --sw-pad-x: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+  --sw-pad-b: max(12px, env(safe-area-inset-bottom, 0px));
+}
+
+/* Contenedores de modal: flex + safe-area (funciona con display:flex|block vía JS) */
+.moai-modal,
+.achievements-modal,
+.shop-modal,
+.item-content-modal,
+.title-selector-modal,
+.update-popup,
+.custom-alert {
+  align-items: center;
+  justify-content: center;
+  padding: var(--sw-pad) var(--sw-pad-x) var(--sw-pad-b) !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.moai-modal[style*="display: block"],
+.moai-modal[style*="display: flex"],
+.achievements-modal[style*="display: block"],
+.achievements-modal[style*="display: flex"],
+.shop-modal[style*="display: block"],
+.shop-modal[style*="display: flex"],
+.item-content-modal[style*="display: block"],
+.item-content-modal[style*="display: flex"],
+.title-selector-modal[style*="display: block"],
+.title-selector-modal[style*="display: flex"],
+.custom-alert[style*="display: block"],
+.custom-alert[style*="display: flex"] {
+  display: flex !important;
+}
+
+/* Paneles: caben en viewport corto/estrecho */
+.moai-modal-content,
+.achievements-modal-content,
+.shop-modal-content,
+.item-content-modal-content,
+.title-selector-content,
+.update-popup-content,
+.custom-alert-content {
+  margin: auto !important;
+  width: min(920px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  max-width: calc(100vw - 2 * var(--sw-pad-x)) !important;
+  max-height: min(92dvh, calc(100dvh - var(--sw-pad) - var(--sw-pad-b))) !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.moai-modal-content {
+  width: min(420px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  padding: clamp(18px, 4vw, 28px) !important;
+  padding-top: clamp(40px, 6vw, 48px) !important;
+}
+.moai-modal-content p {
+  font-size: clamp(0.95rem, 2.8vw, 1.15rem) !important;
+  line-height: 1.55 !important;
+  margin: 0.6em 0 !important;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.item-content-modal-content {
+  width: min(560px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  padding: clamp(16px, 3.5vw, 28px) !important;
+  padding-top: clamp(48px, 7vw, 56px) !important;
+  text-align: left !important;
+}
+.item-content-modal-content h2 {
+  font-size: clamp(1.05rem, 3.6vw, 1.65rem) !important;
+  line-height: 1.3 !important;
+  margin: 0 0 14px !important;
+  padding-bottom: 10px !important;
+  position: static !important;
+  top: auto !important;
+  word-wrap: break-word;
+}
+.item-content-text {
+  font-size: clamp(0.88rem, 2.6vw, 1.05rem) !important;
+  line-height: 1.65 !important;
+  padding-bottom: 8px !important;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.item-content-close,
+.shop-close,
+.achievements-close,
+.moai-close,
+.title-selector-close {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  right: 6px !important;
+  top: 6px !important;
+  float: none !important;
+  z-index: 5;
+}
+
+/* Tienda / logros: layout interno que scrollea bien */
+.shop-modal-content,
+.achievements-modal-content {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  width: min(900px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+}
+.shop-header,
+.achievements-header {
+  flex: 0 0 auto;
+  padding: clamp(12px, 2.5vw, 22px) !important;
+}
+.shop-header h2,
+.achievements-header h2 {
+  font-size: clamp(1.15rem, 4vw, 2rem) !important;
+  letter-spacing: 0.06em !important;
+  margin: 0 0 12px !important;
+}
+.shop-stats,
+.achievements-stats {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)) !important;
+  gap: 8px !important;
+  justify-content: stretch !important;
+}
+.shop-categories,
+.achievements-categories {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.shop-category-tabs,
+.category-tabs {
+  flex: 0 0 auto;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  padding: 8px !important;
+  justify-content: center !important;
+}
+.shop-tab-btn,
+.tab-btn {
+  flex: 1 1 auto !important;
+  min-width: min(110px, 42vw) !important;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.shop-items-list,
+.achievements-list {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px !important;
+}
+
+.title-selector-content {
+  width: min(700px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  padding: clamp(16px, 3vw, 28px) !important;
+}
+.title-selector-content h2 {
+  font-size: clamp(1.2rem, 4.5vw, 2rem) !important;
+}
+.title-selector-modal {
+  display: flex !important; /* solo existe en el DOM mientras está abierto */
+}
+
+.update-popup-content {
+  width: min(500px, calc(100vw - 2 * var(--sw-pad-x))) !important;
+  max-height: min(80dvh, calc(100dvh - var(--sw-pad) - var(--sw-pad-b))) !important;
+}
+.update-header h2 {
+  font-size: clamp(1rem, 3.8vw, 1.4rem) !important;
+  line-height: 1.35 !important;
+}
+.update-body {
+  padding: clamp(14px, 3vw, 24px) !important;
+  font-size: clamp(0.9rem, 2.5vw, 1rem) !important;
+}
+
+/* HUD orbs: no se salen en móvil estrecho */
+@media (max-width: 720px) {
+  .moai-btn,
+  .achievements-btn,
+  .shop-btn,
+  .title-selector-btn {
+    --orb-size: 42px !important;
+    top: max(10px, env(safe-area-inset-top, 0px)) !important;
+    font-size: 1.05rem !important;
+  }
+  .moai-btn { left: max(10px, env(safe-area-inset-left, 0px)) !important; }
+  .achievements-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 48px) !important; }
+  .shop-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 96px) !important; }
+  .title-selector-btn { left: calc(max(10px, env(safe-area-inset-left, 0px)) + 144px) !important; }
+
+  .audio-controls {
+    top: max(10px, env(safe-area-inset-top, 0px)) !important;
+    right: max(8px, env(safe-area-inset-right, 0px)) !important;
+    max-width: min(160px, 42vw);
+    transform: scale(0.92);
+    transform-origin: top right;
+  }
+}
+
+@media (max-width: 380px) {
+  .title-selector-btn { display: none !important; } /* 4 orbes no caben; títulos siguen en tienda */
+  .audio-controls .volume-label { display: none; }
+}
+
+/* Menú principal: evita overflow vertical en landscape / pantallas bajas */
+@media (max-height: 640px) {
+  #menu {
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)) !important;
+    gap: 0.75rem !important;
+  }
+  .menu-title .title-space { font-size: clamp(1.6rem, 8vh, 2.4rem) !important; }
+  .menu-title .title-war { font-size: clamp(1.8rem, 9vh, 2.8rem) !important; }
+  .menu-tagline { margin-top: 0.4rem !important; font-size: 0.9rem !important; }
+  .menu-panel { padding: 0.85rem 1rem !important; }
+  #highScores { max-height: 22vh; overflow: auto; }
+}
+
+/* Upgrade / settings / game-over ya usan overlay; reforzar en móvil */
+#upgradePanel .up-wrap,
+#settingsPanel .sp-card {
+  width: min(96vw, 520px) !important;
+  max-height: min(90dvh, calc(100dvh - 24px));
+  overflow: auto;
+}
+@media (max-width: 560px) {
+  .up-cards { grid-template-columns: 1fr !important; }
+  .up-card { transform: none !important; min-height: 96px; }
+}
+
+/* Touch controls: no tapan demasiado en landscape móvil */
+@media (orientation: landscape) and (max-height: 480px) {
+  body.touch-ui.game-running #joystickArea {
+    width: 84px !important;
+    height: 84px !important;
+  }
+  body.touch-ui.game-running #shootButton {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+
+/* Campo escritorio: HUD no se sale del marco */
+@media (min-width: 900px) {
+  body.desk-field.game-running .audio-controls {
+    right: max(12px, calc(100vw - var(--fx) - var(--fw) + 8px)) !important;
+  }
+}

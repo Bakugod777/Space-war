@@ -145,13 +145,13 @@
 
     openModal(modal) {
       if (!modal) return;
-      // Mantener display:block como el CSS original del proyecto
-      modal.style.display = "block";
+      // flex: centra el panel en cualquier viewport / safe-area
+      modal.style.display = "flex";
       modal.style.opacity = "0";
 
       const content =
         modal.querySelector(
-          ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content"
+          ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content, .title-selector-content"
         ) || modal.firstElementChild;
 
       if (!ready()) {
@@ -186,7 +186,7 @@
         clearInline(modal, ["opacity"]);
         const content =
           modal.querySelector(
-            ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content"
+            ".achievements-modal-content, .shop-modal-content, .moai-modal-content, .item-content-modal-content, .update-popup-content, .custom-alert-content, .title-selector-content"
           ) || modal.firstElementChild;
         if (content) {
           clearInline(content, ["opacity", "transform"]);

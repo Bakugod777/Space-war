@@ -299,7 +299,7 @@ function initShopSystem() {
     if (typeof UIAnime !== "undefined") {
       UIAnime.openModal(shopModal);
     } else {
-      shopModal.style.display = "block";
+      shopModal.style.display = "flex";
     }
 
     renderShopItems();
@@ -537,7 +537,7 @@ function showItemContent(item) {
   contentTitle.textContent = item.name;
   contentText.textContent = item.content;
 
-  contentModal.style.display = "block";
+  contentModal.style.display = "flex";
 
   // Cerrar modal de contenido
   const contentClose = document.querySelector(".item-content-close");
