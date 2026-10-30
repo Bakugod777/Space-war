@@ -1,6 +1,6 @@
 /**
- * Space War — curva de dificultad unificada.
- * Usada por foes.js / spawn / balas. Ajusta presión antes y después del jefe.
+ * Space War — curva de dificultad (tono Madoka: el laberinto no perdona).
+ * Enemigos densos, balas rápidas, poca misericordia desde temprano.
  */
 (function (global) {
   function postBoss() {
@@ -9,68 +9,66 @@
   function lvl() {
     return Math.max(1, typeof level === "number" ? level : 1);
   }
-  /** 0..1 rampa de tiempo de partida (suave primeros 2 min) */
+  /** Rampa de tiempo: arranca ya tensa (no “tutorial soft”) */
   function timeRamp() {
     if (typeof gameNow !== "function") return 1;
     const t = gameNow();
-    if (t < 90000) return 0.35 + 0.65 * (t / 90000);
-    if (t < 300000) return 1 + 0.25 * ((t - 90000) / 210000);
-    return 1.35;
+    if (t < 45000) return 0.72 + 0.28 * (t / 45000); // 0.72 → 1 en 45 s
+    if (t < 180000) return 1 + 0.35 * ((t - 45000) / 135000);
+    return 1.45;
   }
   const Diff = {
     post: postBoss,
-    /** Multiplicador general de presión */
     pressure() {
       const L = lvl(), p = postBoss(), r = timeRamp();
-      return (1 + (L - 1) * 0.07 + p * 0.42) * r;
+      return (1.15 + (L - 1) * 0.11 + p * 0.55) * r;
     },
-    /** HP extra por nivel (también ANTES del jefe) */
+    /** HP extra — se nota desde nivel 2 */
     hpBonus(baseHp) {
       const L = lvl(), p = postBoss();
-      const pre = Math.floor((L - 1) * 0.2);
-      const post = Math.floor(p * 0.85);
-      return Math.max(0, pre + post);
+      const pre = Math.floor((L - 1) * 0.45 + (L >= 5 ? 1 : 0));
+      const post = Math.floor(p * 1.15);
+      // tipos tanky reciben un poco más
+      const thick = baseHp >= 3 ? Math.floor(L / 4) : 0;
+      return Math.max(0, pre + post + thick);
     },
-    /** Multiplicador de velocidad de enemigos */
     speedMul() {
       const L = lvl(), p = postBoss();
-      return 1 + Math.min(1.1, (L - 1) * 0.045 + p * 0.28);
+      return 1.08 + Math.min(1.35, (L - 1) * 0.06 + p * 0.35);
     },
-    /** Velocidad de balas enemigas */
     bulletMul() {
       const L = lvl(), p = postBoss();
-      return 1 + Math.min(0.85, L * 0.03 + p * 0.18);
+      return 1.12 + Math.min(1.05, L * 0.045 + p * 0.25);
     },
-    /** Intervalo del spawner (ms) */
     spawnInterval() {
       const L = lvl(), p = postBoss();
-      return Math.max(750, Math.round(2000 - L * 85 - p * 140));
+      return Math.max(620, Math.round(1750 - L * 95 - p * 160));
     },
-    /** Cuántos intentos de spawn por tick */
     waveSize() {
       const L = lvl(), p = postBoss(), r = timeRamp();
-      const base = 1 + Math.sqrt(L) * 1.35 * (0.5 + 0.5 * Math.min(1, r));
-      return Math.min(8 + 4 * p, Math.floor(base * (1 + 0.95 * p)));
+      const base = 1.4 + Math.sqrt(L) * 1.55 * (0.55 + 0.45 * Math.min(1.2, r));
+      return Math.min(10 + 5 * p, Math.floor(base * (1 + 1.05 * p)));
     },
-    /** Tope de enemigos vivos (rendimiento + legibilidad) */
     maxAlive() {
-      return Math.min(32, 10 + lvl() + postBoss() * 4);
+      return Math.min(36, 12 + lvl() + postBoss() * 5);
     },
-    /** Probabilidad de élite */
     eliteChance() {
       const L = lvl();
-      if (L < 4) return 0;
-      return Math.min(0.22, 0.04 + L * 0.012 + postBoss() * 0.03);
+      if (L < 2) return 0.03;
+      return Math.min(0.32, 0.08 + L * 0.018 + postBoss() * 0.045);
     },
-    /** Probabilidad de oleada/formación en un tick */
     formationChance() {
       const L = lvl();
-      if (L < 3) return 0.04;
-      return Math.min(0.28, 0.06 + L * 0.015 + postBoss() * 0.04);
+      if (L < 2) return 0.08;
+      return Math.min(0.38, 0.1 + L * 0.02 + postBoss() * 0.05);
     },
-    /** Kits más escasos bajo presión */
     kitChance() {
-      return 0.1 / (1 + postBoss() * 1.2 + (lvl() > 6 ? 0.4 : 0));
+      // Semillas/kits escasos: el laberinto no te regala vida
+      return 0.055 / (1 + postBoss() * 1.6 + (lvl() > 4 ? 0.7 : 0));
+    },
+    /** i-frames tras golpe (ms) — menos “invuln spam” */
+    iframeMs() {
+      return postBoss() > 0 ? 800 : 650;
     },
   };
   global.Diff = Diff;

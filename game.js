@@ -206,7 +206,7 @@ let maxHearts = 3; // Corazones base máximos
 let hasExtraHeart = false; // Controla si el jugador tiene el corazón extra
 let isInvulnerable = false; // Control de invulnerabilidad
 let invulnerabilityTimer = null;
-let invulnerabilityTimeLeft = 10; // 10 segundos de invulnerabilidad
+let invulnerabilityTimeLeft = 6; // escudo corto: el laberinto no perdona
 let score = 0;
 let level = 1;
 let gameRunning = false;
@@ -973,11 +973,11 @@ function updateGame() {
 
       // Si ya es invulnerable, solo reinicia el tiempo
       if (isInvulnerable) {
-        invulnerabilityTimeLeft = 10;
+        invulnerabilityTimeLeft = 6;
       } else {
         // Activar invulnerabilidad por primera vez
         isInvulnerable = true;
-        invulnerabilityTimeLeft = 10;
+        invulnerabilityTimeLeft = 6;
         startInvulnerabilityTimer();
       }
 
@@ -1280,7 +1280,7 @@ function startGame() {
     gClear(invulnerabilityTimer);
     invulnerabilityTimer = null;
   }
-  invulnerabilityTimeLeft = 10;
+  invulnerabilityTimeLeft = 6;
   document.getElementById("invulnerabilityTimer").style.display = "none";
   hasExtraHeart = false;
   if (powerUpTimer) {
@@ -1367,7 +1367,13 @@ function startGame() {
 function handlePlayerDamage(src) {
   if (isInvulnerable) return; // Si es invulnerable, no recibe daño
   if (gameNow() < (player.iframesUntil || 0)) return;
-  player.iframesUntil = gameNow() + (bossActive ? 3500 : 1000); // contra el jefe, más respiro tras un golpe
+  const iframe =
+    bossActive
+      ? 2200
+      : typeof Diff !== "undefined" && Diff.iframeMs
+        ? Diff.iframeMs()
+        : 650;
+  player.iframesUntil = gameNow() + iframe;
   if (typeof Rogue !== "undefined" && Rogue.absorbHit()) return;
   if (typeof Magia !== "undefined") Magia.onDamage();
 
@@ -1493,12 +1499,13 @@ function spawnTick() {
   const metP = Math.min(0.14, 0.04 + level * 0.006 + Math.max(0, level - 10) * 0.02);
   if (RNG() < metP) spawnMeteor();
 
-  if (RNG() < 0.03 && player.hearts === maxHearts && !hasExtraHeart) spawnXiao();
-  if (RNG() < Math.max(0.04, 0.07 - Math.max(0, level - 8) * 0.004)) spawnArlee();
-  if (RNG() < 0.035) spawnCyno();
-  if (level <= 2 && RNG() < 0.08) spawnFlins();
-  if (player.hearts === 1 && !hasTemporaryHeart && RNG() < 0.16) spawnRerir();
-  if (RNG() < Math.min(0.16, 0.08 + level * 0.006)) spawnXiaoWeapon();
+  // Power-ups más raros: el laberinto no te miméa
+  if (RNG() < 0.022 && player.hearts === maxHearts && !hasExtraHeart) spawnXiao();
+  if (RNG() < Math.max(0.028, 0.05 - Math.max(0, level - 6) * 0.004)) spawnArlee();
+  if (RNG() < 0.025) spawnCyno();
+  if (level <= 2 && RNG() < 0.06) spawnFlins();
+  if (player.hearts === 1 && !hasTemporaryHeart && RNG() < 0.12) spawnRerir();
+  if (RNG() < Math.min(0.14, 0.07 + level * 0.005)) spawnXiaoWeapon();
 }
 function spawnEnemies() {
   rescheduleSpawner();
@@ -2132,8 +2139,8 @@ function spawnBoss() {
   // Relativo a tu daño base: las cartas de cadencia, abanico y daño lo suben; el nivel suma un 5 % por nivel desde el 10.
   const baseHps = 1000 / Math.max(60, normalFireRate);
   const ratio = Math.min(3, Math.max(0.8, (hitsPerSec * (m.dmg || 1)) / baseHps));
-  bossHealth = Math.round(200 * ratio * Math.max(1, 1 + (level - 10) * 0.05));
-  if (!Number.isFinite(bossHealth)) bossHealth = 420;
+  bossHealth = Math.round(280 * ratio * Math.max(1, 1 + (level - 10) * 0.07));
+  if (!Number.isFinite(bossHealth)) bossHealth = 560;
   boss = {
     x: GW / 2 - 128,
     y: bossTopY(),
@@ -4251,6 +4258,8 @@ let __lastTouchTs = performance.now(), __touchesDown = 0;
 setInterval(() => {
   if (!gameRunning || gamePaused || !document.body.classList.contains("touch-ui")) return;
   if (typeof Rogue !== "undefined" && Rogue.choosing) return;
+  // Grace al iniciar / tras reanudar: no pausar los primeros 2.5 s
+  if (gameNow() < 2500) return;
   if (__touchesDown === 0 && performance.now() - __lastTouchTs > 3000) setPaused(true);
 }, 500);
 

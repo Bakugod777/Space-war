@@ -6,18 +6,19 @@
   const sheet = new Image();
   sheet.src = "assets/enemigos-sheet.png";
   const T = 32;
+  // HP altos + peso hacia tipos “bruja”: el laberinto duele
   const DEFS = {
-    fast:     { row: 0, hp: 1, pts: 15, minLvl: 1, w: 1 },
-    splitter: { row: 4, hp: 2, pts: 20, minLvl: 2, w: 0.75 },
-    kamikaze: { row: 2, hp: 1, pts: 25, minLvl: 3, w: 0.7 },
-    tank:     { row: 1, hp: 3, pts: 40, minLvl: 4, w: 0.5 },
-    fan:      { row: 3, hp: 2, pts: 35, minLvl: 5, w: 0.45 },
-    familiar: { row: 5, hp: 1, pts: 12, minLvl: 1, w: 0.9, frames: 3 },
-    ribbon:   { row: 6, hp: 2, pts: 22, minLvl: 2, w: 0.65, frames: 2 },
-    grief:    { row: 7, hp: 4, pts: 36, minLvl: 4, w: 0.48, frames: 2 },
-    witch:    { row: 8, hp: 5, pts: 55, minLvl: 7, w: 0.26, frames: 2 },
-    sniper:   { row: 9, hp: 3, pts: 48, minLvl: 6, w: 0.4, frames: 2 },
-    orbiter:  { row: 10, hp: 2, pts: 28, minLvl: 5, w: 0.55, frames: 3 },
+    fast:     { row: 0, hp: 2, pts: 18, minLvl: 1, w: 0.7 },
+    splitter: { row: 4, hp: 3, pts: 28, minLvl: 2, w: 0.7 },
+    kamikaze: { row: 2, hp: 2, pts: 30, minLvl: 2, w: 0.75 },
+    tank:     { row: 1, hp: 5, pts: 50, minLvl: 3, w: 0.55 },
+    fan:      { row: 3, hp: 3, pts: 42, minLvl: 4, w: 0.55 },
+    familiar: { row: 5, hp: 1, pts: 14, minLvl: 1, w: 1.05, frames: 3 },
+    ribbon:   { row: 6, hp: 3, pts: 28, minLvl: 2, w: 0.8, frames: 2 },
+    grief:    { row: 7, hp: 7, pts: 48, minLvl: 3, w: 0.65, frames: 2 },
+    witch:    { row: 8, hp: 9, pts: 70, minLvl: 5, w: 0.4, frames: 2 },
+    sniper:   { row: 9, hp: 4, pts: 55, minLvl: 4, w: 0.55, frames: 2 },
+    orbiter:  { row: 10, hp: 3, pts: 34, minLvl: 3, w: 0.7, frames: 3 },
   };
   const LABELS = {
     fast: "Rápido", splitter: "Divisor", kamikaze: "Kamikaze", tank: "Tanque",
@@ -40,26 +41,26 @@
     const d = DEFS[type], s = S(), sm = D().speedMul();
     const bonus = D().hpBonus(d.hp);
     const elite = !!(opts && opts.elite);
-    const hp = d.hp + bonus + (elite ? 2 : 0);
+    const hp = d.hp + bonus + (elite ? 3 : 0);
     const f = {
       type, x, y, w: T * s, h: T * s,
       hp, maxHp: hp, t: 0, flash: 0, vx: 0, vy: 0, baseX: x,
-      state: "in", stateT: 0, fireT: 1400 + RNG() * 900,
+      state: "in", stateT: 0, fireT: 1100 + RNG() * 700,
       phase: RNG() * Math.PI * 2, dashT: 0, elite,
       orbitR: 36 + RNG() * 40, aimT: 0,
     };
-    if (type === "fast") f.vy = (2.5 + Math.min(1.8, level * 0.06)) * sm;
-    if (type === "tank") f.vy = 0.65 * sm;
-    if (type === "splitter") f.vy = 1.35 * sm;
-    if (type === "kamikaze") f.vy = 1.15 * sm;
-    if (type === "fan") { f.vy = 1.35 * sm; f.vx = (RNG() < 0.5 ? -1 : 1) * 1.15 * sm; }
-    if (type === "familiar") { f.vy = (2.3 + RNG() * 0.9) * sm; f.vx = (RNG() < 0.5 ? -1 : 1) * (1.3 + RNG()) * sm; f.w = f.h = 28; }
-    if (type === "ribbon") f.vy = (1.45 + RNG() * 0.45) * sm;
-    if (type === "grief") f.vy = (0.5 + RNG() * 0.3) * sm;
-    if (type === "witch") { f.vy = 0.85 * sm; f.fireT = 1000 + RNG() * 500; }
-    if (type === "sniper") { f.vy = 1.6 * sm; f.state = "enter"; f.fireT = 800 + RNG() * 400; }
-    if (type === "orbiter") { f.vy = 0.85 * sm; f.orbitSpeed = 0.045 + RNG() * 0.03; }
-    if (elite) { f.vy *= 1.15; f.ptsMul = 1.8; }
+    if (type === "fast") f.vy = (2.7 + Math.min(2.2, level * 0.08)) * sm;
+    if (type === "tank") f.vy = 0.7 * sm;
+    if (type === "splitter") f.vy = 1.45 * sm;
+    if (type === "kamikaze") f.vy = 1.35 * sm;
+    if (type === "fan") { f.vy = 1.4 * sm; f.vx = (RNG() < 0.5 ? -1 : 1) * 1.25 * sm; }
+    if (type === "familiar") { f.vy = (2.6 + RNG() * 1.1) * sm; f.vx = (RNG() < 0.5 ? -1 : 1) * (1.6 + RNG()) * sm; f.w = f.h = 28; }
+    if (type === "ribbon") f.vy = (1.6 + RNG() * 0.5) * sm;
+    if (type === "grief") { f.vy = (0.55 + RNG() * 0.35) * sm; f.fireT = 1600 + RNG() * 600; }
+    if (type === "witch") { f.vy = 0.95 * sm; f.fireT = 700 + RNG() * 400; }
+    if (type === "sniper") { f.vy = 1.85 * sm; f.state = "enter"; f.fireT = 500 + RNG() * 300; }
+    if (type === "orbiter") { f.vy = 0.95 * sm; f.orbitSpeed = 0.055 + RNG() * 0.035; f.fireT = 1400 + RNG() * 500; }
+    if (elite) { f.vy *= 1.2; f.ptsMul = 2; }
     return f;
   }
   function half(x, y, dir) {
@@ -72,9 +73,10 @@
     const tot = pool.reduce((a, k) => a + DEFS[k].w, 0);
     let r = RNG() * tot, type = pool[0];
     for (const k of pool) { r -= DEFS[k].w; if (r <= 0) { type = k; break; } }
-    if (type === "fan" && foes.filter((f) => f.type === "fan").length >= 2) type = "fast";
-    if (type === "witch" && foes.filter((f) => f.type === "witch").length >= 1) type = RNG() < 0.5 ? "grief" : "sniper";
-    if (type === "sniper" && foes.filter((f) => f.type === "sniper").length >= 2) type = "orbiter";
+    // Permitir más presión: hasta 3 abanicos / 2 brujitas / 3 snipers
+    if (type === "fan" && foes.filter((f) => f.type === "fan").length >= 3) type = "orbiter";
+    if (type === "witch" && foes.filter((f) => f.type === "witch").length >= 2) type = RNG() < 0.5 ? "grief" : "sniper";
+    if (type === "sniper" && foes.filter((f) => f.type === "sniper").length >= 3) type = "grief";
     return type;
   }
 
@@ -108,16 +110,18 @@
         spawnOne("familiar", baseX + 20, y0 - 48);
       }
     } else if (kind === "swarm") {
-      const n = 4 + Math.floor(RNG() * 3);
+      const n = 6 + Math.floor(RNG() * 4);
       for (let i = 0; i < n; i++) {
-        spawnOne("familiar", Math.max(8, Math.min(GW - 40, baseX + (RNG() - 0.5) * 100)), y0 - RNG() * 50);
+        spawnOne("familiar", Math.max(8, Math.min(GW - 40, baseX + (RNG() - 0.5) * 110)), y0 - RNG() * 55);
       }
+      if (lvl >= 5) spawnOne("grief", baseX, y0 - 70, { elite });
     } else if (kind === "ring") {
       const cx = Math.max(60, Math.min(GW - 60, baseX));
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
-        spawnOne("orbiter", cx + Math.cos(a) * 28, y0 + Math.sin(a) * 10, { elite: elite && i === 0 });
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        spawnOne("orbiter", cx + Math.cos(a) * 30, y0 + Math.sin(a) * 12, { elite: elite && i === 0 });
       }
+      if (lvl >= 6) spawnOne("sniper", cx, y0 - 40);
     }
     if (global.showMiniToast && RNG() < 0.55) {
       const msg = kind === "swarm" ? "¡enjambre de familiares!" : kind === "vee" ? "formación en V" : kind === "ring" ? "anillo orbital" : "oleada alineada";
@@ -145,8 +149,10 @@
     const elite = RNG() < D().eliteChance();
     const x0 = 8 + RNG() * Math.max(1, GW - T - 16);
     spawnOne(type, x0, -T, { elite });
-    if (type === "familiar" && RNG() < 0.6) {
-      spawnOne("familiar", Math.max(8, Math.min(GW - 40, x0 + 36)), -T - 18);
+    // Familiares casi siempre en pareja/trío (presión Madoka)
+    if (type === "familiar") {
+      spawnOne("familiar", Math.max(8, Math.min(GW - 40, x0 + 34)), -T - 16);
+      if (RNG() < 0.55) spawnOne("familiar", Math.max(8, Math.min(GW - 40, x0 - 34)), -T - 28);
     }
     return true;
   }
@@ -233,7 +239,7 @@
     const mul = D().bulletMul();
     for (let i = 0; i < n; i++) {
       const a = Math.PI / 2 + (i - (n - 1) / 2) * spread;
-      const sp = 3.1 * mul;
+      const sp = 3.55 * mul;
       enemyBullets.push({
         x: bx - 3, y: by,
         vx: Math.cos(a) * sp, speed: Math.sin(a) * sp,
@@ -247,10 +253,15 @@
     const bx = f.x + f.w / 2, by = f.y + f.h;
     const px = player.x + player.width / 2, py = player.y + player.height / 2;
     const dx = px - bx, dy = py - by, m = Math.hypot(dx, dy) || 1;
-    const sp = 3.4 * D().bulletMul();
-    enemyBullets.push({
-      x: bx - 2, y: by, vx: (dx / m) * sp, speed: (dy / m) * sp,
-      width: 5, height: 10, src: "bala francotiradora",
+    const sp = 4.0 * D().bulletMul();
+    // doble bala con ligera dispersión (más difícil de esquivar)
+    [-0.08, 0.08].forEach((off) => {
+      const ang = Math.atan2(dy, dx) + off;
+      enemyBullets.push({
+        x: bx - 2, y: by,
+        vx: Math.cos(ang) * sp, speed: Math.sin(ang) * sp,
+        width: 5, height: 10, src: "bala francotiradora",
+      });
     });
   }
 
@@ -264,26 +275,26 @@
           f.y += f.vy * K; f.x = f.baseX + Math.sin(f.t / 260) * 46; break;
         case "kamikaze":
           f.stateT += dt;
-          if (f.state === "in") { f.y += f.vy * K; if (f.y > GH * 0.2) { f.state = "blink"; f.stateT = 0; if (global.SFX) SFX.play("impact", 0.4); } }
+          if (f.state === "in") { f.y += f.vy * K; if (f.y > GH * 0.18) { f.state = "blink"; f.stateT = 0; if (global.SFX) SFX.play("impact", 0.4); } }
           else if (f.state === "blink") {
-            if (f.stateT >= Math.max(280, 420 - level * 8)) {
+            if (f.stateT >= Math.max(180, 320 - level * 12)) {
               f.state = "dive";
               const dx = player.x - f.x, dy = player.y - f.y, m = Math.hypot(dx, dy) || 1;
-              const dive = 7.5 + Math.min(3, level * 0.12);
+              const dive = 8.5 + Math.min(4, level * 0.15);
               f.vx = (dx / m) * dive; f.vy = (dy / m) * dive;
             }
           } else { f.x += f.vx * K; f.y += f.vy * K; }
           break;
         case "fan":
           if (f.y < GH * 0.14) f.y += f.vy * K; else { f.x += f.vx * K; if (f.x < 0 || f.x + f.w > GW) f.vx *= -1; }
-          if (f.t > 13000) f.y += 2 * K;
-          f.fireT -= dt * (1 + 0.35 * Math.max(0, level - 8));
-          f.glow = f.fireT <= 300 && f.fireT > 0 ? 1 : 0;
+          if (f.t > 12000) f.y += 2.2 * K;
+          f.fireT -= dt * (1.15 + 0.4 * Math.max(0, level - 5));
+          f.glow = f.fireT <= 280 && f.fireT > 0 ? 1 : 0;
           if (f.fireT <= 0) {
-            f.fireT = Math.max(1100, 2400 - level * 50);
+            f.fireT = Math.max(850, 2000 - level * 55);
             const bx = f.x + f.w / 2, by = f.y + f.h;
-            const bs = (2.6 + level * 0.04) * D().bulletMul();
-            [-1.7, 0, 1.7].forEach((vx) => enemyBullets.push({ x: bx - 2, y: by, vx: vx * D().bulletMul(), speed: bs, width: 4, height: 10, src: "bala abanico" }));
+            const bs = (3.0 + level * 0.055) * D().bulletMul();
+            [-2.0, -0.7, 0.7, 2.0].forEach((vx) => enemyBullets.push({ x: bx - 2, y: by, vx: vx * D().bulletMul(), speed: bs, width: 4, height: 10, src: "bala abanico" }));
           }
           break;
         case "familiar":
@@ -297,60 +308,63 @@
         case "grief":
           f.y += f.vy * K;
           f.x += Math.sin(f.t / 380 + f.phase) * 0.45 * K;
-          if (f.elite) {
-            f.fireT -= dt;
-            if (f.fireT <= 0) { f.fireT = 2200; firePetals(f, 3, 0.4); }
+          // Semillas siempre escupen pétalos (no solo élites)
+          f.fireT -= dt;
+          if (f.fireT <= 0) {
+            f.fireT = Math.max(1100, 1800 - level * 40);
+            firePetals(f, f.elite ? 5 : 3, 0.38);
           }
           break;
         case "witch":
           f.dashT += dt;
-          if (f.state !== "dash" && f.dashT > Math.max(700, 1100 - level * 20)) {
+          if (f.state !== "dash" && f.dashT > Math.max(480, 820 - level * 25)) {
             f.state = "dash"; f.dashT = 0;
             const dx = player.x - f.x, dy = player.y - f.y, m = Math.hypot(dx, dy) || 1;
-            const dash = 5.2 + Math.min(2.5, level * 0.08);
+            const dash = 6.2 + Math.min(3.2, level * 0.1);
             f.vx = (dx / m) * dash; f.vy = (dy / m) * dash;
+            firePetals(f, 3, 0.45); // dash con ráfaga
           } else if (f.state === "dash") {
             f.x += f.vx * K; f.y += f.vy * K;
-            if (f.dashT > 360) { f.state = "in"; f.dashT = 0; f.vy = 0.85 * D().speedMul(); f.vx = 0; f.baseX = f.x; }
+            if (f.dashT > 400) { f.state = "in"; f.dashT = 0; f.vy = 0.95 * D().speedMul(); f.vx = 0; f.baseX = f.x; }
           } else {
             f.y += f.vy * K;
-            f.x = f.baseX + Math.sin(f.t / 300 + f.phase) * 30;
+            f.x = f.baseX + Math.sin(f.t / 260 + f.phase) * 34;
           }
           f.fireT -= dt;
           if (f.fireT <= 0 && f.state !== "dash") {
-            f.fireT = Math.max(900, 1900 - level * 35);
-            firePetals(f, 5, 0.3);
+            f.fireT = Math.max(650, 1400 - level * 40);
+            firePetals(f, 7, 0.26);
           }
           break;
         case "sniper":
           if (f.state === "enter") {
             f.y += f.vy * K;
-            if (f.y >= GH * 0.12) { f.state = "hold"; f.aimT = 0; f.baseX = f.x; }
+            if (f.y >= GH * 0.1) { f.state = "hold"; f.aimT = 0; f.baseX = f.x; }
           } else if (f.state === "hold" || f.state === "charge") {
-            f.x = f.baseX + Math.sin(f.t / 500) * 18;
+            f.x = f.baseX + Math.sin(f.t / 420) * 22;
             f.aimT += dt;
-            f.state = f.aimT > 500 ? "charge" : "hold";
+            f.state = f.aimT > 320 ? "charge" : "hold";
             f.fireT -= dt;
             if (f.fireT <= 0) {
               fireAimed(f);
-              f.fireT = Math.max(900, 1700 - level * 40);
+              f.fireT = Math.max(650, 1300 - level * 45);
               f.aimT = 0; f.state = "hold";
-              // se retira un poco
-              f.y += 8;
-              if (f.y > GH * 0.45) f.state = "leave";
+              f.y += 6;
+              if (f.y > GH * 0.5) f.state = "leave";
             }
           } else {
-            f.y += f.vy * 1.4 * K;
+            f.y += f.vy * 1.5 * K;
           }
           break;
         case "orbiter": {
-          f.phase += (f.orbitSpeed || 0.05) * K * 16;
+          f.phase += (f.orbitSpeed || 0.055) * K * 16;
           f.y += f.vy * K;
           f.x = f.baseX + Math.cos(f.phase) * (f.orbitR || 40);
           f.x = Math.max(0, Math.min(GW - f.w, f.x));
-          if (f.elite || level >= 9) {
-            f.fireT -= dt;
-            if (f.fireT <= 0) { f.fireT = 2400; firePetals(f, 2, 0.5); }
+          f.fireT -= dt;
+          if (f.fireT <= 0) {
+            f.fireT = Math.max(1000, 1800 - level * 35);
+            firePetals(f, f.elite ? 4 : 2, 0.48);
           }
           break;
         }
