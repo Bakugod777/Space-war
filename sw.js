@@ -1,5 +1,5 @@
 /* Space War — service worker (offline). Sube VERSION en cada entrega. */
-const VERSION = "v2.3.4";
+const VERSION = "v2.3.5";
 const CACHE = "space-war-" + VERSION;
 const ASSETS = [
   "./",
@@ -7,7 +7,8 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./css/style.css",
   "./sw.js",
-  // JS
+  // JS (orden ≈ index.html)
+  "./js/constants.js",
   "./js/icons.js",
   "./js/moai-messages.js",
   "./js/store.js",
@@ -17,6 +18,9 @@ const ASSETS = [
   "./js/ui-anime.js",
   "./js/difficulty.js",
   "./js/game.js",
+  "./js/powerups.js",
+  "./js/achievements.js",
+  "./js/shop.js",
   "./js/foes.js",
   "./js/bosses.js",
   "./js/rogue.js",

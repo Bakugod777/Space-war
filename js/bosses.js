@@ -1,6 +1,12 @@
 /**
- * Space War — Mini-jefes + roster de jefes (sensación de juego real).
- * Se engancha a boss / bossBar / enemyBullets / Foes del juego.
+ * Space War — Mini-jefes + roster de jefes.
+ *
+ * API pública (window.Bosses):
+ *   trySpawnForLevel(lvl) · updateMini · enhanceBossAttack · drawBossSprite
+ *   isBlocking · isMini · reset
+ *
+ * Roster: Paimon (10) · Walpurgia (20) · Laberinto (30)
+ * Minis: niveles 4, 7, 13, 16, 22, 25
  */
 (function (global) {
   const sheet = new Image();

@@ -1,6 +1,8 @@
 /**
  * Space War — Enemigos pixel (assets/enemigos-sheet.png, 32 px).
- * Naves + laberinto Madoka + sniper/orbiter. Escala con Diff.
+ *
+ * API: Foes.update · Foes.rollSpawn · Foes.clear · Foes.list · Foes.spawnFormation
+ * Tipos en DEFS; patrones de disparo en el switch de update().
  */
 (function (global) {
   const sheet = new Image();
