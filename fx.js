@@ -3,11 +3,15 @@
  * Parallax stars, nebulae, particles, shake, combo, banners.
  */
 (function (global) {
-  const reducedMotion =
-    typeof matchMedia !== "undefined" &&
-    matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let reducedMotion =
+    (typeof localStorage !== "undefined" && localStorage.getItem("sw_reduceMotion") === "1") ||
+    (typeof matchMedia !== "undefined" &&
+      matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      (typeof localStorage === "undefined" || localStorage.getItem("sw_reduceMotion") !== "0"));
+  let K = 1; // factor de frame (1 = 60 Hz)
+  let hitStop = 0;
 
-  const MAX_PARTICLES = 420;
+  const MAX_PARTICLES = (typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches) ? 150 : 300;
   const MAX_FLOATERS = 48;
   const MAX_SHOCKWAVES = 12;
 
@@ -146,13 +150,14 @@
       const dt = Math.min(0.05, (dtMs || 16) / 1000);
       time += dt;
       lastTs = performance.now();
+      K = dt * 60;
 
       ctx.save();
       if (shakeIntensity > 0.15 && !reducedMotion) {
         const sx = (Math.random() - 0.5) * shakeIntensity * 2;
         const sy = (Math.random() - 0.5) * shakeIntensity * 2;
         ctx.translate(sx, sy);
-        shakeIntensity *= shakeDecay;
+        shakeIntensity *= Math.pow(shakeDecay, K);
       } else {
         shakeIntensity = 0;
       }
@@ -181,18 +186,11 @@
       }
       // Damage / intensity vignette
       if (vignettePulse > 0.01) {
-        const g = ctx.createRadialGradient(
-          width / 2,
-          height / 2,
-          Math.min(width, height) * 0.25,
-          width / 2,
-          height / 2,
-          Math.max(width, height) * 0.75
-        );
-        g.addColorStop(0, "rgba(0,0,0,0)");
-        g.addColorStop(1, `rgba(180,0,40,${0.45 * vignettePulse})`);
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, width, height);
+        // marco plano rosa (sin degradado)
+        const b = Math.round(10 * vignettePulse);
+        ctx.fillStyle = `rgba(255,77,122,${0.5 * vignettePulse})`;
+        ctx.fillRect(0, 0, width, b); ctx.fillRect(0, height - b, width, b);
+        ctx.fillRect(0, 0, b, height); ctx.fillRect(width - b, 0, b, height);
       }
       ctx.restore();
       VFX._drawBanner(ctx, width, height);
@@ -201,11 +199,7 @@
 
     drawBackground(ctx, width, height) {
       // Deep space gradient
-      const bg = ctx.createLinearGradient(0, 0, 0, height);
-      bg.addColorStop(0, "#02010a");
-      bg.addColorStop(0.45, "#051428");
-      bg.addColorStop(1, "#0a1f3d");
-      ctx.fillStyle = bg;
+      ctx.fillStyle = "#0B0F1E";
       ctx.fillRect(0, 0, width, height);
 
       // Nebulae
@@ -224,14 +218,11 @@
         ctx.save();
         ctx.translate(n.x, n.y);
         ctx.rotate(n.rot);
-        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, n.r);
-        g.addColorStop(0, hexToRgba(n.colors[0], n.a));
-        g.addColorStop(0.45, hexToRgba(n.colors[1], n.a * 0.55));
-        g.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, n.r, n.r * 0.65, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // nebulosa en capas planas tipo recorte de papel
+        ctx.fillStyle = hexToRgba("#1B2440", Math.min(0.5, n.a * 2));
+        ctx.beginPath(); ctx.ellipse(0, 0, n.r, n.r * 0.65, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = hexToRgba(n.colors[0], n.a * 0.6);
+        ctx.beginPath(); ctx.ellipse(n.r * 0.1, 0, n.r * 0.55, n.r * 0.35, 0.3, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       }
 
@@ -263,11 +254,12 @@
     updateAndDrawParticles(ctx) {
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.vx *= p.drag;
-        p.vy = p.vy * p.drag + p.gravity;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 0.016;
+        const dk = Math.pow(p.drag, K);
+        p.vx *= dk;
+        p.vy = p.vy * dk + p.gravity * K;
+        p.x += p.vx * K;
+        p.y += p.vy * K;
+        p.life -= 0.016 * K;
         if (p.life <= 0) {
           particles.splice(i, 1);
           continue;
@@ -289,8 +281,8 @@
 
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const s = shockwaves[i];
-        s.r += s.speed;
-        s.life -= 0.016;
+        s.r += s.speed * K;
+        s.life -= 0.016 * K;
         if (s.life <= 0) {
           shockwaves.splice(i, 1);
           continue;
@@ -305,8 +297,8 @@
 
       for (let i = floaters.length - 1; i >= 0; i--) {
         const f = floaters[i];
-        f.y += f.vy;
-        f.life -= 0.016;
+        f.y += f.vy * K;
+        f.life -= 0.016 * K;
         if (f.life <= 0) {
           floaters.splice(i, 1);
           continue;
@@ -384,18 +376,11 @@
     drawBullet(ctx, bullet) {
       const x = bullet.x + 2;
       const y = bullet.y;
-      const g = ctx.createLinearGradient(x, y + 18, x, y - 6);
-      g.addColorStop(0, "#0077ff");
-      g.addColorStop(0.5, "#00eaff");
-      g.addColorStop(1, "#ffffff");
-      ctx.save();
-      ctx.shadowColor = "#00eaff";
-      ctx.shadowBlur = 14;
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      roundRect(ctx, x - 3, y - 10, 6, 22, 3);
-      ctx.fill();
-      ctx.restore();
+      // bala 4x12 cian con contorno oscuro y punta clara
+      const bx = Math.round(x - 2), by = Math.round(y - 6);
+      ctx.fillStyle = "#0B0F1E"; ctx.fillRect(bx - 1, by - 1, 6, 14);
+      ctx.fillStyle = "#3FE0F0"; ctx.fillRect(bx, by, 4, 12);
+      ctx.fillStyle = "#EAF2FF"; ctx.fillRect(bx, by, 4, 3);
 
       if (!reducedMotion && Math.random() > 0.4) {
         spawnParticle({
@@ -416,19 +401,11 @@
 
     drawEnemyBullet(ctx, bullet) {
       ctx.save();
-      ctx.shadowColor = "#ff1744";
-      ctx.shadowBlur = 12;
-      const g = ctx.createLinearGradient(
-        bullet.x,
-        bullet.y,
-        bullet.x,
-        bullet.y + bullet.height
-      );
-      g.addColorStop(0, "#ffeb3b");
-      g.addColorStop(1, "#ff1744");
-      ctx.fillStyle = g;
-      roundRect(ctx, bullet.x, bullet.y, Math.max(4, bullet.width), Math.max(10, bullet.height), 3);
-      ctx.fill();
+      const w = Math.max(4, bullet.width), h = Math.max(bullet.witch ? 6 : 10, bullet.height);
+      const ex = Math.round(bullet.x), ey = Math.round(bullet.y);
+      ctx.fillStyle = "#0B0F1E"; ctx.fillRect(ex - 1, ey - 1, w + 2, h + 2);
+      ctx.fillStyle = bullet.witch ? "#9B6BFF" : "#FF4D7A"; ctx.fillRect(ex, ey, w, h);
+      ctx.fillStyle = "#FF8AD8"; ctx.fillRect(ex + 1, ey + 1, Math.max(1, w - 2), 2);
       ctx.restore();
     },
 
@@ -446,6 +423,8 @@
     },
 
     explosion(x, y, power) {
+      if ((power || 1) >= 1) VFX.hitStop(28 + 12 * Math.min(3, power || 1), 0.12);
+      if (typeof Haptics !== "undefined") Haptics.buzz("explosion");
       const p = power || 1;
       burst(x, y, {
         count: Math.floor(16 * p),
@@ -525,12 +504,32 @@
     },
 
     damageFlash() {
+      if (typeof Haptics !== "undefined") Haptics.buzz("damage");
+      VFX.hitStop(70, 0.0);
       flashColor = "220,20,40";
       flashAlpha = 0.45;
       vignettePulse = 1;
       VFX.shake(8);
     },
 
+    setReducedMotion(v) {
+      reducedMotion = !!v;
+      if (v) shakeIntensity = 0;
+    },
+    isReducedMotion() {
+      return reducedMotion;
+    },
+    /** Hit-stop: congela la simulación unos ms y lanza un destello blanco. */
+    hitStop(ms, flash) {
+      hitStop = Math.max(hitStop, reducedMotion ? ms * 0.5 : ms);
+      flashColor = "255,255,255";
+      flashAlpha = Math.max(flashAlpha, reducedMotion ? 0.08 : (flash || 0.22));
+    },
+    consumeHitStop(dtMs) {
+      if (hitStop <= 0) return false;
+      hitStop -= dtMs;
+      return true;
+    },
     shake(amount) {
       if (reducedMotion) return;
       shakeIntensity = Math.min(22, shakeIntensity + amount);
@@ -561,12 +560,18 @@
       else if (combo >= 3) color = "#00eaff";
       VFX.floatText(x, y - 10, `+${shown}`, color, 16 + Math.min(combo, 10));
       if (combo >= 3) {
-        VFX.floatText(x, y - 32, `${combo} COMBO!`, color, 14 + Math.min(combo, 8));
+        VFX.floatText(x, y - 32, `¡combo x${combo}!`, color, 14 + Math.min(combo, 8));
       }
       VFX._syncComboHud();
       return bonus;
     },
 
+    getComboMax() {
+      return comboMax;
+    },
+    getCombo() {
+      return combo;
+    },
     resetCombo() {
       combo = 0;
       comboTimer = 0;
@@ -578,7 +583,7 @@
         title: `NIVEL ${level}`,
         subtitle: level % 10 === 0 ? "¡OLEADA ÉPICA!" : "Sigue disparando",
         t: 0,
-        duration: 2.2,
+        duration: 1.2,
         color: level % 10 === 0 ? "#ff1744" : "#00eaff",
       };
       flashColor = "0,180,255";
@@ -598,8 +603,8 @@
 
     bossWarning() {
       banner = {
-        title: "¡ALERTA!",
-        subtitle: "Astraeus, Señor del Vacío",
+        title: "¡cuidado!",
+        subtitle: "entras al laberinto",
         t: 0,
         duration: 3,
         color: "#ff1744",
@@ -609,6 +614,9 @@
       VFX.shake(10);
     },
 
+    clearBanner() {
+      banner = null;
+    },
     clear() {
       particles.length = 0;
       floaters.length = 0;
@@ -631,15 +639,15 @@
       const scale = t < 0.3 ? 0.7 + (t / 0.3) * 0.35 : 1;
       ctx.save();
       ctx.globalAlpha = Math.max(0, alpha);
-      ctx.translate(width / 2, height * 0.28);
+      ctx.translate(width / 2, Math.max(height * 0.34, 150));
       ctx.scale(scale, scale);
       ctx.textAlign = "center";
-      ctx.font = "bold 42px Orbitron, sans-serif";
+      ctx.font = `bold ${Math.round(Math.min(30, width / 14))}px Orbitron, sans-serif`;
       ctx.fillStyle = banner.color;
       ctx.shadowColor = banner.color;
       ctx.shadowBlur = 24;
       ctx.fillText(banner.title, 0, 0);
-      ctx.font = "16px Orbitron, sans-serif";
+      ctx.font = "13px Orbitron, sans-serif";
       ctx.fillStyle = "#ffffff";
       ctx.shadowBlur = 8;
       ctx.fillText(banner.subtitle, 0, 32);

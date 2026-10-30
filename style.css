@@ -1,3 +1,9 @@
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/orbitron-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/orbitron-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:900;font-display:swap;src:url('fonts/orbitron-latin-900-normal.woff2') format('woff2');}
+@font-face{font-family:'Exo 2';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/exo-2-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Exo 2';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/exo-2-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Exo 2';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/exo-2-latin-700-normal.woff2') format('woff2');}
 /* Partículas épicas al disparar */
 .bullet-particle {
     position: absolute;
@@ -5,7 +11,7 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: radial-gradient(circle, #00eaff 60%, #fff 100%, transparent 120%);
+    background: var(--c-cyan);
     box-shadow: 0 0 18px 8px #00eaff, 0 0 8px #fff inset;
     z-index: 101;
     opacity: 0.85;
@@ -18,7 +24,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: radial-gradient(circle, #00eaff 60%, #fff 100%, transparent 120%);
+    background: var(--c-cyan);
     box-shadow: 0 0 10px 4px #00eaff, 0 0 4px #fff inset;
     z-index: 100;
     opacity: 0.7;
@@ -28,7 +34,7 @@
     position: absolute;
     width: 12px;
     height: 28px;
-    background: linear-gradient(180deg, #fff 0%, #00eaff 60%, #0077ff 100%);
+    background: var(--c-ink);
     border-radius: 6px 6px 12px 12px;
     box-shadow: 0 0 18px 6px #00eaff, 0 0 8px #fff inset;
     animation: bulletGlow 0.5s infinite alternate;
@@ -46,7 +52,7 @@
     position: absolute;
     width: 16px;
     height: 36px;
-    background: linear-gradient(180deg, #ff1744 0%, #ffeb3b 100%);
+    background: var(--c-rose);
     border-radius: 8px 8px 18px 18px;
     box-shadow: 0 0 24px 8px #ff1744, 0 0 10px #ffeb3b inset;
     animation: bossBulletGlow 0.5s infinite alternate;
@@ -58,7 +64,6 @@
     0% { box-shadow: 0 0 24px 8px #ff1744, 0 0 10px #ffeb3b inset; }
     100% { box-shadow: 0 0 36px 16px #ff1744, 0 0 18px #ffeb3b inset; }
 }
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap');
 
 :root {
     --sw-cyan: #00eaff;
@@ -77,10 +82,7 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background:
-        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 120, 200, 0.35), transparent 55%),
-        radial-gradient(ellipse 80% 50% at 80% 100%, rgba(120, 20, 80, 0.25), transparent 50%),
-        linear-gradient(180deg, #02010a 0%, #061428 45%, #0a2a4a 100%);
+    background: rgba(63,224,240,0.35);
     color: white;
     font-family: var(--font-display);
     text-align: center;
@@ -117,10 +119,7 @@ body {
     inset: -10%;
     z-index: 0;
     pointer-events: none;
-    background:
-        radial-gradient(ellipse 40% 30% at 20% 30%, rgba(30, 80, 180, 0.22), transparent 70%),
-        radial-gradient(ellipse 45% 35% at 75% 65%, rgba(140, 40, 120, 0.18), transparent 70%),
-        radial-gradient(ellipse 30% 25% at 50% 80%, rgba(0, 180, 200, 0.12), transparent 70%);
+    background: rgba(27,36,64,0.22);
     animation: nebulaDrift 28s ease-in-out infinite alternate;
     mix-blend-mode: screen;
 }
@@ -131,12 +130,7 @@ body {
     z-index: 50;
     pointer-events: none;
     opacity: 0.06;
-    background: repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent 2px,
-        rgba(0, 0, 0, 0.35) 3px
-    );
+    background: rgba(11,15,30,0.35);
 }
 
 @keyframes nebulaDrift {
@@ -273,7 +267,7 @@ body {
     width: min(360px, 88vw);
     padding: 1.25rem 1.35rem 1.1rem;
     border-radius: 18px;
-    background: linear-gradient(160deg, rgba(8, 24, 48, 0.78), rgba(4, 10, 24, 0.88));
+    background: rgba(11,15,30,0.78);
     border: 1px solid var(--sw-border);
     box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.04) inset,
@@ -321,7 +315,7 @@ body {
     text-transform: uppercase;
     border: none;
     border-radius: 12px;
-    background: linear-gradient(135deg, #ff7043 0%, #ff3d00 55%, #e65100 100%);
+    background: var(--c-rose);
     color: white;
     cursor: pointer;
     box-shadow: 0 8px 28px rgba(255, 87, 34, 0.45);
@@ -331,7 +325,7 @@ body {
 .start-btn-glow {
     position: absolute;
     inset: -40% -20%;
-    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+    background: rgba(234,242,255,0.35);
     transform: translateX(-120%);
     animation: btnSheen 3.5s ease-in-out infinite;
     pointer-events: none;
@@ -375,7 +369,7 @@ body {
     font-size: min(1em, 5vw);
     border: none;
     border-radius: 5px;
-    background: linear-gradient(145deg, #ff5722, #e64a19);
+    background: var(--c-rose);
     color: white;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
@@ -395,7 +389,7 @@ canvas {
     z-index: 30;
     font-family: var(--font-display), Orbitron, sans-serif;
     font-size: clamp(12px, 3.2vw, 15px);
-    background: linear-gradient(135deg, rgba(4, 16, 36, 0.82), rgba(0, 0, 0, 0.55));
+    background: rgba(11,15,30,0.82);
     padding: 8px 12px;
     border-radius: 10px;
     border: 1px solid rgba(0, 234, 255, 0.28);
@@ -471,7 +465,7 @@ canvas {
     font-size: clamp(2rem, 8vw, 3.4rem);
     font-weight: 900;
     line-height: 1;
-    background: linear-gradient(180deg, #fff 0%, #ff9100 55%, #ff1744 100%);
+    background: var(--c-ink);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -601,7 +595,7 @@ canvas {
 
 #highScores li {
     margin: 6px 0;
-    background: linear-gradient(90deg, rgba(0, 40, 80, 0.55), rgba(0, 0, 0, 0.45));
+    background: rgba(27,36,64,0.55);
     padding: 0.55rem 0.85rem;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -700,9 +694,7 @@ canvas {
     position: relative;
     border: 1.5px solid rgba(255, 138, 76, 0.7);
     border-radius: 50%;
-    background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.16), transparent 42%),
-        linear-gradient(160deg, rgba(60, 18, 8, 0.88), rgba(20, 8, 4, 0.92));
+    background: rgba(234,242,255,0.16);
     color: #ffb38a;
     display: flex;
     flex-direction: column;
@@ -754,9 +746,7 @@ body.left-handed #touchControls {
 .shoot-btn:active {
     transform: scale(0.92);
     color: #fff;
-    background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.22), transparent 42%),
-        linear-gradient(160deg, rgba(120, 40, 12, 0.95), rgba(40, 12, 4, 0.95));
+    background: rgba(234,242,255,0.22);
     box-shadow:
         0 0 0 1px rgba(255,255,255,0.08) inset,
         0 6px 18px rgba(0,0,0,0.5),
@@ -776,7 +766,7 @@ body.left-handed #touchControls {
 .shoot-cooldown-mobile-fill {
     width: 0%;
     height: 100%;
-    background: linear-gradient(90deg, #00eaff, #ff9100, #ff3d00);
+    background: var(--c-cyan);
 }
 
 .touchButton {
@@ -830,7 +820,7 @@ body.left-handed #touchControls {
     top: 170px;
     right: 20px;
     font-size: var(--font-size-base);
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 140, 0, 0.4));
+    background: rgba(255,201,74,0.4);
     padding: min(10px, 2vw);
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -874,7 +864,7 @@ body.left-handed #touchControls {
     top: 210px;
     right: 20px;
     font-size: var(--font-size-base);
-    background: linear-gradient(135deg, rgba(0, 191, 255, 0.4), rgba(30, 144, 255, 0.4));
+    background: rgba(63,224,240,0.4);
     padding: min(10px, 2vw);
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -989,7 +979,7 @@ body.left-handed #touchControls {
 .explosion-particle {
     position: absolute;
     pointer-events: none;
-    background: radial-gradient(circle, #ff4d4d, transparent);
+    background: var(--c-rose);
     border-radius: 50%;
     z-index: 100;
 }
@@ -1036,7 +1026,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: doublePointsFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2));
+    background: rgba(255,201,74,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(255, 215, 0, 0.6);
@@ -1118,7 +1108,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: temporaryHeartFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(30, 144, 255, 0.2));
+    background: rgba(63,224,240,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(0, 191, 255, 0.6);
@@ -1176,7 +1166,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: powerupFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(46, 204, 113, 0.1));
+    background: rgba(89,240,160,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(46, 204, 113, 0.6);
@@ -1198,7 +1188,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: powerupFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(255, 87, 34, 0.2), rgba(255, 87, 34, 0.1));
+    background: rgba(255,77,122,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(255, 87, 34, 0.6);
@@ -1220,7 +1210,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: powerupFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(0, 255, 255, 0.1));
+    background: rgba(63,224,240,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(0, 255, 255, 0.6);
@@ -1242,7 +1232,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: powerupFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+    background: rgba(255,201,74,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(255, 215, 0, 0.6);
@@ -1264,7 +1254,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: powerupFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(0, 191, 255, 0.1));
+    background: rgba(63,224,240,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(0, 191, 255, 0.6);
@@ -1286,7 +1276,7 @@ body.left-handed #touchControls {
         2px 2px 4px rgba(0, 0, 0, 0.8);
     z-index: 1000;
     animation: powerupFloat 2s ease-out forwards;
-    background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(155, 89, 182, 0.1));
+    background: rgba(155,107,255,0.2);
     padding: 8px 16px;
     border-radius: 20px;
     border: 2px solid rgba(155, 89, 182, 0.6);
@@ -1336,8 +1326,7 @@ body.left-handed #touchControls {
     width: clamp(120px, 34vw, 150px);
     height: clamp(120px, 34vw, 150px);
     border-radius: 50%;
-    background:
-        radial-gradient(circle at 50% 50%, rgba(0, 40, 70, 0.35), rgba(4, 10, 22, 0.55));
+    background: rgba(27,36,64,0.35);
     border: 1.5px solid rgba(125, 211, 252, 0.4);
     box-shadow:
         0 0 0 1px rgba(255,255,255,0.04) inset,
@@ -1350,7 +1339,7 @@ body.left-handed #touchControls {
     position: absolute;
     width: 42%;
     height: 42%;
-    background: linear-gradient(160deg, rgba(125, 211, 252, 0.35), rgba(0, 80, 120, 0.55));
+    background: rgba(63,224,240,0.35);
     border: 1.5px solid rgba(125, 211, 252, 0.65);
     border-radius: 50%;
     top: 50%;
@@ -1361,7 +1350,7 @@ body.left-handed #touchControls {
 }
 
 #joystick.active {
-    background: linear-gradient(160deg, rgba(180, 235, 255, 0.55), rgba(0, 140, 200, 0.7));
+    background: rgba(234,242,255,0.55);
     box-shadow: 0 0 22px rgba(0, 234, 255, 0.45);
 }
 
@@ -1390,7 +1379,7 @@ body.left-handed #touchControls {
     display: block;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, #ff3d00, #ff9100);
+    background: var(--c-rose);
     transform-origin: left;
     transform: scaleX(0); /* actualiza con JavaScript */
     transition: transform 0.5s linear;
@@ -1416,7 +1405,7 @@ button, .touchButton {
 #shootCooldownFill {
     width: 0%;
     height: 100%;
-    background: linear-gradient(to right, #ff5722, #ffc107);
+    background: var(--c-rose);
     transform-origin: left;
     transition: width 0s;
 }
@@ -1455,9 +1444,7 @@ button, .touchButton {
     justify-content: center;
     border-radius: 50%;
     border: 1.5px solid color-mix(in srgb, var(--orb-accent) 70%, #fff 30%);
-    background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.14), transparent 45%),
-        linear-gradient(160deg, rgba(10, 24, 48, 0.95), rgba(4, 10, 22, 0.92));
+    background: rgba(234,242,255,0.15);
     color: var(--orb-accent) !important;
     font-size: 1.35rem !important;
     line-height: 0;
@@ -1515,7 +1502,7 @@ button, .touchButton {
     align-items: center;
     gap: 10px;
     z-index: 1500;
-    background: linear-gradient(160deg, rgba(10, 24, 48, 0.92), rgba(4, 10, 22, 0.9));
+    background: var(--c-void);
     backdrop-filter: blur(10px);
     padding: 8px 12px;
     border-radius: 999px;
@@ -1543,9 +1530,7 @@ button, .touchButton {
 }
 
 .audio-btn:hover {
-    background: linear-gradient(135deg, 
-        rgba(0, 150, 255, 0.9) 0%, 
-        rgba(0, 200, 255, 0.9) 100%);
+    background: var(--c-cyan);
     transform: scale(1.1);
     box-shadow: 
         0 0 25px rgba(0, 255, 255, 0.6),
@@ -1557,9 +1542,7 @@ button, .touchButton {
 }
 
 .audio-btn.muted {
-    background: linear-gradient(135deg, 
-        rgba(120, 0, 0, 0.8) 0%, 
-        rgba(180, 0, 0, 0.8) 100%);
+    background: rgba(11,15,30,0.8);
     border-color: rgba(255, 100, 100, 0.6);
     box-shadow: 
         0 0 15px rgba(255, 0, 0, 0.4),
@@ -1567,9 +1550,7 @@ button, .touchButton {
 }
 
 .audio-btn.muted:hover {
-    background: linear-gradient(135deg, 
-        rgba(180, 0, 0, 0.9) 0%, 
-        rgba(220, 0, 0, 0.9) 100%);
+    background: var(--c-rose);
     box-shadow: 
         0 0 25px rgba(255, 0, 0, 0.6),
         inset 0 0 15px rgba(255, 255, 255, 0.3);
@@ -1619,7 +1600,7 @@ button, .touchButton {
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #00ffff, #0080ff);
+    background: var(--c-cyan);
     cursor: pointer;
     -webkit-appearance: none;
     box-shadow: 
@@ -1629,7 +1610,7 @@ button, .touchButton {
 }
 
 .volume-slider::-webkit-slider-thumb:hover {
-    background: linear-gradient(135deg, #00ffff, #00aaff);
+    background: var(--c-cyan);
     transform: scale(1.2);
     box-shadow: 
         0 0 15px rgba(0, 255, 255, 0.8),
@@ -1650,7 +1631,7 @@ button, .touchButton {
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #00ffff, #0080ff);
+    background: var(--c-cyan);
     cursor: pointer;
     box-shadow: 
         0 0 10px rgba(0, 255, 255, 0.6),
@@ -1733,7 +1714,7 @@ button, .touchButton {
 }
 
 .moai-modal-content {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    background: var(--c-deep);
     margin: 10% auto;
     padding: 30px;
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -1799,7 +1780,7 @@ button, .touchButton {
 }
 
 .achievements-modal-content {
-    background: linear-gradient(145deg, #0a0a1a, #1a1a2e, #16213e);
+    background: var(--c-void);
     margin: 2% auto;
     padding: 0;
     border: 3px solid #ffd700;
@@ -1848,7 +1829,7 @@ button, .touchButton {
 }
 
 .achievements-header {
-    background: linear-gradient(135deg, #ffd700, #ffb300, #ff8f00);
+    background: var(--c-gold);
     padding: 25px;
     text-align: center;
     border-radius: 17px 17px 0 0;
@@ -1864,7 +1845,7 @@ button, .touchButton {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: rgba(234,242,255,0.15);
     animation: shimmer 3s infinite;
 }
 
@@ -1949,7 +1930,7 @@ button, .touchButton {
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, #ffd700, #ffb300);
+    background: var(--c-gold);
     color: #000;
     font-weight: bold;
     box-shadow: inset 0 -3px 0 #fff;
@@ -1959,7 +1940,7 @@ button, .touchButton {
     max-height: 50vh;
     overflow-y: auto;
     padding: 20px;
-    background: linear-gradient(135deg, #0a0a1a, #1a1a2e);
+    background: var(--c-void);
 }
 
 .achievement-item {
@@ -1967,7 +1948,7 @@ button, .touchButton {
     align-items: center;
     padding: 15px;
     margin: 10px 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    background: rgba(234,242,255,0.15);
     border: 2px solid transparent;
     border-radius: 15px;
     transition: all 0.3s ease;
@@ -1977,7 +1958,7 @@ button, .touchButton {
 
 .achievement-item.unlocked {
     border-color: #ffd700;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+    background: rgba(255,201,74,0.2);
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
@@ -1988,7 +1969,7 @@ button, .touchButton {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+    background: rgba(255,201,74,0.3);
     animation: unlockGlow 2s infinite;
 }
 
@@ -2038,7 +2019,7 @@ button, .touchButton {
 .achievement-points {
     text-align: center;
     padding: 10px;
-    background: linear-gradient(135deg, #ffd700, #ffb300);
+    background: var(--c-gold);
     color: #000;
     border-radius: 10px;
     font-weight: bold;
@@ -2063,7 +2044,7 @@ button, .touchButton {
 .rarity-epic { background: #9b59b6; color: #fff; }
 .rarity-legendary { background: #e74c3c; color: #fff; }
 .rarity-mythic { 
-    background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4, #45b7d1);
+    background: var(--c-gold);
     color: #fff;
     animation: mythicGlow 2s infinite;
 }
@@ -2080,7 +2061,7 @@ button, .touchButton {
     right: 20px;
     width: min(350px, 90vw);
     max-width: 350px;
-    background: linear-gradient(135deg, #ffd700, #ffb300);
+    background: var(--c-gold);
     border: 3px solid #fff;
     border-radius: 15px;
     box-shadow: 
@@ -2810,7 +2791,7 @@ body:not(.touch-ui) #touchControls {
 #bossHealthFill {
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, #ff1744 0%, #ffeb3b 100%);
+    background: var(--c-rose);
     transition: width 0.3s;
     box-shadow: 0 0 12px #ff1744, 0 0 8px #ffeb3b inset;
 }
@@ -2848,7 +2829,7 @@ body:not(.touch-ui) #touchControls {
 @keyframes bossHealthFlash {
     0% { box-shadow: 0 0 20px #fff, 0 0 8px #ff1744 inset; background: #fff; }
     50% { box-shadow: 0 0 40px #ff1744, 0 0 16px #ffeb3b inset; background: #ff1744; }
-    100% { box-shadow: 0 0 12px #ff1744, 0 0 8px #ffeb3b inset; background: linear-gradient(90deg, #ff1744 0%, #ffeb3b 100%);}
+    100% { box-shadow: 0 0 12px #ff1744, 0 0 8px #ffeb3b inset; background: var(--c-rose);}
 }
 
 /* Estilos específicos para modal en dispositivos móviles */
@@ -2945,7 +2926,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .update-popup-content {
-    background: linear-gradient(160deg, rgba(8, 20, 40, 0.96), rgba(4, 12, 26, 0.96));
+    background: var(--c-void);
     border: 1.5px solid rgba(0, 234, 255, 0.45);
     border-radius: 18px;
     box-shadow:
@@ -3001,7 +2982,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .close-update-btn {
-    background: linear-gradient(135deg, #ff8a4c, #ff3d00);
+    background: var(--c-gold);
     border: 1px solid rgba(255, 200, 160, 0.35);
     color: white;
     padding: 12px 30px;
@@ -3018,7 +2999,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .close-update-btn:hover {
-    background: linear-gradient(135deg, #ff9a60, #ff5722);
+    background: var(--c-gold);
     transform: translateY(-2px);
     box-shadow: 0 12px 28px rgba(255, 109, 44, 0.45);
 }
@@ -3121,10 +3102,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .custom-alert-content {
-    background: linear-gradient(135deg, 
-        rgba(40, 0, 0, 0.95) 0%, 
-        rgba(80, 0, 0, 0.95) 50%, 
-        rgba(120, 20, 20, 0.95) 100%);
+    background: var(--c-void);
     border: 3px solid rgba(255, 100, 100, 0.8);
     border-radius: 20px;
     box-shadow: 
@@ -3182,7 +3160,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .cancel-btn {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
+    background: var(--c-mint);
     color: white;
     box-shadow: 
         0 4px 15px rgba(108, 117, 125, 0.4),
@@ -3190,7 +3168,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .cancel-btn:hover {
-    background: linear-gradient(135deg, #5a6268, #495057);
+    background: var(--c-deep);
     transform: translateY(-2px);
     box-shadow: 
         0 6px 20px rgba(108, 117, 125, 0.6),
@@ -3198,7 +3176,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .confirm-btn {
-    background: linear-gradient(135deg, #dc3545, #c82333);
+    background: var(--c-rose);
     color: white;
     box-shadow: 
         0 4px 15px rgba(220, 53, 69, 0.4),
@@ -3206,7 +3184,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .confirm-btn:hover {
-    background: linear-gradient(135deg, #c82333, #bd2130);
+    background: var(--c-rose);
     transform: translateY(-2px);
     box-shadow: 
         0 6px 20px rgba(220, 53, 69, 0.6),
@@ -3316,7 +3294,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .shop-modal-content {
-    background: linear-gradient(145deg, #0a0a1a, #1a1a2e, #16213e);
+    background: var(--c-void);
     margin: 2% auto;
     padding: 0;
     border: 3px solid #4CAF50;
@@ -3366,7 +3344,7 @@ body:not(.touch-ui) #touchControls {
 
 /* Header de la Tienda */
 .shop-header {
-    background: linear-gradient(135deg, #4CAF50, #45a049, #388e3c);
+    background: var(--c-mint);
     padding: 25px;
     text-align: center;
     border-radius: 17px 17px 0 0;
@@ -3382,7 +3360,7 @@ body:not(.touch-ui) #touchControls {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: rgba(234,242,255,0.15);
     animation: shimmer 3s infinite;
 }
 
@@ -3459,7 +3437,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .shop-tab-btn.active {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background: var(--c-mint);
     color: #fff;
     font-weight: bold;
     box-shadow: inset 0 -3px 0 #fff;
@@ -3470,7 +3448,7 @@ body:not(.touch-ui) #touchControls {
     max-height: 50vh;
     overflow-y: auto;
     padding: 20px;
-    background: linear-gradient(135deg, #0a0a1a, #1a1a2e);
+    background: var(--c-void);
 }
 
 .shop-item {
@@ -3478,7 +3456,7 @@ body:not(.touch-ui) #touchControls {
     align-items: center;
     padding: 15px;
     margin: 10px 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    background: rgba(234,242,255,0.15);
     border: 2px solid transparent;
     border-radius: 15px;
     transition: all 0.3s ease;
@@ -3489,14 +3467,14 @@ body:not(.touch-ui) #touchControls {
 
 .shop-item:hover:not(.purchased) {
     border-color: #4CAF50;
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+    background: rgba(89,240,160,0.2);
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
     transform: translateY(-2px);
 }
 
 .shop-item.purchased {
     border-color: #45a049;
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.1));
+    background: rgba(89,240,160,0.15);
     opacity: 0.9;
     cursor: pointer;
 }
@@ -3558,7 +3536,7 @@ body:not(.touch-ui) #touchControls {
 
 .shop-buy-btn {
     padding: 10px 20px;
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background: var(--c-mint);
     color: white;
     border: 2px solid #fff;
     border-radius: 10px;
@@ -3571,7 +3549,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .shop-buy-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #45a049, #388e3c);
+    background: var(--c-mint);
     transform: scale(1.05);
     box-shadow: 0 0 25px rgba(76, 175, 80, 0.7);
 }
@@ -3602,7 +3580,7 @@ body:not(.touch-ui) #touchControls {
 }
 
 .item-content-modal-content {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    background: var(--c-deep);
     margin: 5% auto;
     padding: 60px 40px 40px 40px;
     border: 3px solid #4CAF50;
@@ -3664,7 +3642,7 @@ body:not(.touch-ui) #touchControls {
     text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
     position: sticky;
     top: -60px;
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    background: var(--c-deep);
     z-index: 1;
 }
 
@@ -3988,7 +3966,7 @@ body.game-running .shop-btn {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(76, 175, 80, 0.3), rgba(0, 0, 0, 0.8));
+    background: rgba(89,240,160,0.3);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -4010,11 +3988,7 @@ body.game-running .shop-btn {
     position: absolute;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, 
-        rgba(255, 215, 0, 0.8) 0%, 
-        rgba(76, 175, 80, 0.6) 30%,
-        rgba(0, 255, 0, 0.3) 60%,
-        transparent 100%);
+    background: rgba(255,201,74,0.8);
     border-radius: 50%;
     animation: burstExplosion 2s ease-out;
 }
@@ -4159,10 +4133,7 @@ body.game-running .shop-btn {
     left: 50%;
     width: 4px;
     height: 50%;
-    background: linear-gradient(to bottom, 
-        rgba(255, 215, 0, 1),
-        rgba(255, 215, 0, 0.5),
-        transparent);
+    background: var(--c-gold);
     transform-origin: top center;
     animation: energyRayPulse 1.5s ease-in-out infinite;
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
@@ -4191,9 +4162,7 @@ body.game-running .shop-btn {
     top: 100px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(135deg, 
-        rgba(255, 215, 0, 0.95) 0%, 
-        rgba(255, 165, 0, 0.95) 100%);
+    background: var(--c-gold);
     padding: 12px 30px;
     border-radius: 25px;
     border: 3px solid #FFF;
@@ -4246,7 +4215,7 @@ body.game-running .shop-btn {
 }
 
 .title-selector-content {
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    background: var(--c-deep);
     margin: 5% auto;
     padding: 30px;
     border: 3px solid #FFD700;
@@ -4327,7 +4296,7 @@ body.game-running .shop-btn {
 }
 
 .title-option {
-    background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3a 100%);
+    background: var(--c-deep);
     padding: 20px;
     border-radius: 15px;
     border: 2px solid #4CAF50;
@@ -4345,12 +4314,7 @@ body.game-running .shop-btn {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent,
-        rgba(255, 215, 0, 0.1),
-        transparent
-    );
+    background: rgba(255,201,74,0.15);
     transform: rotate(45deg);
     transition: all 0.5s ease;
 }
@@ -4368,7 +4332,7 @@ body.game-running .shop-btn {
 }
 
 .title-option.active {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    background: var(--c-gold);
     border-color: #FFF;
     box-shadow: 
         0 0 40px rgba(255, 215, 0, 0.8),
@@ -4460,7 +4424,7 @@ body.game-running .shop-btn {
     display: block;
     margin: 0 auto;
     padding: 12px 30px;
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    background: var(--c-rose);
     color: white;
     border: 2px solid #FFF;
     border-radius: 25px;
@@ -4751,7 +4715,7 @@ body.game-running .stars-mid {
 }
 
 #shootCooldownFill {
-    background: linear-gradient(90deg, #00eaff, #ff9100, #ff3d00) !important;
+    background: var(--c-cyan);
     box-shadow: 0 0 12px rgba(0, 234, 255, 0.55);
 }
 
@@ -4923,3 +4887,261 @@ body:not(.game-running) #menu {
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
+
+/* ===================== v2.0 móvil + zurdo ===================== */
+:root {
+    --c-void: #0B0F1E; --c-deep: #1B2440; --c-ink: #EAF2FF; --c-cyan: #3FE0F0;
+    --c-gold: #FFC94A; --c-rose: #FF4D7A; --c-violet: #9B6BFF; --c-mint: #59F0A0;
+    --sw-cyan: var(--c-cyan); --sw-gold: var(--c-gold); --sw-magenta: var(--c-rose); --sw-deep: var(--c-void);
+    --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px); --sar: env(safe-area-inset-right, 0px);
+}
+html, body { height: 100%; height: 100dvh; overscroll-behavior: none; background: var(--c-void); }
+body { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-text-size-adjust: 100%; }
+#game-container { height: 100vh; height: 100dvh; width: 100vw; overflow: hidden; }
+body.game-running { touch-action: none; position: fixed; inset: 0; }
+#gameCanvas { touch-action: none; image-rendering: pixelated; position: fixed; inset: 0; }
+img, .heart-img { image-rendering: pixelated; }
+input, textarea { -webkit-user-select: text; user-select: text; font-size: 16px !important; /* evita zoom en iOS */ }
+button { touch-action: manipulation; }
+
+/* Zona de movimiento (joystick flotante) — mitad derecha en zurdo */
+#moveZone { display: none; position: fixed; z-index: 40; touch-action: none;
+    top: 30%; bottom: 0; right: 0; width: 55%; }
+body.touch-ui.game-running #moveZone { display: block; }
+body.right-handed #moveZone { right: auto; left: 0; }
+body.right-handed #touchControls { flex-direction: row-reverse !important; }
+#touchControls { padding-left: calc(16px + var(--sal)) !important; padding-right: calc(16px + var(--sar)) !important;
+    padding-bottom: calc(14px + var(--sab)) !important; pointer-events: none; z-index: 41; }
+#touchControls .touch-cluster-action, #touchControls #shootButton { pointer-events: auto; }
+#joystickArea { pointer-events: none; transition: none; }
+body.touch-ui #shootButton, body.touch-ui .shoot-btn { --button-size: clamp(84px, 24vw, 112px) !important;
+    width: var(--button-size) !important; height: var(--button-size) !important; min-width: 72px; min-height: 72px; }
+@media (orientation: landscape) and (max-height: 500px) {
+    #moveZone { top: 15%; width: 45%; }
+    body.touch-ui #shootButton, body.touch-ui .shoot-btn { --button-size: 84px !important; }
+}
+
+/* HUD con safe-area */
+#scoreBoard, #levelDisplay { font-family: 'Exo 2', sans-serif; font-size: max(14px, 0.9rem); color: var(--c-ink); }
+
+/* Toasts más pequeños y fuera de la acción */
+#achievementNotification, .achievement-notification { max-width: min(80vw, 340px) !important; transform-origin: top center;
+    top: calc(56px + var(--sat)) !important; bottom: auto !important; left: 50% !important; right: auto !important;
+    font-size: 13px !important; padding: 8px 12px !important; }
+.level-banner, #levelUpBanner { transform: scale(0.7); opacity: 0.9; }
+
+/* Ajustes / pausa */
+.settings-btn, .pause-btn { position: fixed; z-index: 60; width: 48px; height: 48px; border-radius: 14px;
+    border: 1px solid rgba(63,224,240,.45); background: rgba(27,36,64,.8); color: var(--c-ink); font-size: 20px;
+    top: calc(10px + var(--sat)); cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.settings-btn { left: calc(10px + var(--sal)); }
+.pause-btn { display: none; left: calc(66px + var(--sal)); font-size: 14px; }
+body.game-running .pause-btn { display: block; }
+body.game-running .settings-btn { top: calc(60px + var(--sat)); }
+body.game-running .pause-btn { top: calc(60px + var(--sat)); }
+#settingsPanel, #upgradePanel { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;
+    background: rgba(11,15,30,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    padding: calc(12px + var(--sat)) calc(12px + var(--sar)) calc(12px + var(--sab)) calc(12px + var(--sal)); }
+#settingsPanel.show, #upgradePanel.show { display: flex; }
+.sp-card { width: min(440px, 100%); max-height: 100%; overflow: auto; background: var(--c-deep);
+    border: 1px solid rgba(63,224,240,.35); border-radius: 18px; padding: 18px; color: var(--c-ink); font-family: 'Exo 2', sans-serif;
+    box-shadow: 0 0 30px rgba(63,224,240,.15); }
+.sp-card h2, .up-title { font-family: 'Orbitron', sans-serif; color: var(--c-cyan); margin: 0 0 12px; font-size: 20px; letter-spacing: .06em; }
+.sp-card h3 { font-family: 'Orbitron', sans-serif; font-size: 14px; color: var(--c-gold); margin: 16px 0 8px; }
+.sp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; font-size: 15px; }
+.sp-row.disabled { opacity: .5; }
+.sp-row input[type=checkbox] { width: 26px; height: 26px; accent-color: var(--c-cyan); }
+.sp-seg { display: flex; border: 1px solid rgba(63,224,240,.4); border-radius: 12px; overflow: hidden; }
+.sp-seg button { min-height: 44px; min-width: 88px; background: transparent; color: var(--c-ink); border: 0; font: 600 15px 'Exo 2', sans-serif; }
+.sp-seg button.on { background: var(--c-cyan); color: var(--c-void); }
+.sp-hint { font-size: 12px; opacity: .7; margin: 4px 0; }
+.sp-key { display: flex; width: 100%; justify-content: space-between; min-height: 44px; margin: 4px 0; padding: 0 12px; align-items: center;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--c-ink); font: 14px 'Exo 2', sans-serif; }
+.sp-key b { color: var(--c-gold); font-weight: 600; text-align: right; }
+.sp-key.wait { border-color: var(--c-rose); }
+.sp-actions { display: flex; gap: 10px; margin-top: 14px; }
+.sp-actions button { flex: 1; min-height: 48px; border-radius: 12px; font: 700 15px 'Exo 2', sans-serif; border: 1px solid var(--c-cyan); }
+.sp-primary { background: var(--c-cyan); color: var(--c-void); }
+.sp-ghost { background: transparent; color: var(--c-cyan); }
+#pauseOverlay { position: fixed; inset: 0; z-index: 2500; display: none; align-items: center; justify-content: center;
+    background: rgba(11,15,30,.6); color: var(--c-ink); font: 900 34px 'Orbitron', sans-serif; letter-spacing: .2em; text-align: center; }
+#pauseOverlay small { display: block; font: 600 14px 'Exo 2', sans-serif; letter-spacing: 0; opacity: .8; margin-top: 8px; }
+body.game-paused #pauseOverlay { display: flex; }
+
+/* Mejoras roguelike */
+.up-wrap { width: min(760px, 100%); text-align: center; }
+.up-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 560px) and (orientation: portrait) { .up-cards { grid-template-columns: 1fr; } }
+.up-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 120px; padding: 16px 12px;
+    border-radius: 16px; background: var(--c-deep); color: var(--c-ink);
+    border: 2px solid rgba(234,242,255,.25); font-family: 'Exo 2', sans-serif; cursor: pointer; transition: transform .12s; }
+.up-card:active, .up-card:focus-visible { transform: scale(.97); outline: none; }
+.up-card .up-icon { font-size: 30px; }
+.up-card b { font-size: 16px; } .up-card small { font-size: 13px; opacity: .85; } .up-card em { font-size: 12px; font-style: normal; opacity: .9; }
+.up-card .up-key { position: absolute; top: 8px; left: 10px; font-size: 11px; opacity: .5; }
+.up-card.r-comun { border-color: rgba(63,224,240,.5); }
+.up-card.r-rara { border-color: var(--c-violet); box-shadow: 0 0 18px rgba(155,107,255,.35); }
+.up-card.r-rara em { color: var(--c-violet); }
+.up-card.r-epica { border-color: var(--c-gold); box-shadow: 0 0 24px rgba(255,201,74,.45); }
+.up-card.r-epica em { color: var(--c-gold); }
+.run-summary { font-family: 'Exo 2', sans-serif; font-size: 14px; color: var(--c-ink); margin-bottom: 10px; text-align: left; }
+.run-summary h3 { font-family: 'Orbitron', sans-serif; color: var(--c-gold); font-size: 16px; text-align: center; margin: 0 0 8px; }
+.run-summary dl { display: grid; grid-template-columns: auto auto; gap: 2px 14px; margin: 0; }
+.run-summary dt { opacity: .7; } .run-summary dd { margin: 0; text-align: right; font-weight: 700; }
+.run-summary p { font-size: 12px; opacity: .85; }
+#gameOverDisplay { max-width: min(92vw, 420px); max-height: calc(100dvh - 40px); overflow: auto; }
+body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+
+html body #achievementNotification, html body #achievementNotification.mobile-notification {
+    top: calc(8px + var(--sat)) !important; bottom: auto !important; left: 0 !important; right: 0 !important;
+    margin: 0 auto !important; width: fit-content !important; max-width: min(62vw, 300px) !important;
+    transform: scale(.8) !important; font-size: 12px !important; padding: 6px 10px !important; opacity: .92; pointer-events: none; }
+body:not(.game-running) .settings-btn { top: auto; bottom: calc(12px + var(--sab)); left: calc(12px + var(--sal)); z-index: 2100; }
+.up-type { font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; }
+.t-impulso { background: rgba(63,224,240,.18); color: var(--c-cyan); }
+.t-rafaga { background: rgba(255,77,122,.18); color: var(--c-rose); }
+.t-carga { background: rgba(89,240,160,.18); color: var(--c-mint); }
+
+/* ---- Identidad: pixel + collage de papel (sin vidrio ni degradados) ---- */
+:root { --c-star: #FF8AD8; }
+.star { color: var(--c-star); }
+#scoresList li:first-child::after { content: ""; display: inline-block; width: 16px; height: 16px; margin-left: 6px; vertical-align: -2px; background: url(assets/brand/estrella-sheet.png) 0 -8px / 96px 32px no-repeat; image-rendering: pixelated; animation: starTw .6s steps(1) infinite; }
+.sp-card, .up-card, .settings-btn, .pause-btn, #gameOverDisplay {
+    background: var(--c-deep) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    border: 3px solid var(--c-void) !important; border-radius: 4px 7px 3px 6px !important;
+    box-shadow: 0 0 0 2px var(--c-ink), 4px 5px 0 2px var(--c-void) !important; }
+.sp-card { transform: rotate(-.6deg); }
+.up-card:nth-child(1) { transform: rotate(-1.2deg); } .up-card:nth-child(2) { transform: rotate(.8deg); } .up-card:nth-child(3) { transform: rotate(-.4deg); }
+.up-card:active, .up-card:focus-visible { transform: rotate(0) scale(.97); box-shadow: 0 0 0 2px var(--c-gold), 2px 2px 0 2px var(--c-void) !important; }
+.up-card.r-rara { box-shadow: 0 0 0 2px var(--c-violet), 4px 5px 0 2px var(--c-void) !important; }
+.up-card.r-epica { box-shadow: 0 0 0 2px var(--c-star), 4px 5px 0 2px var(--c-void) !important; }
+.up-card.r-epica em { color: var(--c-star); }
+#settingsPanel, #upgradePanel { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(11,15,30,.82); }
+.sp-card h2, .up-title, .run-summary h3 { text-shadow: 2px 2px 0 var(--c-void); }
+.sp-seg, .sp-key, .sp-actions button { border-radius: 3px !important; }
+.sp-primary { box-shadow: 3px 3px 0 var(--c-void); }
+.up-icon { width: 32px; height: 32px; background: url(assets/tipos-sheet.png) 0 0 / 96px 32px no-repeat; image-rendering: pixelated; }
+.ti-impulso { background-position: 0 0; } .ti-rafaga { background-position: -32px 0; } .ti-carga { background-position: -64px 0; }
+.px-ico { display: inline-block; width: 18px; height: 18px; image-rendering: pixelated; }
+.px-pause { width: 6px; height: 18px; background: var(--c-ink); box-shadow: 12px 0 0 var(--c-ink); margin-right: 12px; }
+.px-gear { width: 18px; height: 18px; background: var(--c-ink); clip-path: polygon(33% 0,67% 0,67% 17%,83% 17%,83% 33%,100% 33%,100% 67%,83% 67%,83% 83%,67% 83%,67% 100%,33% 100%,33% 83%,17% 83%,17% 67%,0 67%,0 33%,17% 33%,17% 17%,33% 17%,33% 0,33% 33%,33% 67%,67% 67%,67% 33%,33% 33%); }
+#pauseOverlay { font-family: 'Orbitron', sans-serif; text-transform: lowercase; }
+
+/* Estrella firma (sprite, alterna cada 300 ms) */
+.star-px { display: inline-block; width: 16px; height: 16px; vertical-align: -2px; image-rendering: pixelated;
+    background: url(assets/brand/estrella-sheet.png) 0 -8px / 96px 32px no-repeat; animation: starTw .6s steps(1) infinite; }
+.star-lg { width: 32px; height: 32px; vertical-align: -8px; background-size: 96px 32px; background-position: -32px 0; animation-name: starTwLg; }
+@keyframes starTw { 0% { background-position: 0 -8px; } 50% { background-position: -16px -8px; } }
+@keyframes starTwLg { 0% { background-position: -32px 0; } 50% { background-position: -64px 0; } }
+/* Logo pixel: escala entera (1x en 360/375, @2x desde 390) */
+.menu-logo { margin: 0; line-height: 0; }
+.logo-img { image-rendering: pixelated; width: auto; height: auto; max-width: none; }
+/* Corte de tijera: barrido de arriba a abajo en ~350 ms */
+#scissorCut { position: fixed; left: 0; right: 0; top: 0; height: 100%; z-index: 5000; pointer-events: none; display: none;
+    background: transparent; image-rendering: pixelated; }
+#scissorCut::before { content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 24px; background: var(--c-void); }
+#scissorCut::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: url(assets/brand/corte-tijera.png) 0 0 / 360px 24px repeat-x; image-rendering: pixelated; }
+#scissorCut.run { display: block; animation: scissor 350ms steps(14) forwards; }
+@keyframes scissor { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
+
+/* ===================== v2.1 ===================== */
+/* Botones planos de la casa */
+.start-btn, #startGame { background: var(--c-rose) !important; color: var(--c-void) !important; border: 3px solid var(--c-void) !important;
+    border-radius: 4px 6px 3px 5px !important; box-shadow: 0 0 0 2px var(--c-ink), 4px 4px 0 2px var(--c-void) !important; text-shadow: none !important; }
+.start-btn-glow { display: none !important; }
+#shootButton, .shoot-btn { background: var(--c-rose) !important; color: var(--c-void) !important; border: 3px solid var(--c-void) !important;
+    box-shadow: 0 0 0 2px var(--c-ink), 3px 4px 0 2px var(--c-void) !important; }
+#shootButton:active, .shoot-btn:active { background: #ff6f93 !important; transform: translate(2px, 2px) scale(.96); box-shadow: 0 0 0 2px var(--c-ink), 1px 1px 0 2px var(--c-void) !important; }
+.shoot-btn-label { color: var(--c-void); }
+/* Barra de recarga: relleno Magia, sin degradado naranja */
+#shootCooldownFill, .shoot-cooldown-mobile-fill { background: url(assets/laberinto/magia_relleno.png) 0 0 / 100% 100% !important; image-rendering: pixelated; box-shadow: none !important; }
+#shootCooldownBar, .shoot-cooldown-mobile { background: var(--c-void) !important; border: 2px solid var(--c-ink) !important; border-radius: 2px !important; box-shadow: none !important; }
+/* Cartas */
+.t-carga { background: rgba(255,201,74,.18) !important; color: var(--c-gold) !important; }
+#upgradePanel, #settingsPanel { background: rgba(11,15,30,.85) !important; }
+/* Aviso corto: tira de 32 px abajo al centro */
+#achievementNotification { display: none !important; }
+#miniToast { position: fixed; left: 50%; bottom: calc(10px + var(--sab)); transform: translate(-50%, 140%); z-index: 2400; height: 32px; line-height: 28px;
+    max-width: min(54vw, 360px); padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+    background: var(--c-deep); color: var(--c-ink); border: 2px solid var(--c-void); box-shadow: 0 0 0 2px var(--c-gold), 3px 3px 0 2px var(--c-void);
+    font: 600 13px 'Exo 2', sans-serif; transition: transform .18s steps(4); border-radius: 3px 5px 2px 4px; }
+#miniToast.show { transform: translate(-50%, 0); }
+body.touch-ui.game-running #miniToast { bottom: calc(18px + var(--sab)); max-width: calc(100vw - 2 * clamp(96px, 30vw, 160px)); }
+/* HUD Magia: gema + barra 9-slice sobre el lado del disparo */
+#magiaHud { position: fixed; z-index: 45; display: none; align-items: center; gap: 6px; pointer-events: none;
+    left: calc(12px + var(--sal)); bottom: calc(clamp(84px, 24vw, 112px) + 70px + var(--sab)); }
+body.game-running #magiaHud { display: flex; }
+body.right-handed #magiaHud { left: auto; right: calc(12px + var(--sar)); }
+body:not(.touch-ui) #magiaHud { bottom: calc(16px + var(--sab)); }
+#gemCanvas { width: 32px; height: 48px; image-rendering: pixelated; }
+#magiaBar { width: 240px; height: 24px; image-rendering: pixelated; max-width: 50vw; }
+@media (max-width: 400px) { #magiaBar { width: 120px; height: 12px; } #gemCanvas { width: 16px; height: 24px; } }
+#magiaHud.dark #gemCanvas { filter: drop-shadow(0 0 0 #000); }
+#magiaBtn { display: none; pointer-events: auto; min-width: 72px; min-height: 48px; padding: 0 14px; margin-bottom: 8px;
+    font: 900 15px 'Orbitron', sans-serif; letter-spacing: .1em; color: var(--c-void); background: #FF8AD8;
+    border: 3px solid var(--c-void); box-shadow: 0 0 0 2px var(--c-ink), 3px 3px 0 2px var(--c-void); border-radius: 4px 6px 3px 5px; touch-action: none; }
+#magiaBtn.ready { display: block; animation: magiaPulse .6s steps(2) infinite; }
+@keyframes magiaPulse { 50% { background: var(--c-ink); } }
+body:not(.touch-ui).game-running #magiaBtn.ready { position: fixed; left: calc(12px + var(--sal)); bottom: calc(52px + var(--sab)); z-index: 46; }
+#leftControls { display: flex; flex-direction: column; align-items: center; }
+/* Fin de partida en español y con la voz del juego */
+#gameOverDisplay .go-title { font: 900 clamp(22px, 6vw, 34px) 'Orbitron', sans-serif; color: var(--c-rose); text-shadow: 3px 3px 0 var(--c-void); margin: 8px 0 12px; text-transform: lowercase; }
+#gameOverDisplay img { display: none !important; }
+#restartBtn { min-height: 48px; padding: 0 22px; font: 800 16px 'Exo 2', sans-serif !important; background: var(--c-cyan) !important; color: var(--c-void) !important;
+    border: 3px solid var(--c-void) !important; box-shadow: 0 0 0 2px var(--c-ink), 3px 3px 0 2px var(--c-void) !important; border-radius: 4px !important; text-transform: none !important; }
+.menu-eyebrow { color: #FF8AD8 !important; text-transform: none !important; letter-spacing: .04em !important; }
+.menu-tagline { text-transform: none !important; }
+
+/* ===================== v2.2 ===================== */
+#heartsDisplay { display: none !important; }
+#lifeGem { position: absolute; z-index: 30; display: none; align-items: center; gap: 6px; pointer-events: none;
+    top: calc(max(10px, env(safe-area-inset-top, 0px)) + 44px); right: max(12px, env(safe-area-inset-right, 0px));
+    padding: 4px 8px; background: var(--c-deep); border: 2px solid var(--c-void); box-shadow: 0 0 0 2px var(--c-rose); border-radius: 3px 5px 2px 4px; }
+body.game-running #lifeGem { display: flex; }
+#lifeGem #gemCanvas { width: 32px; height: 48px; image-rendering: pixelated; }
+#gemLabel { font: 800 15px 'Exo 2', sans-serif; color: var(--c-ink); }
+@media (max-width: 400px) { #lifeGem #gemCanvas { width: 16px; height: 24px; } #gemLabel { font-size: 13px; } }
+body.choosing #bossBar, body.choosing #comboDisplay, body.choosing #killFeed { visibility: hidden; }
+#upgradePanel { background: rgba(11,15,30,.85) !important; z-index: 6000 !important; }
+#miniToast { bottom: auto; }
+#magiaHud #magiaBar, #lifeGem #gemCanvas { display: block !important; } /* el estilo genérico "canvas" los ocultaba (bug de v2.1) */
+#magiaBtn.ready { position: fixed; z-index: 46; margin: 0; left: calc(16px + var(--sal)); bottom: calc(clamp(84px, 24vw, 112px) + 34px + var(--sab)); }
+body.right-handed #magiaBtn.ready { left: auto; right: calc(16px + var(--sar)); }
+body:not(.touch-ui) #magiaBtn.ready { bottom: calc(52px + var(--sab)); }
+#magiaHud { bottom: calc(clamp(84px, 24vw, 112px) + 92px + var(--sab)); }
+body:not(.touch-ui) #magiaHud { bottom: calc(16px + var(--sab)); }
+@media (orientation: landscape) and (max-height: 500px) { #magiaBtn.ready { bottom: calc(84px + 30px + var(--sab)); } #magiaHud { bottom: calc(84px + 86px + var(--sab)); } }
+
+/* MAGIA: mínimo 72×72 y bien separado de DISPARAR */
+#magiaBtn { min-width: 72px !important; min-height: 72px !important; width: 72px; height: 72px; padding: 0 !important; font-size: 13px !important; border-radius: 50% 46% 50% 44% !important; }
+#magiaBtn.ready { bottom: calc(clamp(84px, 24vw, 112px) + 64px + var(--sab)) !important; }
+#magiaHud { bottom: calc(clamp(84px, 24vw, 112px) + 148px + var(--sab)) !important; }
+body:not(.touch-ui) #magiaBtn.ready { bottom: calc(48px + var(--sab)) !important; }
+body:not(.touch-ui) #magiaHud { bottom: calc(16px + var(--sab)) !important; }
+@media (orientation: landscape) and (max-height: 500px) {
+  #magiaBtn.ready { bottom: auto !important; top: calc(50% - 36px); left: calc(16px + 84px + 24px + var(--sal)) !important; }
+  body.right-handed #magiaBtn.ready { left: auto !important; right: calc(16px + 84px + 24px + var(--sar)) !important; }
+  #magiaHud { bottom: calc(12px + var(--sab)) !important; left: calc(50% - 60px) !important; }
+}
+
+/* v2.2.1 */
+#heartsDisplay, body.game-running #heartsDisplay, body.touch-ui.game-running #heartsDisplay { display: none !important; visibility: hidden !important; } /* sin corazón rojo detrás de la gema */
+#shootCooldownFill, .shoot-cooldown-mobile-fill { background: #3FE0F0 !important; } /* recarga de disparo: cian, Magia sigue rosa */
+#bossHealthFill, .boss-bar-damage #bossHealthFill { background: #9B6BFF !important; box-shadow: none !important; filter: none !important; }
+#bossBar, #bossBar *, .boss-bar-damage { box-shadow: none !important; filter: none !important; text-shadow: none !important; }
+#miniToast { white-space: nowrap; max-width: calc(100vw - 24px); }
+#miniToast.top { bottom: auto !important; }
+
+/* v2.2.3: campo vertical en escritorio */
+body.desk-field.game-running { background: #0B0F1E; }
+body.desk-field.game-running::before { content: ""; position: fixed; inset: 0; z-index: 0; opacity: .5; pointer-events: none;
+  background: #0B0F1E url(assets/laberinto/fondo_far_fase1.png) 0 0 / 360px 640px repeat; image-rendering: pixelated; }
+body.desk-field.game-running #game-container { position: fixed !important; top: 0; left: var(--fx); width: var(--fw) !important; height: 100vh; transform: translateZ(0); z-index: 1;
+  box-shadow: 0 0 0 2px #1B2440; }
+body.desk-field.game-running #gameCanvas { left: 0; right: auto; }
+body.desk-field.game-running #settingsButton { left: calc(var(--fx) + 8px) !important; right: auto !important; top: 44px !important; }
+body.desk-field.game-running #pauseButton { left: calc(var(--fx) + 66px) !important; right: auto !important; top: 44px !important; }
+/* v2.2.4: en escritorio las barras van apiladas: Magia arriba, recarga abajo, 4 px entre ambas */
+body.desk-field.game-running #shootCooldownBar { left: 12px !important; right: auto !important; transform: none !important; bottom: calc(16px + var(--sab)) !important; top: auto !important; width: 236px !important; height: 12px !important; margin: 0 !important; box-sizing: content-box !important; }
+body.desk-field.game-running #magiaHud { left: 12px !important; right: auto !important; transform: none !important; bottom: calc(16px + 12px + 4px + 4px + var(--sab)) !important; top: auto !important; }

@@ -30,7 +30,9 @@ function refreshTouchUiMode() {
   // Celular/tablet: puntero grueso o sin hover. No forzar solo por ancho (evita HUD en desktop).
   const touchUi = mq.coarse || mq.noHover || (hasTouch && mq.narrow);
   document.body.classList.toggle("touch-ui", !!touchUi);
-  document.body.classList.toggle("left-handed", true);
+  const lh = localStorage.getItem("sw_hand") !== "diestro";
+  document.body.classList.toggle("left-handed", lh);
+  document.body.classList.toggle("right-handed", !lh);
   const touchControls = document.getElementById("touchControls");
   if (touchControls) {
     touchControls.setAttribute(
@@ -56,22 +58,90 @@ gameOverDisplay.style.display = "none";
 gameOverDisplay.style.zIndex = "1000";
 gameOverDisplay.style.textAlign = "center";
 gameOverDisplay.innerHTML =
-  "Game Over<br><button id='restartBtn'>Restart</button>";
+  "<div class='go-title'>se acabó la ronda</div><button id='restartBtn'>otra vez</button>";
 document.getElementById("game-container").appendChild(gameOverDisplay);
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-if (typeof VFX !== "undefined") VFX.resize(canvas.width, canvas.height);
+// Lienzo nítido según devicePixelRatio (limitado a 2 por rendimiento)
+let GW = window.innerWidth, GH = window.innerHeight, WORLD_SCALE = 1;
+function resizeCanvas() {
+  const vv = window.visualViewport;
+  const __q = new URLSearchParams(location.search), __sim = __q.get("sim") === "1";
+  // En la simulación el campo lógico es fijo (390×844 por defecto, ?simvw=&simvh=), así el resultado no depende de la ventana del navegador.
+  const vw = __sim ? (parseInt(__q.get("simvw"), 10) || 390) : Math.round(vv ? vv.width : window.innerWidth);
+  const vh = __sim ? (parseInt(__q.get("simvh"), 10) || 844) : Math.round(vv ? vv.height : window.innerHeight);
+  // Escritorio (sin pantalla táctil y en horizontal): campo vertical de al menos 390×700, centrado.
+  // A los costados se ve el laberinto lejano atenuado; el HUD vive dentro del campo.
+  const __coarse = !__sim && window.matchMedia && matchMedia("(pointer: coarse)").matches;
+  const desk = !__coarse && vw > vh;
+  let fieldW = vw;
+  if (desk) {
+    WORLD_SCALE = Math.max(1, Math.floor(Math.min(vw / 390, vh / 700))); // la mayor escala entera que cabe
+    GH = Math.floor(vh / WORLD_SCALE);
+    GW = Math.min(Math.floor(vw / WORLD_SCALE), Math.max(390, Math.round(GH * 0.56)));
+    fieldW = GW * WORLD_SCALE;
+  } else {
+    // Escala entera del mundo: el arte de 32 px nunca se estira a tamaños raros.
+    WORLD_SCALE = Math.max(1, Math.floor(Math.min(vw / 360, vh / 360))); // la mayor escala entera que cabe
+    GW = Math.floor(vw / WORLD_SCALE);
+    GH = Math.floor(vh / WORLD_SCALE);
+  }
+  document.body.classList.toggle("desk-field", desk);
+  document.documentElement.style.setProperty("--fw", fieldW + "px");
+  document.documentElement.style.setProperty("--fx", Math.floor((vw - fieldW) / 2) + "px");
+  const dpr = Math.min(window.devicePixelRatio || 1, vw * vh > 1.2e6 ? 1.5 : 2);
+  canvas.width = Math.round(fieldW * dpr);
+  canvas.height = Math.round(vh * dpr);
+  canvas.style.width = fieldW + "px";
+  canvas.style.height = vh + "px";
+  ctx.setTransform(dpr * WORLD_SCALE, 0, 0, dpr * WORLD_SCALE, 0, 0);
+  ctx.imageSmoothingEnabled = false; // pixel art nítido
+  if (typeof VFX !== "undefined") VFX.resize(GW, GH);
+}
+resizeCanvas();
 
+
+// ===== Reloj de juego: todos los temporizadores de gameplay avanzan con el bucle
+// principal, así que la pausa y las pestañas ocultas los detienen.
+let FK = 1; // factor delta-time (1 = 60 Hz)
+// RNG con semilla SOLO para gameplay (spawns, oleadas, cartas, drops). Los efectos usan Math.random.
+let __rngState = 1;
+function RNG() {
+  __rngState |= 0; __rngState = (__rngState + 0x6d2b79f5) | 0;
+  let t = Math.imul(__rngState ^ (__rngState >>> 15), 1 | __rngState);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function seedRNG(seed) { __rngState = seed >>> 0; }
+window.RNG = RNG; window.seedRNG = seedRNG;
+const gameNow = () => GameClock.t; // reloj del juego (se congela en pausa)
+const GameClock = {
+  t: 0, id: 1, jobs: new Map(),
+  add(fn, ms, repeat) { const id = this.id++; this.jobs.set(id, { fn, ms, at: this.t + ms, repeat }); return { __g: id }; },
+  clear(h) { if (h && h.__g) this.jobs.delete(h.__g); else if (h) { gClear(h); clearTimeout(h); } },
+  tick(dt) {
+    this.t += dt;
+    for (const [id, j] of this.jobs) {
+      if (this.t >= j.at) {
+        if (j.repeat) j.at += j.ms; else this.jobs.delete(id);
+        try { j.fn(); } catch (e) { console.error(e); }
+      }
+    }
+  },
+  reset() { this.jobs.clear(); this.t = 0; },
+};
+const gSetTimeout = (fn, ms) => GameClock.add(fn, ms, false);
+const gSetInterval = (fn, ms) => GameClock.add(fn, ms, true);
+const gClear = (h) => GameClock.clear(h);
+let gamePaused = false;
+const SIM = new URLSearchParams(location.search).get("sim") === "1";
 let __lastFrameTs = performance.now();
 let __killStreakAnnounce = 0;
 
+if (window.visualViewport) window.visualViewport.addEventListener("resize", () => window.dispatchEvent(new Event("resize")));
 window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  if (typeof VFX !== "undefined") VFX.resize(canvas.width, canvas.height);
-  player.x = canvas.width / 2;
-  player.y = canvas.height - 80;
+  resizeCanvas();
+  player.x = Math.min(Math.max(0, player.x), GW - player.width);
+  player.y = Math.min(Math.max(0, player.y), GH - player.height);
 
   // Actualizar clases de responsive para elementos activos
   const notification = document.getElementById("achievementNotification");
@@ -97,11 +167,11 @@ window.addEventListener("resize", () => {
 
 // Variables del jugador
 const player = {
-  x: canvas.width / 2,
-  y: canvas.height - 80,
-  width: 50,
-  height: 50,
-  speed: 10,
+  x: GW / 2,
+  y: GH - 80,
+  width: 32,
+  height: 32,
+  speed: 7,
   image: new Image(),
   movingLeft: false,
   movingRight: false,
@@ -158,13 +228,14 @@ function updateStatsOnBossKill() {}
 function updateStatsOnPowerUpCollected() {}
 function checkAchievements() {}
 let bossActive = false;
-let bossHealth = 5;
+let bossHealth = 40; // laberinto con 3 fases
 const bossName = "Astraeus, Señor del Vacío";
 let fireRateDebuffTimeLeft = 10; // segundos
 const powerUpTimerDisplay = document.getElementById("powerUpTimer");
 const timerSpan = document.getElementById("timer");
 
 let joystickActive = false;
+let joyTouchId = null;
 let joystickCenter = { x: 0, y: 0 };
 let maxJoystickDistance = 45; // Reducir de 50 a 40 para un control más preciso
 const deadzone = 7; // Reducir de 10 a 7 para mejor respuesta a movimientos pequeños
@@ -207,23 +278,24 @@ startGameBtn.addEventListener("click", () => {
   }
 });
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft") player.movingLeft = true;
-  if (e.key === "ArrowRight") player.movingRight = true;
-  if (e.key === "ArrowUp") player.movingUp = true;
-  if (e.key === "ArrowDown") player.movingDown = true;
-  if (e.key === " ") player.shooting = true;
-});
+// Teclado remapeable (Controls en settings.js): flechas / IJKL + Enter / Shift derecho.
+function __applyKey(e, down) {
+  if (typeof Controls === "undefined") return;
+  const a = Controls.actionFor(e.code);
+  if (!a) return;
+  if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+  e.preventDefault();
+  if (a === "left") player.movingLeft = down;
+  else if (a === "right") player.movingRight = down;
+  else if (a === "up") player.movingUp = down;
+  else if (a === "down") player.movingDown = down;
+  else if (a === "fire") player.shooting = down;
+  if (down && a !== "fire") player.speed = 7;
+}
+document.addEventListener("keydown", (e) => __applyKey(e, true));
+document.addEventListener("keyup", (e) => __applyKey(e, false));
 
-document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft") player.movingLeft = false;
-  if (e.key === "ArrowRight") player.movingRight = false;
-  if (e.key === "ArrowUp") player.movingUp = false;
-  if (e.key === "ArrowDown") player.movingDown = false;
-  if (e.key === " ") player.shooting = false;
-});
-
-const shootSound = new Audio("assets/shoot.mp3");
+const shootSound = SFX.audio("shoot");
 
 // Partículas al disparar (canvas VFX)
 function createBulletParticles(x, y) {
@@ -253,8 +325,11 @@ function shoot() {
   if (player.canShoot) {
     const bulletX = player.x + 20;
     const bulletY = player.y;
-    bullets.push({ x: bulletX, y: bulletY, speed: 10 });
+    bullets.push({ x: bulletX + (RNG() - 0.5) * 2, y: bulletY, speed: 10, pierce: Rogue.mods.pierce });
+    Rogue.extraBullets(bulletX, bulletY);
+    player.recoil = 3;
     shootSound.play();
+    if (typeof Haptics !== "undefined") Haptics.buzz("shoot");
     player.canShoot = false;
 
     // Efecto de partículas al disparar
@@ -264,10 +339,10 @@ function shoot() {
     updateStatsOnShoot();
 
     // Cadencia según si tiene boost o no
-    const cooldown = hasFireRateBoost ? boostedFireRate : normalFireRate;
+    const cooldown = (hasFireRateBoost ? boostedFireRate : normalFireRate) * Rogue.mods.fireRate;
     pulseCooldownBars(cooldown);
 
-    setTimeout(() => {
+    gSetTimeout(() => {
       player.canShoot = true;
     }, cooldown);
   }
@@ -275,11 +350,11 @@ function shoot() {
 
 function spawnEnemy() {
   const enemy = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
-    width: 50,
-    height: 50,
-    speed: Math.random() * 2 + 1,
+    width: 40,
+    height: 40,
+    speed: RNG() * 2 + 1,
     health: 1,
     image: new Image(),
     canShoot: false,
@@ -287,37 +362,38 @@ function spawnEnemy() {
   };
 
   // Determinar el tipo de enemigo basado en el nivel
-  if (level >= 30 && Math.random() > 0.9) {
+  if (level >= 30 && RNG() > 0.9) {
     // Enemigo tipo 4 (artillero)
     enemy.health = 2;
     enemy.speed = 0.5; // Muy lento
     enemy.canShoot = true; // Puede disparar
     enemy.image.src = "assets/enemy4.png";
-  } else if (level >= 20 && Math.random() > 0.85) {
+  } else if (level >= 20 && RNG() > 0.85) {
     // Enemigo tipo 3 (muy rápido)
     enemy.health = 2;
-    enemy.speed = Math.random() * 4 + 5; // Velocidad entre 7 y 13
+    enemy.speed = RNG() * 4 + 5; // Velocidad entre 7 y 13
     enemy.image.src = "assets/enemy3.png";
-  } else if (level >= 10 && Math.random() > 0.8) {
+  } else if (level >= 10 && RNG() > 0.8) {
     // Enemigo tipo 2 (resistente)
     enemy.health = 3;
-    enemy.speed = Math.random() * 2 + 1; // Velocidad entre 1 y 3
+    enemy.speed = RNG() * 2 + 1; // Velocidad entre 1 y 3
     enemy.image.src = "assets/enemy2.png";
   } else {
     // Enemigo tipo 1 (normal)
     enemy.health = 1;
-    enemy.speed = Math.random() * 2 + 1; // Velocidad entre 1 y 3
+    enemy.speed = RNG() * 2 + 1; // Velocidad entre 1 y 3
     enemy.image.src = "assets/enemy1.png";
   }
-  if (Math.random() < 0.1) {
+  if (RNG() < 0.1) {
     enemy.health = 1;
     enemy.speedX = 2.5;
     enemy.speedY = 3.5;
     enemy.image.src = "assets/xiao_weapon.png";
-    enemies.push(enemy);
+    { const p = Math.max(0, level - 10); if (p) { enemy.speed *= 1 + 0.25 * p; enemy.health += Math.floor(p * 0.75); } } // post-jefe: más rápidos y duros
+  enemies.push(enemy);
     return;
   }
-  if (Math.random() < 0.06) {
+  if (RNG() < 0.06) {
     // 6% de probabilidad
     spawnIfa();
   }
@@ -327,7 +403,7 @@ function spawnEnemy() {
 
 // función para que el enemigo dispare
 function enemyShoot(enemy) {
-  const currentTime = Date.now();
+  const currentTime = gameNow();
   if (currentTime - enemy.lastShot > 3000) {
     // Dispara cada 3 segundos
     enemyBullets.push({
@@ -343,40 +419,51 @@ function enemyShoot(enemy) {
 
 function spawnKit() {
   const kit = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
     width: 50, // Aumentar el tamaño del kit
     height: 50, // Aumentar el tamaño del kit
     speed: 2,
     image: new Image(),
   };
-  kit.image.src = "assets/kit.png";
+  kit.image.src = "assets/laberinto/semilla_idle.png"; // botiquín = semilla
   kits.push(kit);
 }
 
+// Meteoro: hoja 128x48. Grande 4×32px, chico 4×16px, escombros 3×6px. Giro por cuadros cada 150 ms, sin rotar el canvas.
+const MeteorSheet = new Image(); MeteorSheet.src = "assets/meteoro/meteoro-sheet.png";
+let meteorDebris = [];
+function makeMeteor(x, y, big, px, speed) {
+  const s = big ? 32 : 16, w = s * px;
+  return { x, y, width: w, height: w, big, px, speed, health: big ? 2 : 1, t0: gameNow() + Math.floor(RNG() * 600) };
+}
+function drawMeteor(m) {
+  const s = m.big ? 32 : 16, f = Math.floor((gameNow() - m.t0) / 150) & 3;
+  if (MeteorSheet.complete && MeteorSheet.naturalWidth) ctx.drawImage(MeteorSheet, f * s, m.big ? 0 : 32, s, s, Math.round(m.x), Math.round(m.y), m.width, m.height);
+}
+function breakMeteor(m) {
+  const n = 3 + Math.floor(Math.random() * 3); // 3–5 escombros (solo efecto)
+  for (let k = 0; k < n; k++) meteorDebris.push({ x: m.x + m.width / 2, y: m.y + m.height / 2, vx: (Math.random() - 0.5) * 4, vy: -1 - Math.random() * 2, p: k % 3, life: 700, px: m.px });
+}
+function drawMeteorDebris(dtMs) {
+  for (let i = meteorDebris.length - 1; i >= 0; i--) {
+    const d = meteorDebris[i]; d.x += d.vx * FK; d.y += d.vy * FK; d.vy += 0.15 * FK; d.life -= dtMs;
+    if (d.life <= 0) { meteorDebris.splice(i, 1); continue; }
+    if (MeteorSheet.complete && MeteorSheet.naturalWidth) ctx.drawImage(MeteorSheet, 64 + d.p * 8, 32, 6, 6, Math.round(d.x), Math.round(d.y), 6 * d.px, 6 * d.px);
+  }
+}
+
 function spawnMeteor() {
-  const meteor = {
-    x: Math.random() * (canvas.width - 70),
-    y: -70,
-    width: 70, // Aumentar el tamaño del meteorito
-    height: 70, // Aumentar el tamaño del meteorito
-    speed: 3,
-    image: new Image(),
-    rotation: 0,
-    rotationSpeed: (Math.random() - 0.5) * 0.1,
-    health: 2, // salud del meteorito
-  };
-  meteor.image.src = "assets/meteor.png";
-  meteors.push(meteor);
+  meteors.push(makeMeteor(RNG() * (GW - 64), -64, true, 2, 3)); // grande, escala entera ×2
 }
 
 // la función para crear el kit especial xiao
 function spawnXiao() {
   const xiao = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     speed: 1.5, // Más lento que el kit normal
     image: new Image(),
   };
@@ -387,10 +474,10 @@ function spawnXiao() {
 // la función para crear el power-up arlee
 function spawnArlee() {
   const arlee = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -60,
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
     speed: 2,
     image: new Image(),
   };
@@ -401,10 +488,10 @@ function spawnArlee() {
 // la función para crear el power-up cyno
 function spawnCyno() {
   const cyno = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -60,
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
     speed: 2,
     image: new Image(),
   };
@@ -414,7 +501,7 @@ function spawnCyno() {
 
 function spawnXiaoWeapon() {
   const xiaoWeapon = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
     width: 50,
     height: 50,
@@ -428,7 +515,7 @@ function spawnXiaoWeapon() {
 }
 function spawnIfa() {
   const ifa = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
     width: 50,
     height: 50,
@@ -443,10 +530,10 @@ function spawnIfa() {
 // la función para crear el power-up flins (puntos dobles)
 function spawnFlins() {
   const flin = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     speed: 2,
     image: new Image(),
   };
@@ -457,10 +544,10 @@ function spawnFlins() {
 // la función para crear el power-up rerir (corazón temporal)
 function spawnRerir() {
   const rerir = {
-    x: Math.random() * (canvas.width - 50),
+    x: RNG() * (GW - 50),
     y: -50,
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     speed: 2,
     image: new Image(),
   };
@@ -470,23 +557,30 @@ function spawnRerir() {
 
 function updateGame() {
   const now = performance.now();
-  const dtMs = now - __lastFrameTs;
+  let dtMs = SIM ? 1000 / 60 : Math.min(50, Math.max(0, now - __lastFrameTs)); // tope: evita saltos tras pausas
   __lastFrameTs = now;
+  if (gamePaused) { dtMs = 0; }
+  const frozen = typeof VFX !== "undefined" && VFX.consumeHitStop(dtMs);
+  FK = frozen || gamePaused ? 0 : dtMs / (1000 / 60);
+  if (!frozen && !gamePaused) GameClock.tick(dtMs);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, GW, GH);
 
   if (typeof VFX !== "undefined") {
-    VFX.beginFrame(ctx, canvas.width, canvas.height, dtMs);
-    VFX.drawBackground(ctx, canvas.width, canvas.height);
+    VFX.beginFrame(ctx, GW, GH, dtMs);
+    VFX.drawBackground(ctx, GW, GH);
+    if (typeof Magia !== "undefined") Magia.drawBackdrop(ctx, frozen || gamePaused ? 0 : dtMs);
   }
 
-  if (player.movingLeft && player.x > 0) player.x -= player.speed;
-  if (player.movingRight && player.x < canvas.width - player.width)
-    player.x += player.speed;
-  if (player.movingUp && player.y > 0) player.y -= player.speed;
-  if (player.movingDown && player.y < canvas.height - player.height)
-    player.y += player.speed;
+  if (player.movingLeft && player.x > 0) player.x -= player.speed * Rogue.mods.speed * FK;
+  if (player.movingRight && player.x < GW - player.width)
+    player.x += player.speed * Rogue.mods.speed * FK;
+  if (player.movingUp && player.y > 0) player.y -= player.speed * Rogue.mods.speed * FK;
+  if (player.movingDown && player.y < GH - player.height)
+    player.y += player.speed * Rogue.mods.speed * FK;
   if (player.shooting) shoot();
+  if (typeof Rogue !== "undefined") Rogue.update(dtMs, FK);
+  if (typeof Foes !== "undefined") Foes.update(ctx, dtMs, FK);
 
   if (typeof VFX !== "undefined") {
     VFX.drawPlayerAura(ctx, player, {
@@ -496,7 +590,13 @@ function updateGame() {
     });
   }
 
-  ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+  player.recoil = Math.max(0, (player.recoil || 0) - 0.5 * FK);
+  const __if = gameNow() < (player.iframesUntil || 0);
+  ctx.save();
+  if (__if) ctx.globalAlpha = Math.floor(performance.now() / 50) % 2 ? 0.3 : 1;
+  ctx.drawImage(player.image, player.x, player.y + player.recoil, player.width, player.height);
+  ctx.restore();
+  if (typeof Rogue !== "undefined") Rogue.drawShield(ctx);
 
   // Aplicar efectos visuales del título equipado
   applyTitleVisualEffects();
@@ -505,7 +605,8 @@ function updateGame() {
   document.querySelectorAll(".bullet, .boss-bullet").forEach((el) => el.remove());
 
   bullets.forEach((bullet, i) => {
-    bullet.y -= bullet.speed;
+    bullet.y -= bullet.speed * FK;
+    bullet.x += (bullet.vx || 0) * FK;
     if (typeof VFX !== "undefined") {
       VFX.drawBullet(ctx, bullet);
     } else {
@@ -520,8 +621,12 @@ function updateGame() {
         bullet.y < enemy.y + enemy.height &&
         bullet.y + 10 > enemy.y
       ) {
-        enemy.health--;
-        bullets.splice(i, 1);
+        if (bullet.hit && bullet.hit.has(enemy)) return;
+        enemy.health -= bullet.dmg || 1;
+        if (bullet.pierce > 0) { bullet.pierce--; (bullet.hit = bullet.hit || new Set()).add(enemy); }
+        else bullets.splice(i, 1);
+        enemy.flash = 4;
+        if (typeof Magia !== "undefined") Magia.onHit();
         if (typeof VFX !== "undefined") {
           VFX.hitSpark(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
         }
@@ -548,21 +653,12 @@ function updateGame() {
           }
 
           try {
-            const explosionSound = new Audio("assets/explosion.wav");
+            const explosionSound = SFX.audio("explosion");
             explosionSound.play().catch(() => {});
           } catch (e) {}
 
-          {
-            const prevScore = score - (gained || 10);
-            if (Math.floor(prevScore / 100) < Math.floor(score / 100)) {
-              level++;
-              levelDisplay.textContent = `Nivel: ${level}`;
-              if (typeof VFX !== "undefined") VFX.levelUp(level);
-              if (level % 10 === 0) {
-                enemies = [];
-              }
-            }
-          }
+          if (typeof Magia !== "undefined") Magia.onKill(ex, ey);
+          maybeLevelUp(score - (gained || 10));
         }
       }
     });
@@ -578,11 +674,11 @@ function updateGame() {
         if (meteor.health <= 0) {
           const mx = meteor.x + meteor.width / 2;
           const my = meteor.y + meteor.height / 2;
-          meteors.splice(j, 1);
+          meteors.splice(j, 1); breakMeteor(meteor);
           const gained = addPoints(20);
           if (typeof VFX !== "undefined") VFX.registerKill(mx, my, gained || 20);
           try {
-            const explosionSound = new Audio("assets/explosion.wav");
+            const explosionSound = SFX.audio("explosion");
             explosionSound.play().catch(() => {});
           } catch (e) {}
           createExplosion(mx, my);
@@ -594,7 +690,7 @@ function updateGame() {
             );
           }
           try {
-            const impactSound = new Audio("assets/impact.wav");
+            const impactSound = SFX.audio("impact");
             impactSound.play().catch(() => {});
           } catch (e) {}
         }
@@ -606,8 +702,10 @@ function updateGame() {
   });
 
   // Balas enemigas (una sola pasada)
+  const __bk = bossActive ? 1 : 1 + 0.15 * Math.max(0, level - 10); // post-jefe: balas más rápidas
   enemyBullets.forEach((bullet, i) => {
-    bullet.y += bullet.speed;
+    bullet.y += bullet.speed * FK * __bk;
+    bullet.x += (bullet.vx || 0) * FK * __bk;
     if (typeof VFX !== "undefined") {
       VFX.drawEnemyBullet(ctx, bullet);
     } else {
@@ -622,10 +720,10 @@ function updateGame() {
       bullet.y + bullet.height > player.y
     ) {
       enemyBullets.splice(i, 1);
-      handlePlayerDamage();
+      handlePlayerDamage((bullet.src || (bullet.witch ? 'jefe:patrón' : 'bala enemiga')));
     }
 
-    if (bullet.y > canvas.height) {
+    if (bullet.y > GH) {
       enemyBullets.splice(i, 1);
     }
   });
@@ -633,14 +731,14 @@ function updateGame() {
   enemies.forEach((enemy, i) => {
     // Movimiento especial si tiene speedX (es el xiao_weapon)
     if (enemy.speedX !== undefined) {
-      enemy.x += enemy.speedX;
-      enemy.y += enemy.speedY;
+      enemy.x += enemy.speedX * FK;
+      enemy.y += enemy.speedY * FK;
 
-      if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
+      if (enemy.x <= 0 || enemy.x + enemy.width >= GW) {
         enemy.speedX *= -1;
       }
     } else {
-      enemy.y += enemy.speed;
+      enemy.y += enemy.speed * FK;
     }
 
     // Halo sutil en enemigos peligrosos
@@ -654,7 +752,8 @@ function updateGame() {
       ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
     }
 
-    if (enemy.y > canvas.height) enemies.splice(i, 1);
+    if (enemy.flash > 0) { enemy.flash -= FK; ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.7; ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height); ctx.restore(); }
+    if (enemy.y > GH) enemies.splice(i, 1);
 
     if (
       enemy.x < player.x + player.width &&
@@ -666,7 +765,7 @@ function updateGame() {
         applyFireRateDebuff();
       }
       enemies.splice(i, 1);
-      handlePlayerDamage();
+      handlePlayerDamage('choque enemigo');
     }
 
     if (enemy.canShoot) {
@@ -675,9 +774,9 @@ function updateGame() {
   });
 
   kits.forEach((kit, i) => {
-    kit.y += kit.speed;
+    kit.y += kit.speed * FK;
     ctx.drawImage(kit.image, kit.x, kit.y, kit.width, kit.height);
-    if (kit.y > canvas.height) kits.splice(i, 1);
+    if (kit.y > GH) kits.splice(i, 1);
 
     // Colisión con el jugador para recoger el kit
     if (
@@ -696,7 +795,7 @@ function updateGame() {
         updateHeartsDisplay();
 
         // Efecto de sonido
-        const healSound = new Audio("assets/heal.wav");
+        const healSound = SFX.audio("heal");
         healSound.play();
 
         // Efecto visual en el jugador
@@ -721,32 +820,12 @@ function updateGame() {
     }
   });
 
+  drawMeteorDebris(16.67 * FK);
   meteors.forEach((meteor, i) => {
-    meteor.y += meteor.speed;
-    meteor.rotation += meteor.rotationSpeed;
+    meteor.y += meteor.speed * FK;
+    drawMeteor(meteor);
 
-    // Guardar el estado actual del contexto
-    ctx.save();
-
-    // Trasladar al centro del meteorito
-    ctx.translate(meteor.x + meteor.width / 2, meteor.y + meteor.height / 2);
-
-    // Rotar
-    ctx.rotate(meteor.rotation);
-
-    // Dibujar el meteorito
-    ctx.drawImage(
-      meteor.image,
-      -meteor.width / 2,
-      -meteor.height / 2,
-      meteor.width,
-      meteor.height
-    );
-
-    // Restaurar el estado del contexto
-    ctx.restore();
-
-    if (meteor.y > canvas.height) {
+    if (meteor.y > GH) {
       meteors.splice(i, 1);
     }
 
@@ -757,11 +836,11 @@ function updateGame() {
       meteor.y < player.y + player.height &&
       meteor.y + meteor.height > player.y
     ) {
-      meteors.splice(i, 1);
-      handlePlayerDamage();
+      meteors.splice(i, 1); breakMeteor(meteor);
+      handlePlayerDamage((bossActive ? 'jefe:meteoro' : 'meteoro'));
 
       // Efecto visual y sonoro
-      const explosionSound = new Audio("assets/explosion.wav");
+      const explosionSound = SFX.audio("explosion");
       explosionSound.play();
 
       createExplosion(
@@ -772,10 +851,10 @@ function updateGame() {
   });
 
   xiaos.forEach((xiao, i) => {
-    xiao.y += xiao.speed;
+    xiao.y += xiao.speed * FK;
     ctx.drawImage(xiao.image, xiao.x, xiao.y, xiao.width, xiao.height);
 
-    if (xiao.y > canvas.height) {
+    if (xiao.y > GH) {
       xiaos.splice(i, 1);
     }
 
@@ -797,7 +876,7 @@ function updateGame() {
         updateHeartsDisplay();
 
         // Efecto visual y sonoro especial
-        const xiaoSound = new Audio("assets/xiao.wav");
+        const xiaoSound = SFX.audio("xiao");
         xiaoSound.play();
 
         // Mostrar notificación de corazón extra
@@ -817,10 +896,10 @@ function updateGame() {
   });
 
   arlees.forEach((arlee, i) => {
-    arlee.y += arlee.speed;
+    arlee.y += arlee.speed * FK;
     ctx.drawImage(arlee.image, arlee.x, arlee.y, arlee.width, arlee.height);
 
-    if (arlee.y > canvas.height) {
+    if (arlee.y > GH) {
       arlees.splice(i, 1);
     }
 
@@ -850,7 +929,7 @@ function updateGame() {
       }
 
       // Efecto visual y sonoro
-      const powerUpSound = new Audio("assets/powerup.wav");
+      const powerUpSound = SFX.audio("powerup");
       powerUpSound.play();
 
       // Mostrar notificación de disparo rápido
@@ -866,10 +945,10 @@ function updateGame() {
   });
 
   cynos.forEach((cyno, i) => {
-    cyno.y += cyno.speed;
+    cyno.y += cyno.speed * FK;
     ctx.drawImage(cyno.image, cyno.x, cyno.y, cyno.width, cyno.height);
 
-    if (cyno.y > canvas.height) {
+    if (cyno.y > GH) {
       cynos.splice(i, 1);
     }
 
@@ -903,7 +982,7 @@ function updateGame() {
       }
 
       // Efecto visual y sonoro
-      const powerUpSound = new Audio("assets/shield.wav");
+      const powerUpSound = SFX.audio("shield");
       powerUpSound.play();
 
       // Efecto visual en el jugador
@@ -912,7 +991,7 @@ function updateGame() {
   });
 
   flins.forEach((flin, i) => {
-    flin.y += flin.speed;
+    flin.y += flin.speed * FK;
 
     // Efecto visual especial para flins - brillo dorado
     ctx.save();
@@ -921,7 +1000,7 @@ function updateGame() {
     ctx.drawImage(flin.image, flin.x, flin.y, flin.width, flin.height);
     ctx.restore();
 
-    if (flin.y > canvas.height) {
+    if (flin.y > GH) {
       flins.splice(i, 1);
     }
 
@@ -952,14 +1031,14 @@ function updateGame() {
         player.x + player.width / 2,
         player.y + player.height / 2
       );
-      const powerUpSound = new Audio("assets/coin.wav");
+      const powerUpSound = SFX.audio("coin");
       powerUpSound.volume = 0.7;
       powerUpSound.play().catch(() => {});
     }
   });
 
   rerirs.forEach((rerir, i) => {
-    rerir.y += rerir.speed;
+    rerir.y += rerir.speed * FK;
 
     // Efecto visual especial para rerir - brillo azul
     ctx.save();
@@ -968,7 +1047,7 @@ function updateGame() {
     ctx.drawImage(rerir.image, rerir.x, rerir.y, rerir.width, rerir.height);
     ctx.restore();
 
-    if (rerir.y > canvas.height) {
+    if (rerir.y > GH) {
       rerirs.splice(i, 1);
     }
 
@@ -994,7 +1073,7 @@ function updateGame() {
         startTemporaryHeartTimer();
 
         // Efecto visual y sonoro
-        const powerUpSound = new Audio("assets/shield.wav");
+        const powerUpSound = SFX.audio("shield");
         powerUpSound.play();
 
         // Efecto visual especial azul
@@ -1034,7 +1113,7 @@ function updateGame() {
         boss.y < player.y + boss.height &&
         boss.y + boss.height > player.y
       ) {
-        handlePlayerDamage();
+        handlePlayerDamage('jefe:choque');
       }
     }
   }
@@ -1045,11 +1124,12 @@ function updateGame() {
   }
 
   if (typeof VFX !== "undefined") {
+    if (typeof Magia !== "undefined") Magia.update(ctx, frozen || gamePaused ? 0 : dtMs, FK);
     VFX.updateAndDrawParticles(ctx);
-    VFX.endFrame(ctx, canvas.width, canvas.height);
+    VFX.endFrame(ctx, GW, GH);
   }
 
-  if (gameRunning) requestAnimationFrame(updateGame);
+  if (gameRunning && !SIM) requestAnimationFrame(updateGame);
 }
 
 function pushKillFeed(enemyType) {
@@ -1073,6 +1153,7 @@ function pushKillFeed(enemyType) {
 }
 
 function updateHeartsDisplay() {
+  if (typeof Magia !== "undefined") Magia.drawHud();
   heartsDisplay.innerHTML = "";
   for (let i = 0; i < player.hearts; i++) {
     const heart = document.createElement("img");
@@ -1102,6 +1183,9 @@ function updateHeartsDisplay() {
 
 function gameOver() {
   gameRunning = false;
+  if (typeof bossBar !== "undefined") bossBar.style.display = "none";
+  scissorCut();
+  if (typeof Rogue !== "undefined") Rogue.showSummary(gameOverDisplay);
   if (typeof UIAnime !== "undefined") {
     UIAnime.gameOver(gameOverDisplay);
   } else {
@@ -1127,7 +1211,7 @@ function gameOver() {
 }
 
 function saveScore() {
-  let scores = JSON.parse(localStorage.getItem("scores")) || [];
+  let scores = SafeStore.getArray("scores", (x) => x && typeof x.name === "string" && Number.isFinite(x.score));
   scores.push({ name: playerName, score: score });
   scores.sort((a, b) => b.score - a.score);
   scores = scores.slice(0, 10); // Mantener solo los mejores 10 puntajes en la tabla
@@ -1152,6 +1236,22 @@ document.getElementById("restartBtn").addEventListener("click", () => {
 });
 
 function startGame() {
+  scissorCut();
+  GameClock.reset();
+  player.iframesUntil = 0; window.__postBossAt = null;
+  // Estado de power-ups de la partida anterior (sus temporizadores se borran con el reloj): volver a lo normal.
+  normalFireRate = 500; isFireRateReduced = false; hasFireRateBoost = false; hasDoublePoints = false; isInvulnerable = false; hasTemporaryHeart = false;
+  xiaos = []; arlees = []; cynos = []; flins = []; rerirs = []; kits = []; meteors = []; enemyBullets = []; bullets = [];
+  bossActive = false; boss = null; if (typeof bossBar !== "undefined") bossBar.style.display = "none";
+  player.canShoot = true; // el reloj se reinicia: el enfriamiento pendiente se cancela
+  player.x = GW / 2 - player.width / 2;
+  player.y = GH - 80;
+  if (typeof Rogue !== "undefined") Rogue.newRun();
+  if (typeof Foes !== "undefined") Foes.clear();
+  if (typeof Magia !== "undefined") Magia.reset();
+  GameClock.reset();
+  __lastFrameTs = performance.now();
+  gamePaused = false;
   level = 1;
   score = 0;
   player.hearts = maxHearts;
@@ -1170,21 +1270,21 @@ function startGame() {
   rerirs = []; // Limpiar los power-ups de corazón temporal
   if (typeof VFX !== "undefined") {
     VFX.clear();
-    VFX.resize(canvas.width, canvas.height);
+    VFX.resize(GW, GH);
     VFX.levelUp(1);
   }
   const feed = document.getElementById("killFeed");
   if (feed) feed.innerHTML = "";
   isInvulnerable = false;
   if (invulnerabilityTimer) {
-    clearInterval(invulnerabilityTimer);
+    gClear(invulnerabilityTimer);
     invulnerabilityTimer = null;
   }
   invulnerabilityTimeLeft = 10;
   document.getElementById("invulnerabilityTimer").style.display = "none";
   hasExtraHeart = false;
   if (powerUpTimer) {
-    clearInterval(powerUpTimer);
+    gClear(powerUpTimer);
     powerUpTimer = null;
   }
   hasFireRateBoost = false;
@@ -1194,7 +1294,7 @@ function startGame() {
   // Limpiar timer de puntos dobles
   hasDoublePoints = false;
   if (doublePointsTimer) {
-    clearInterval(doublePointsTimer);
+    gClear(doublePointsTimer);
     doublePointsTimer = null;
   }
   doublePointsTimeLeft = 30;
@@ -1203,7 +1303,7 @@ function startGame() {
   // Limpiar timer de corazón temporal
   hasTemporaryHeart = false;
   if (temporaryHeartTimer) {
-    clearInterval(temporaryHeartTimer);
+    gClear(temporaryHeartTimer);
     temporaryHeartTimer = null;
   }
   temporaryHeartTimeLeft = 10;
@@ -1224,9 +1324,9 @@ function startGame() {
     music.loop = true; // Asegurar que esté en loop
 
     // Configurar volumen actual
-    const currentVolume = localStorage.getItem("gameVolume") || "50";
+    const currentVolume = SafeStore.num("gameVolume", 50, 0, 100);
     const currentMuted = localStorage.getItem("gameMuted") === "true";
-    music.volume = currentMuted ? 0 : parseFloat(currentVolume) / 100;
+    music.volume = currentMuted ? 0 : currentVolume / 100;
 
     console.log("Intentando reproducir música, volumen:", music.volume);
 
@@ -1264,10 +1364,15 @@ function startGame() {
   setTimeout(refreshJoystickCenter, 60);
 }
 
-function handlePlayerDamage() {
+function handlePlayerDamage(src) {
   if (isInvulnerable) return; // Si es invulnerable, no recibe daño
+  if (gameNow() < (player.iframesUntil || 0)) return;
+  player.iframesUntil = gameNow() + (bossActive ? 3500 : 1000); // contra el jefe, más respiro tras un golpe
+  if (typeof Rogue !== "undefined" && Rogue.absorbHit()) return;
+  if (typeof Magia !== "undefined") Magia.onDamage();
 
   player.hearts--;
+  (window.__hitLog = window.__hitLog || []).push({ t: Math.round(gameNow() / 100) / 10, src: src || '?', boss: bossActive });
 
   if (typeof VFX !== "undefined") {
     VFX.resetCombo();
@@ -1279,7 +1384,7 @@ function handlePlayerDamage() {
     hasTemporaryHeart = false;
     // Detener el timer del corazón temporal
     if (temporaryHeartTimer) {
-      clearInterval(temporaryHeartTimer);
+      gClear(temporaryHeartTimer);
       temporaryHeartTimer = null;
       document.getElementById("temporaryHeartTimer").style.display = "none";
     }
@@ -1304,7 +1409,7 @@ function handlePlayerDamage() {
 
   // Sonido de daño
   try {
-    const damageSound = new Audio("assets/damage.wav");
+    const damageSound = SFX.audio("damage");
     damageSound.play().catch(() => {});
   } catch (e) {}
 
@@ -1323,7 +1428,7 @@ function handlePlayerDamage() {
 function createDamageEffect(x, y) {
   if (typeof VFX !== "undefined") {
     VFX.explosion(x, y, 0.7);
-    VFX.floatText(x, y - 20, "¡HIT!", "#ff5252", 20);
+    VFX.floatText(x, y - 20, "¡auch!", "#ff5252", 20);
     return;
   }
   for (let i = 0; i < 12; i++) {
@@ -1350,45 +1455,55 @@ function createDamageEffect(x, y) {
   }
 }
 
+let spawnerHandle = null;
 function spawnEnemies() {
-  setInterval(() => {
+  gClear(spawnerHandle); // evita spawners duplicados al reiniciar
+  spawnerHandle = gSetInterval(() => {
     if (bossActive) return; // No generar enemigos si el boss está activo
+    const __pb = window.__postBossAt != null ? gameNow() - window.__postBossAt : Infinity;
+    if (__pb < 10000) return; // respiro tras ganarle al jefe
+    // Después del jefe (nivel 11+) la presión sube más rápido en cada nivel.
+    const __post = Math.max(0, level - 10);
 
-    let enemiesToSpawn = level % 10 === 0 ? 1 : level % 10;
+    // Curva justa: crece suave y con tope (antes llegaba a 9 por oleada y bajaba a 1).
+    // Rampa de entrada: los primeros ~2 min suben despacio (máx. 5 % de muertes antes de 2 min).
+    const __t = gameNow(), ramp = __t < 120000 ? __t / 200000 : 0.6 + 0.4 * Math.min(1, (__t - 120000) / 360000); // después del min 2 sube despacio (tope al min 8)
+    const enemiesToSpawn = Math.min(6 + 3 * __post, Math.floor((1 + Math.sqrt(level) * 1.2 * (0.45 + 0.55 * ramp)) * (1 + 0.8 * __post)));
     for (let i = 0; i < enemiesToSpawn; i++) {
+      if (typeof Foes !== "undefined" && Foes.rollSpawn(level)) continue;
       spawnEnemy();
     }
-    if (Math.random() < 0.1) {
-      // 10% de probabilidad de que aparezca un kit
+    if (RNG() < 0.1 / (1 + Math.max(0, level - 10))) {
+      // 10% de probabilidad de que aparezca un kit (menos después del jefe)
       spawnKit();
     }
-    if (Math.random() < 0.05) {
+    if (RNG() < 0.05) {
       // 5% de probabilidad de que aparezca un meteorito
       spawnMeteor();
     }
     // Spawn xiao con % de probabilidad solo si el jugador tiene exactamente 3 corazones
-    if (Math.random() < 0.03 && player.hearts === maxHearts && !hasExtraHeart) {
+    if (RNG() < 0.03 && player.hearts === maxHearts && !hasExtraHeart) {
       spawnXiao();
     }
     // Spawn arlee con 7% de probabilidad solo si el jugador no tiene el boost activo
-    if (Math.random() < 0.07) {
+    if (RNG() < 0.07) {
       // 7% de probabilidad de que aparezca arlee
       spawnArlee();
     }
     // Spawn cyno con 4% de probabilidad
-    if (Math.random() < 0.04) {
+    if (RNG() < 0.04) {
       spawnCyno();
     }
     // Spawn flins solo en el nivel 1 con 8% de probabilidad
-    if (level === 1 && Math.random() < 0.08) {
+    if (level === 1 && RNG() < 0.08) {
       spawnFlins();
     }
     // Spawn rerir solo si el jugador tiene 1 corazón y no tiene corazón temporal activo
-    if (player.hearts === 1 && !hasTemporaryHeart && Math.random() < 0.15) {
+    if (player.hearts === 1 && !hasTemporaryHeart && RNG() < 0.15) {
       spawnRerir();
     }
     // 6% probabilidad de que aparezca el enemigo xiao_weapon
-    if (Math.random() < 0.1) {
+    if (RNG() < 0.1) {
       spawnXiaoWeapon();
     }
   }, 2000);
@@ -1397,10 +1512,10 @@ function spawnEnemies() {
 function startPowerUpTimer() {
   // Limpiar timer existente si hay uno
   if (powerUpTimer) {
-    clearInterval(powerUpTimer);
+    gClear(powerUpTimer);
   }
 
-  powerUpTimer = setInterval(() => {
+  powerUpTimer = gSetInterval(() => {
     powerUpTimeLeft--;
     timerSpan.textContent = powerUpTimeLeft;
 
@@ -1409,7 +1524,7 @@ function startPowerUpTimer() {
       hasFireRateBoost = false;
       player.image.style.filter = "none";
       powerUpTimerDisplay.style.display = "none";
-      clearInterval(powerUpTimer);
+      gClear(powerUpTimer);
       powerUpTimer = null;
     }
   }, 1000);
@@ -1417,14 +1532,14 @@ function startPowerUpTimer() {
 
 function startInvulnerabilityTimer() {
   if (invulnerabilityTimer) {
-    clearInterval(invulnerabilityTimer);
+    gClear(invulnerabilityTimer);
   }
 
   const invTimerDisplay = document.getElementById("invulnerabilityTimer");
   const invTimerSpan = document.getElementById("invTimer");
   invTimerDisplay.style.display = "block";
 
-  invulnerabilityTimer = setInterval(() => {
+  invulnerabilityTimer = gSetInterval(() => {
     invulnerabilityTimeLeft--;
     invTimerSpan.textContent = invulnerabilityTimeLeft;
 
@@ -1432,7 +1547,7 @@ function startInvulnerabilityTimer() {
       isInvulnerable = false;
       player.image.style.filter = "none";
       invTimerDisplay.style.display = "none";
-      clearInterval(invulnerabilityTimer);
+      gClear(invulnerabilityTimer);
       invulnerabilityTimer = null;
     }
   }, 1000);
@@ -1440,21 +1555,21 @@ function startInvulnerabilityTimer() {
 
 function startDoublePointsTimer() {
   if (doublePointsTimer) {
-    clearInterval(doublePointsTimer);
+    gClear(doublePointsTimer);
   }
 
   const doublePointsDisplay = document.getElementById("doublePointsTimer");
   const doublePointsSpan = document.getElementById("doublePointsTime");
   doublePointsDisplay.style.display = "block";
 
-  doublePointsTimer = setInterval(() => {
+  doublePointsTimer = gSetInterval(() => {
     doublePointsTimeLeft--;
     doublePointsSpan.textContent = doublePointsTimeLeft;
 
     if (doublePointsTimeLeft <= 0) {
       hasDoublePoints = false;
       doublePointsDisplay.style.display = "none";
-      clearInterval(doublePointsTimer);
+      gClear(doublePointsTimer);
       doublePointsTimer = null;
     }
   }, 1000);
@@ -1462,14 +1577,14 @@ function startDoublePointsTimer() {
 
 function startTemporaryHeartTimer() {
   if (temporaryHeartTimer) {
-    clearInterval(temporaryHeartTimer);
+    gClear(temporaryHeartTimer);
   }
 
   const temporaryHeartDisplay = document.getElementById("temporaryHeartTimer");
   const temporaryHeartSpan = document.getElementById("temporaryHeartTime");
   temporaryHeartDisplay.style.display = "block";
 
-  temporaryHeartTimer = setInterval(() => {
+  temporaryHeartTimer = gSetInterval(() => {
     temporaryHeartTimeLeft--;
     temporaryHeartSpan.textContent = temporaryHeartTimeLeft;
 
@@ -1481,13 +1596,13 @@ function startTemporaryHeartTimer() {
         updateHeartsDisplay();
         
         // Efecto de sonido de pérdida
-        const lostSound = new Audio("assets/damage.wav");
+        const lostSound = SFX.audio("damage");
         lostSound.volume = 0.5;
         lostSound.play().catch(() => {});
       }
       
       temporaryHeartDisplay.style.display = "none";
-      clearInterval(temporaryHeartTimer);
+      gClear(temporaryHeartTimer);
       temporaryHeartTimer = null;
     }
   }, 1000);
@@ -1498,13 +1613,13 @@ let bgMusic = null;
 
 function initBgMusic() {
   if (!bgMusic) {
-    bgMusic = new Audio("assets/background.mp3");
+    bgMusic = SFX.audio("music");
     bgMusic.loop = true;
 
     // Configurar volumen inicial
-    const savedVolume = localStorage.getItem("gameVolume") || "50";
+    const savedVolume = SafeStore.num("gameVolume", 50, 0, 100);
     const savedMuted = localStorage.getItem("gameMuted") === "true";
-    bgMusic.volume = savedMuted ? 0 : parseFloat(savedVolume) / 100;
+    bgMusic.volume = savedMuted ? 0 : savedVolume / 100;
 
     // Evento para reiniciar la música si se detiene inesperadamente
     bgMusic.addEventListener("ended", () => {
@@ -1534,9 +1649,6 @@ bgMusic = initBgMusic();
 window.bgMusic = bgMusic;
 
 // Controles táctiles para dispositivos móviles y botones en pantalla
-canvas.addEventListener("touchstart", handleTouchStart, false);
-canvas.addEventListener("touchmove", handleTouchMove, false);
-canvas.addEventListener("touchend", handleTouchEnd, false);
 
 let touchX, touchY;
 
@@ -1545,7 +1657,7 @@ function handleTouchStart(e) {
   const touch = e.touches[0];
   touchX = touch.clientX;
   touchY = touch.clientY;
-  if (touchY < canvas.height / 2) {
+  if (touchY < GH / 2) {
     player.shooting = true;
   }
 }
@@ -1607,6 +1719,7 @@ function createDoublePointsEffect(x, y) {
 
 // Función genérica para mostrar notificación de power-up o debuff
 function showPowerUpNotification(type, x, y) {
+  if (typeof Magia !== "undefined") Magia.onAlly(type);
   const config = {
     kit: {
       text: "Curación +1",
@@ -1615,7 +1728,7 @@ function showPowerUpNotification(type, x, y) {
       className: "powerup-notification-green"
     },
     xiao: {
-      text: "Corazón extra",
+      text: "Gema extra",
       color: "#2ecc71",
       particles: ["+", "+", "+"],
       className: "powerup-notification-green"
@@ -1639,7 +1752,7 @@ function showPowerUpNotification(type, x, y) {
       className: "powerup-notification-gold"
     },
     rerir: {
-      text: "Corazón temporal",
+      text: "Gema temporal",
       color: "#00BFFF",
       particles: ["+", "+", "+"],
       className: "powerup-notification-blue"
@@ -1732,6 +1845,8 @@ function addPoints(basePoints, showFloatingText = true) {
     }
   }
 
+  // Multiplicador de combo real: golpes seguidos sin recibir daño (hasta x2)
+  if (typeof VFX !== "undefined" && VFX.getCombo) finalPoints = Math.round(finalPoints * (1 + Math.min(20, VFX.getCombo()) * 0.05));
   score += finalPoints;
   scoreDisplay.textContent = score;
   if (typeof UIAnime !== "undefined") {
@@ -1851,7 +1966,7 @@ function refreshJoystickCenter() {
 }
 
 function initJoystick() {
-  const joystickArea = document.getElementById("joystickArea");
+  const joystickArea = document.getElementById("moveZone") || document.getElementById("joystickArea");
   const joystick = document.getElementById("joystick");
   if (!joystickArea || !joystick) return;
 
@@ -1877,7 +1992,13 @@ function initJoystick() {
 
 function handleJoystickStart(e) {
   e.preventDefault();
-  const touch = e.touches[0];
+  const touch = e.changedTouches[0];
+  joyTouchId = touch.identifier;
+  // Joystick flotante: aparece donde apoyas el pulgar
+  const area = document.getElementById("joystickArea");
+  area.style.transform = "none";
+  const r = area.getBoundingClientRect();
+  area.style.transform = `translate(${touch.clientX - (r.left + r.width / 2)}px, ${touch.clientY - (r.top + r.height / 2)}px)`;
   joystickActive = true;
   document.getElementById("joystick").classList.add("active");
   updateJoystickPosition(touch);
@@ -1886,13 +2007,14 @@ function handleJoystickStart(e) {
 function handleJoystickMove(e) {
   e.preventDefault();
   if (!joystickActive) return;
-
-  const touch = e.touches[0];
+  const touch = Array.from(e.touches).find((t) => t.identifier === joyTouchId);
+  if (!touch) return;
   updateJoystickPosition(touch);
 }
 
 function handleJoystickEnd(e) {
   e.preventDefault();
+  if (Array.from(e.touches).some((t) => t.identifier === joyTouchId)) return;
   joystickActive = false;
   const joystick = document.getElementById("joystick");
   joystick.style.transform = "translate(-50%, -50%)";
@@ -1959,7 +2081,7 @@ function applyFireRateDebuff() {
   fireRateDebuffDisplay.style.display = "block";
   debuffTimerSpan.textContent = fireRateDebuffTimeLeft;
 
-  fireRateDebuffTimer = setInterval(() => {
+  fireRateDebuffTimer = gSetInterval(() => {
     fireRateDebuffTimeLeft--;
     debuffTimerSpan.textContent = fireRateDebuffTimeLeft;
 
@@ -1967,40 +2089,61 @@ function applyFireRateDebuff() {
       isFireRateReduced = false;
       normalFireRate = 500; // volver al normal
       fireRateDebuffDisplay.style.display = "none";
-      clearInterval(fireRateDebuffTimer);
+      gClear(fireRateDebuffTimer);
       fireRateDebuffTimer = null;
     }
   }, 1000);
 }
 
+function placeBossBar() {
+  const g = document.getElementById("lifeGem"), c = document.getElementById("game-container");
+  if (g && c && g.offsetParent) { const gb = g.getBoundingClientRect().bottom - c.getBoundingClientRect().top; bossBar.style.top = Math.max(112, Math.ceil(gb) + 8) + "px"; }
+}
 // Elementos para la barra de vida y nombre del boss
 const bossBar = document.createElement("div");
 bossBar.id = "bossBar";
 bossBar.style.position = "absolute";
-bossBar.style.top = "60px";
+bossBar.style.top = "calc(112px + env(safe-area-inset-top, 0px))"; // debajo del HUD y de pausa/ajustes
 bossBar.style.left = "50%";
 bossBar.style.transform = "translateX(-50%)";
-bossBar.style.width = "400px";
-bossBar.style.height = "30px";
-bossBar.style.background = "rgba(0,0,0,0.7)";
-bossBar.style.border = "2px solid #fff";
+bossBar.style.width = "min(360px, 70vw)";
+bossBar.style.height = "auto";
+bossBar.style.background = "transparent";
+bossBar.style.border = "0";
 bossBar.style.borderRadius = "10px";
 bossBar.style.display = "none";
 bossBar.style.zIndex = "1002";
 bossBar.innerHTML = `
-    <div id="bossName" style="text-align:center;font-size:22px;color:#ffeb3b;font-weight:bold;margin-bottom:2px;">${bossName}</div>
-    <div id="bossHealthBar" style="width:100%;height:14px;background:#222;border-radius:7px;overflow:hidden;">
-        <div id="bossHealthFill" style="width:100%;height:100%;background:linear-gradient(90deg,#ff1744,#ffeb3b);transition:width 0.3s;"></div>
+    <div id="bossName" style="text-align:center;font:700 12px 'Exo 2',sans-serif;color:#EAF2FF;margin-bottom:2px;text-shadow:1px 1px 0 #0B0F1E;">${bossName}</div>
+    <div id="bossHealthBar" style="width:100%;height:8px;background:#0B0F1E;border:2px solid #EAF2FF;border-radius:2px;overflow:hidden;box-sizing:content-box;">
+        <div id="bossHealthFill" style="width:100%;height:100%;background:#9B6BFF;transition:width 0.3s;"></div>
     </div>
 `;
 document.getElementById("game-container").appendChild(bossBar);
 
+// El jefe arranca debajo de la barra (nombre + vida), así el nombre nunca tapa el sprite.
+function bossTopY() {
+  const c = canvas.getBoundingClientRect(); let y = 40;
+  try { const was = bossBar.style.display; bossBar.style.visibility = "hidden"; bossBar.style.display = "block"; placeBossBar();
+    const b = bossBar.getBoundingClientRect(); y = Math.max(40, Math.ceil((b.bottom - c.top) * GH / c.height) + 6);
+    bossBar.style.display = was; bossBar.style.visibility = ""; } catch (e) {}
+  return Math.min(y, Math.max(40, GH - 128 - 200));
+}
 function spawnBoss() {
+  // Vida del jefe según el DPS real de la jugadora: la pelea dura ~30–60 s.
+  const m = typeof Rogue !== "undefined" ? Rogue.mods : { fireRate: 1, spread: 0, dmg: 1 };
+  const shotsPerSec = 1000 / Math.max(60, normalFireRate * m.fireRate);
+  const hitsPerSec = shotsPerSec * (1 + m.spread * 0.6); // las diagonales no siempre pegan
+  // Relativo a tu daño base: las cartas de cadencia, abanico y daño lo suben; el nivel suma un 5 % por nivel desde el 10.
+  const baseHps = 1000 / Math.max(60, normalFireRate);
+  const ratio = Math.min(3, Math.max(0.8, (hitsPerSec * (m.dmg || 1)) / baseHps));
+  bossHealth = Math.round(200 * ratio * Math.max(1, 1 + (level - 10) * 0.05));
+  if (!Number.isFinite(bossHealth)) bossHealth = 420;
   boss = {
-    x: canvas.width / 2 - 180,
-    y: 40,
-    width: 360,
-    height: 180,
+    x: GW / 2 - 128,
+    y: bossTopY(),
+    width: 256,
+    height: 128,
     health: bossHealth,
     image: new Image(),
     attackTimer: 0,
@@ -2013,6 +2156,7 @@ function spawnBoss() {
   boss.image.src = "assets/Boss.png";
   bossActive = true;
   bossBar.style.display = "block";
+  placeBossBar(); // nunca encima de la gema de vida
   updateBossBar();
 
   // Animación de aparición
@@ -2020,7 +2164,7 @@ function spawnBoss() {
   boss.appearAnim = 0;
 
   if (typeof VFX !== "undefined") {
-    VFX.bossWarning();
+    // v2.2.2: sin cartel '¡cuidado!' (tapaba al jefe y se juntaba con 'fase 1 ¡ojo!')
     VFX.explosion(boss.x + boss.width / 2, boss.y + boss.height / 2, 2);
   }
 
@@ -2034,10 +2178,10 @@ function animateBoss(ctx) {
 
   // Movimiento lateral simple
   if (!boss.dying && !boss.appearing) {
-    boss.x += Math.sin(Date.now() / 600) * 2; // Oscila suavemente
+    boss.x += Math.sin(gameNow() / 600) * 2 * FK; // Oscila suavemente
     // Rebote en los bordes
     if (boss.x < 0) boss.x = 0;
-    if (boss.x + boss.width > canvas.width) boss.x = canvas.width - boss.width;
+    if (boss.x + boss.width > GW) boss.x = GW - boss.width;
   }
 
   // Animación de aparición
@@ -2086,38 +2230,25 @@ function animateBoss(ctx) {
 function bossAttack() {
   if (!boss || boss.appearing || boss.dying) return;
   // Ataque especial: disparo múltiple cada 2 segundos
-  if (Date.now() - boss.attackTimer > 2000) {
-    for (let i = -2; i <= 2; i++) {
+  if (gameNow() - boss.attackTimer > 8000) { // ráfaga de 3 con huecos esquivables
+    for (const i of [-1, 1]) { // dos balas a los lados: el centro queda libre para disparar
       enemyBullets.push({
-        x: boss.x + boss.width / 2 + i * 40,
+        x: boss.x + boss.width / 2 + i * 72,
         y: boss.y + boss.height,
-        speed: 7,
+        speed: 2.6,
         width: 8,
         height: 18,
+        src: 'jefe:ráfaga',
       });
     }
-    boss.attackTimer = Date.now();
+    boss.attackTimer = gameNow();
   }
   // Ataque especial: lluvia de meteoritos cada 5 segundos
-  if (Date.now() - boss.meteorTimer > 5000) {
-    for (let i = 0; i < 4; i++) {
-      meteors.push({
-        x: Math.random() * (canvas.width - 70),
-        y: boss.y + boss.height,
-        width: 70,
-        height: 70,
-        speed: 4 + Math.random() * 2,
-        image: (() => {
-          let img = new Image();
-          img.src = "assets/meteor.png";
-          return img;
-        })(),
-        rotation: 0,
-        rotationSpeed: (Math.random() - 0.5) * 0.1,
-        health: 2,
-      });
+  if (gameNow() - boss.meteorTimer > 5000) {
+    for (let i = 0; i < 2; i++) { // dos meteoros chicos (×3 = 48 px): amenaza, no muro
+      meteors.push(makeMeteor(RNG() * (GW - 48), boss.y + boss.height, false, 3, 3.2 + RNG() * 1.4));
     }
-    boss.meteorTimer = Date.now();
+    boss.meteorTimer = gameNow();
   }
 }
 
@@ -2125,6 +2256,7 @@ function handleBossHit() {
   if (!boss || boss.dying) return;
   boss.health--;
   boss.damageAnim = 1; // Inicia animación de daño
+  if (typeof Magia !== "undefined") Magia.onHit();
   bossBar.classList.add("boss-bar-damage");
   setTimeout(() => bossBar.classList.remove("boss-bar-damage"), 300);
   updateBossBar();
@@ -2157,7 +2289,7 @@ function handleBossHit() {
       VFX.floatText(
         bossX + bossWidth / 2,
         bossY + bossHeight / 2,
-        "BOSS DOWN",
+        "la bruja cayó",
         "#ff1744",
         36
       );
@@ -2171,20 +2303,25 @@ function handleBossHit() {
 
     // Sonido de victoria
     try {
-      const victorySound = new Audio("assets/explosion.wav");
+      const victorySound = SFX.audio("explosion");
       victorySound.play().catch(() => {});
     } catch (e) {}
     // Eliminar boss inmediatamente
     bossActive = false;
     bossBar.style.display = "none";
     boss = null;
+    // Premio por ganarle al jefe: +3 gemas (sin pasar del máximo) y 10 s de respiro sin enemigos.
+    player.hearts = Math.max(player.hearts, Math.min(maxHearts + (hasExtraHeart ? 1 : 0), player.hearts + 3));
+    window.__postBossAt = gameNow();
+    if (typeof updateHeartsDisplay === "function") updateHeartsDisplay();
+    if (typeof showMiniToast === "function") showMiniToast("¡le ganaste! +3 gemas · respira", 2200);
     // Sube de nivel y limpia enemigos
     level++;
     levelDisplay.textContent = `Nivel: ${level}`;
     enemies = [];
     // Permitir que vuelvan a aparecer enemigos normales
     if (typeof enemySpawnInterval !== "undefined")
-      clearInterval(enemySpawnInterval);
+      gClear(enemySpawnInterval);
     spawnEnemies();
   }
 }
@@ -2454,7 +2591,7 @@ const achievements = [
   {
     id: "heart_collector",
     name: "Reserva vital",
-    description: "Alcanza 6 corazones de vida.",
+    description: "Alcanza 6 gemas de vida.",
     category: "survival",
     rarity: "rare",
     points: 40,
@@ -2694,7 +2831,7 @@ const achievements = [
     rarity: "common",
     points: 15,
     icon: "moai",
-    condition: () => parseInt(localStorage.getItem("moaiClicks") || "0") >= 10,
+    condition: () => SafeStore.num("moaiClicks", 0, 0, 1e9) >= 10,
     unlocked: false,
   },
   {
@@ -2706,7 +2843,7 @@ const achievements = [
     points: 5,
     icon: "trophy",
     condition: () =>
-      parseInt(localStorage.getItem("achievementsOpened") || "0") >= 1,
+      SafeStore.num("achievementsOpened", 0, 0, 1e9) >= 1,
     unlocked: false,
   },
   {
@@ -2745,14 +2882,13 @@ const achievements = [
 
 // Cargar estadísticas y logros desde localStorage
 function loadPlayerStats() {
-  const savedStats = localStorage.getItem("playerStats");
-  if (savedStats) {
-    playerStats = { ...playerStats, ...JSON.parse(savedStats) };
+  const savedStats = SafeStore.getObject("playerStats");
+  for (const k in savedStats) {
+    if (k in playerStats && typeof savedStats[k] === typeof playerStats[k]) playerStats[k] = savedStats[k];
   }
 
-  const savedAchievements = localStorage.getItem("achievements");
-  if (savedAchievements) {
-    const saved = JSON.parse(savedAchievements);
+  const saved = SafeStore.getArray("achievements", (a) => a && typeof a.id === "string");
+  if (saved.length) {
     achievements.forEach((achievement) => {
       const savedAchievement = saved.find((a) => a.id === achievement.id);
       if (savedAchievement) {
@@ -2801,6 +2937,8 @@ function isMobileDevice() {
 }
 
 function showAchievementNotification(achievement) {
+  if (!gameRunning) return; // no mostrar avisos en la carga ni en el menú
+  if (window.showMiniToast) { showMiniToast(`logro: ${achievement.name}  +${achievement.points}`, 2400); try { SFX.play("achievement", 0.4); } catch (e) {} return; }
   const notification = document.getElementById("achievementNotification");
   const nameEl = document.getElementById("notificationName");
   const descEl = document.getElementById("notificationDescription");
@@ -2830,7 +2968,7 @@ function showAchievementNotification(achievement) {
 
   // Reproducir sonido de logro (si existe) - volumen más bajo en móviles
   try {
-    const achievementSound = new Audio("assets/achievement.mp3");
+    const achievementSound = SFX.audio("achievement");
     achievementSound.volume = isMobileDevice() ? 0.3 : 0.5;
     achievementSound.play().catch(() => {}); // Ignorar errores de audio
   } catch (e) {}
@@ -2878,9 +3016,7 @@ function initAchievementSystem() {
     }
 
     // Logro secreto por abrir el panel
-    let achievementsOpened = parseInt(
-      localStorage.getItem("achievementsOpened") || "0"
-    );
+    let achievementsOpened = SafeStore.num("achievementsOpened", 0, 0, 1e9);
     achievementsOpened++;
     localStorage.setItem("achievementsOpened", achievementsOpened.toString());
     checkAchievements();
@@ -2921,7 +3057,7 @@ function initAchievementSystem() {
   // Tracking de clics en Moai para logro secreto
   const moaiBtn = document.getElementById("moaiButton");
   moaiBtn.addEventListener("click", () => {
-    let moaiClicks = parseInt(localStorage.getItem("moaiClicks") || "0");
+    let moaiClicks = SafeStore.num("moaiClicks", 0, 0, 1e9);
     moaiClicks++;
     localStorage.setItem("moaiClicks", moaiClicks.toString());
     checkAchievements();
@@ -3002,7 +3138,7 @@ function getAchievementProgress(achievement) {
     case "level_god":
       return `${Math.min(playerStats.maxLevel, 50)}/50 nivel`;
     case "heart_collector":
-      return `${Math.min(playerStats.maxHearts, 6)}/6 corazones`;
+      return `${Math.min(playerStats.maxHearts, 6)}/6 gemas`;
     case "powerup_addict":
       return `${Math.min(playerStats.powerUpsCollected, 50)}/50 power-ups`;
     case "first_points":
@@ -3051,7 +3187,7 @@ function getAchievementProgress(achievement) {
       return `${Math.min(playerStats.gamesPlayed, 100)}/100 partidas`;
     case "moai_friend":
       return `${Math.min(
-        parseInt(localStorage.getItem("moaiClicks") || "0"),
+        SafeStore.num("moaiClicks", 0, 0, 1e9),
         10
       )}/10 clics`;
     default:
@@ -3420,9 +3556,8 @@ Tu luz importa.`,
 
 // Cargar items comprados
 function loadPurchasedItems() {
-  const saved = localStorage.getItem("shopPurchases");
-  if (saved) {
-    const purchases = JSON.parse(saved);
+  const purchases = SafeStore.getArray("shopPurchases", (x) => typeof x === "string");
+  if (purchases.length) {
     shopItems.forEach((item) => {
       if (purchases.includes(item.id)) {
         item.purchased = true;
@@ -3433,8 +3568,7 @@ function loadPurchasedItems() {
 
 // Guardar compra
 function savePurchase(itemId) {
-  const saved = localStorage.getItem("shopPurchases");
-  const purchases = saved ? JSON.parse(saved) : [];
+  const purchases = SafeStore.getArray("shopPurchases", (x) => typeof x === "string");
   if (!purchases.includes(itemId)) {
     purchases.push(itemId);
     localStorage.setItem("shopPurchases", JSON.stringify(purchases));
@@ -3596,7 +3730,7 @@ function purchaseItem(itemId) {
 
     // Sonido de compra
     try {
-      const purchaseSound = new Audio("assets/achievement.mp3");
+      const purchaseSound = SFX.audio("achievement");
       purchaseSound.volume = 0.5;
       purchaseSound.play().catch(() => {});
     } catch (e) {}
@@ -4026,3 +4160,76 @@ window.addEventListener("DOMContentLoaded", () => {
   updateAvailableTitles();
   displayPlayerTitle();
 });
+
+// Pausa automática al ocultar la pestaña / bloquear el celular.
+function setPaused(p, silent) {
+  if (!p && typeof Rogue !== "undefined" && Rogue.choosing) return; // primero elige la mejora
+  gamePaused = !!p;
+  document.body.classList.toggle("game-paused", gamePaused && !silent);
+  if (gamePaused) { player.shooting = false; if (typeof SFX !== "undefined") SFX.suspend(); }
+  else { __lastFrameTs = performance.now(); if (typeof __lastTouchTs !== "undefined") __lastTouchTs = performance.now(); if (typeof SFX !== "undefined") SFX.resume(); }
+}
+window.setPaused = setPaused;
+window.isGameRunning = () => gameRunning;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && gameRunning) setPaused(true);
+});
+window.addEventListener("pagehide", () => gameRunning && setPaused(true));
+
+// Subida de nivel (se usa también desde foes.js). Ofrece mejoras roguelike.
+function maybeLevelUp(prevScore) {
+  const step = typeof Rogue !== "undefined" ? Rogue.levelStep(level) : 100;
+  // Ritmo: además del puntaje, cada nivel pide tiempo mínimo (partida de ~10 min hasta nivel ~20).
+  if (score >= Rogue.nextLevelAt && gameNow() >= Rogue.levelMinTime(level)) { // un nivel por llamada
+    Rogue.nextLevelAt += Rogue.levelStep(level + 1);
+    level++;
+    levelDisplay.textContent = `Nivel: ${level}`;
+    if (typeof VFX !== "undefined") VFX.levelUp(level);
+    if (level % 10 === 0) enemies = [];
+    if (typeof Rogue !== "undefined") Rogue.offerUpgrades(level);
+  }
+}
+
+// Pausa por inactividad (solo táctil): ~3 s sin ningún dedo en pantalla.
+// Levantar el dedo NO pausa al instante.
+let __lastTouchTs = performance.now(), __touchesDown = 0;
+["touchstart", "touchmove"].forEach((ev) =>
+  document.addEventListener(ev, (e) => { __lastTouchTs = performance.now(); __touchesDown = e.touches.length; }, { passive: true, capture: true })
+);
+["touchend", "touchcancel"].forEach((ev) =>
+  document.addEventListener(ev, (e) => { __lastTouchTs = performance.now(); __touchesDown = e.touches.length; }, { passive: true, capture: true })
+);
+setInterval(() => {
+  if (!gameRunning || gamePaused || !document.body.classList.contains("touch-ui")) return;
+  if (typeof Rogue !== "undefined" && Rogue.choosing) return;
+  if (__touchesDown === 0 && performance.now() - __lastTouchTs > 3000) setPaused(true);
+}, 500);
+
+// Transición de pantalla: corte de tijera de papel
+function scissorCut() {
+  const el = document.getElementById("scissorCut");
+  if (!el || (typeof VFX !== "undefined" && VFX.isReducedMotion())) return;
+  el.classList.remove("run"); void el.offsetWidth; el.classList.add("run");
+  setTimeout(() => el.classList.remove("run"), 400);
+}
+window.scissorCut = scissorCut;
+
+// Aviso corto: tira de 32 px abajo al centro (no tapa vidas ni botones)
+function showMiniToast(text, ms, opts) {
+  let el = document.getElementById("miniToast");
+  if (!el) { el = document.createElement("div"); el.id = "miniToast"; el.setAttribute("role", "status"); document.body.appendChild(el); }
+  el.textContent = text;
+  // encima de los controles (DISPARAR, MAGIA, barra Magia, joystick) con 8 px de margen
+  let top = window.innerHeight;
+  ["shootButton", "magiaBtn", "magiaHud", "joystickArea", "shootCooldownBarMobile"].forEach((id) => {
+    const n = document.getElementById(id); if (!n) return;
+    const r = n.getBoundingClientRect(); if (r.width && r.height && r.top < top) top = r.top;
+  });
+  if (opts && opts.top) { // avisos de fase: arriba, debajo de la barra del jefe; nunca sobre la nave
+    const bb = bossBar && bossBar.style.display !== "none" ? bossBar.getBoundingClientRect().bottom : 112;
+    el.style.bottom = "auto"; el.style.top = Math.round(bb + 8) + "px"; el.classList.add("top");
+  } else { el.style.top = ""; el.classList.remove("top"); el.style.bottom = Math.max(8, window.innerHeight - top + 8) + "px"; }
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("show"), ms || 2000);
+}
+window.showMiniToast = showMiniToast;

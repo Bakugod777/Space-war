@@ -2,11 +2,20 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0B0F1E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Space War">
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self'; manifest-src 'self'; worker-src 'self'">
     <title>Space War</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="preload" href="fonts/orbitron-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/exo-2-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -113,7 +122,7 @@
                         </div>
                         <div class="shop-stat-item">
                             <span class="shop-stat-number" id="purchasedItems">0/0</span>
-                            <span class="shop-stat-label">Items Comprados</span>
+                            <span class="shop-stat-label">Cosas compradas</span>
                         </div>
                     </div>
                 </div>
@@ -189,21 +198,23 @@
         
         <div id="menu">
             <div class="menu-brand">
-                <p class="menu-eyebrow">Sector Omega · Transmisión abierta</p>
-                <h1 class="menu-title">
-                    <span class="title-space">SPACE</span>
-                    <span class="title-war">WAR</span>
+                <p class="menu-eyebrow">¿lista para otra ronda?</p>
+                <h1 class="menu-title menu-logo">
+                    <picture>
+                        <source media="(min-width: 390px)" srcset="assets/brand/logo@2x.png">
+                        <img src="assets/brand/logo.png" alt="Space War" class="logo-img">
+                    </picture>
                 </h1>
-                <p class="menu-tagline">Domina el vacío. Colecciona poder. Escribe tu leyenda.</p>
+                <p class="menu-tagline">dispara con la izquierda, esquiva con la derecha</p>
             </div>
             <div class="menu-panel">
-                <input type="text" id="playerName" placeholder="Ingresa tu nombre" maxlength="16" autocomplete="off">
+                <input type="text" id="playerName" placeholder="tu nombre de piloto" maxlength="16" autocomplete="off">
                 <button id="startGame" class="start-btn">
                     <span class="start-btn-glow"></span>
                     <span class="start-btn-label">Iniciar Juego</span>
                 </button>
                 <p class="menu-controls-hint">
-                    <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> mover · <kbd>Espacio</kbd> disparar
+                    flechas + <kbd>Shift der.</kbd>/<kbd>Enter</kbd> · o <kbd>WASD</kbd> + <kbd>J</kbd> · <kbd>X</kbd> Magia · <kbd>P</kbd> pausa
                 </p>
             </div>
             <div id="highScores">
@@ -229,17 +240,18 @@
         <div id="powerUpTimer" style="display: none">Power-Up: <span id="timer">30</span>s</div>
         <div id="invulnerabilityTimer" style="display: none">Invulnerable: <span id="invTimer">10</span>s</div>
         <div id="doublePointsTimer" style="display: none">Puntos x2: <span id="doublePointsTime">30</span>s</div>
-        <div id="temporaryHeartTimer" style="display: none">Corazón temporal: <span id="temporaryHeartTime">10</span>s</div>
+        <div id="temporaryHeartTimer" style="display: none">Gema temporal: <span id="temporaryHeartTime">10</span>s</div>
         <div id="fireRateDebuff" style="display: none">Disparo lento: <span id="debuffTimer">10</span>s</div>
         
         <!-- Controles táctiles: layout zurdo (disparo izq / movimiento der) -->
+        <div id="moveZone" aria-hidden="true"></div>
         <div id="touchControls" aria-hidden="true">
             <div id="leftControls" class="touch-cluster touch-cluster-action">
                 <div id="shootCooldownBarMobile" class="shoot-cooldown-mobile" aria-hidden="true">
                     <div id="shootCooldownFillMobile" class="shoot-cooldown-mobile-fill"></div>
                 </div>
                 <button type="button" class="touchButton shoot-btn" id="shootButton" aria-label="Disparar">
-                    <span class="shoot-btn-icon" data-sw="blast"></span>
+                    <span class="star-px star-lg" aria-hidden="true"></span>
                     <span class="shoot-btn-label">Disparar</span>
                 </button>
             </div>
@@ -255,12 +267,19 @@
     <script src="vendor/anime.min.js"></script>
     <script src="icons.js"></script>
     <script src="moai-messages.js"></script>
+    <script src="store.js"></script>
+    <script src="sfx.js"></script>
+    <script src="settings.js"></script>
     <script src="fx.js"></script>
     <script src="ui-anime.js"></script>
     <script src="game.js"></script>
+    <script src="foes.js"></script>
+    <script src="rogue.js"></script>
+    <script src="magia.js"></script>
+    <script src="sim.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const scores = JSON.parse(localStorage.getItem("scores")) || [];
+            const scores = SafeStore.getArray("scores", (x) => x && typeof x.name === "string" && Number.isFinite(x.score));
             displayScores(scores);
             mountSpaceIcons();
             initMoaiButton();
@@ -387,11 +406,12 @@
             const customAlert = document.getElementById('customAlert');
             const cancelBtn = document.getElementById('cancelAlert');
             const confirmBtn = document.getElementById('confirmAlert');
-            const hasSeenUpdate = localStorage.getItem('hasSeenUpdatePopup');
+            const hasSeenUpdate = localStorage.getItem('hasSeenUpdatePopup_v2');
             
             // Solo mostrar si no ha sido cerrado antes
             if (hasSeenUpdate !== 'true') {
                 // Mostrar el popup después de un pequeño delay
+                localStorage.setItem('hasSeenUpdatePopup_v2', 'true'); // solo una vez
                 setTimeout(() => {
                     updatePopup.classList.add('show');
                     if (typeof UIAnime !== 'undefined') {
@@ -428,7 +448,7 @@
             const volumeSlider = document.getElementById('volumeSlider');
             
             // Cargar configuración guardada
-            const savedVolume = localStorage.getItem('gameVolume') || '50';
+            const savedVolume = String(SafeStore.num('gameVolume', 50, 0, 100));
             const savedMuted = localStorage.getItem('gameMuted') === 'true';
             
             volumeSlider.value = savedVolume;
@@ -489,5 +509,11 @@
             });
         }
     </script>
+    <script>
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+      }
+    </script>
+<div id="scissorCut" aria-hidden="true"></div>
 </body>
 </html>
