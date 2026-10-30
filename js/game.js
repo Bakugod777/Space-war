@@ -229,7 +229,7 @@ function updateStatsOnPowerUpCollected() {}
 function checkAchievements() {}
 let bossActive = false;
 let bossHealth = 40; // laberinto con 3 fases
-const bossName = "Astraeus, Señor del Vacío";
+const bossName = "Paimon · Guía de Emergencia";
 let fireRateDebuffTimeLeft = 10; // segundos
 const powerUpTimerDisplay = document.getElementById("powerUpTimer");
 const timerSpan = document.getElementById("timer");
@@ -2351,6 +2351,7 @@ function handleBossHit() {
       VFX.floatText(
         bossX + bossWidth / 2,
         bossY + bossHeight / 2,
+        (boss && boss.rosterId === "paimon") ? "¡Paimon… se fue a comer!" :
         (boss && boss.rosterId === "walpurgia") ? "el carnaval calla" :
         (boss && boss.rosterId === "labyrinth") ? "el laberinto se rompe" :
         "la bruja cayó",

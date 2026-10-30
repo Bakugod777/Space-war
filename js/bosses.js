@@ -9,12 +9,12 @@
   /** Jefes principales por nivel */
   const ROSTER = {
     10: {
-      id: "astraeus",
-      name: "Astraeus, Señor del Vacío",
+      id: "paimon",
+      name: "Paimon · Guía de Emergencia",
       frame: 0,
       hpMul: 1,
-      color: "#9B6BFF",
-      toast: "¡el laberinto se abre!",
+      color: "#4EDAD2",
+      toast: "¡Paimon está enojada! (y tiene hambre)",
     },
     20: {
       id: "walpurgia",
@@ -356,12 +356,16 @@
   /** Patrones de jefe principal según roster + fase de vida */
   function enhanceBossAttack() {
     if (!boss || boss.appearing || boss.dying) return;
-    const id = boss.rosterId || "astraeus";
+    const id = boss.rosterId || "paimon";
     const pct = boss.health / Math.max(1, bossHealth);
     const phase = pct > 0.66 ? 1 : pct > 0.33 ? 2 : 3;
     if (boss.phase !== phase) {
       boss.phase = phase;
-      if (typeof showMiniToast === "function") showMiniToast("fase " + phase + " ¡ojo!", 1600);
+      const tip =
+        id === "paimon"
+          ? (phase === 2 ? "¡Paimon saca las estrellas!" : phase === 3 ? "¡modo emergencia!" : "fase 1")
+          : ("fase " + phase + " ¡ojo!");
+      if (typeof showMiniToast === "function") showMiniToast(tip, 1600);
       if (global.VFX) VFX.shake(6);
     }
     boss.patternT = (boss.patternT || 0) + 16;
@@ -371,10 +375,25 @@
     const by = boss.y + boss.height;
     const now = gameNow();
 
-    // Astraeus: ráfagas + meteoros (base ya existe); fase 3 anillos
-    if (id === "astraeus" && phase >= 2 && now - (boss._ringAt || 0) > (phase === 3 ? 2200 : 3200)) {
-      fireRing(bx, by, phase === 3 ? 12 : 8, 2.6, true);
-      boss._ringAt = now;
+    // Paimon: estrellas teal + “bocadillos” guiados (comida de emergencia)
+    if (id === "paimon") {
+      if (now - (boss._starAt || 0) > (phase === 3 ? 900 : phase === 2 ? 1300 : 1800)) {
+        // abanico de estrellitas
+        fireFan(bx, by, 3 + phase, 0.28, 3.0 + phase * 0.15);
+        boss._starAt = now;
+      }
+      if (phase >= 2 && now - (boss._foodAt || 0) > (phase === 3 ? 1100 : 1600)) {
+        // orbes “comida” (balas witch = pétalo/estrella visual)
+        fireRing(bx, by, phase === 3 ? 10 : 7, 2.5, true);
+        fireAimed(bx, by, 3.8, "jefe:paimon");
+        boss._foodAt = now;
+      }
+      if (phase >= 3 && now - (boss._rageAt || 0) > 2200) {
+        fireAimed(bx - 50, by, 4.2, "jefe:paimon");
+        fireAimed(bx + 50, by, 4.2, "jefe:paimon");
+        fireFan(bx, by, 5, 0.22, 3.6);
+        boss._rageAt = now;
+      }
     }
 
     // Walpurgia: pétalos densos
